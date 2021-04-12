@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{78cfc9b1-79f2-4b05-8dd8-852e32b06ef6}</ProjectGuid>
+    <RootNamespace>AvifFormat</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>Av1Image</TargetName>
+    <TargetExt>.8bi</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>Av1Image</TargetName>
+    <TargetExt>.8bi</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>Av1Image</TargetName>
+    <TargetExt>.8bi</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>Av1Image</TargetName>
+    <TargetExt>.8bi</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;AVIFFORMAT_EXPORTS;_WINDOWS;_USRDLL;NOMINMAX;LIBHEIF_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <AdditionalDependencies>aom.lib;heif.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\3rd-party\libheif\build32\libheif\Debug;..\3rd-party\aom\build32\Debug</AdditionalLibraryDirectories>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\src\common;$(IntDir)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;AVIFFORMAT_EXPORTS;_WINDOWS;_USRDLL;NOMINMAX;LIBHEIF_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <AdditionalDependencies>aom.lib;heif.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\3rd-party\libheif\build32\libheif\Release;..\3rd-party\aom\build32\Release</AdditionalLibraryDirectories>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\src\common;$(IntDir)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;AVIFFORMAT_EXPORTS;_WINDOWS;_USRDLL;WIN32;NOMINMAX;LIBHEIF_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>..\3rd-party\libheif\build64\libheif\Debug;..\3rd-party\aom\build64\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>aom.lib;heif.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\src\common;$(IntDir)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>copy "$(TargetPath)" "D:\Adobe CC Apps\Adobe Photoshop 2020\Plug-ins\File Formats" /y</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;AVIFFORMAT_EXPORTS;_WINDOWS;_USRDLL;WIN32;NOMINMAX;LIBHEIF_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>..\3rd-party\libheif\build64\libheif\Release;..\3rd-party\aom\build64\Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>aom.lib;heif.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\src\common;$(IntDir)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>copy "$(TargetPath)" "D:\Adobe CC Apps\Adobe Photoshop 2020\Plug-ins\File Formats" /y</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\common\AvifFormat.h" />
+    <ClInclude Include="..\src\common\AvifFormatTerminology.h" />
+    <ClInclude Include="..\src\common\Common.h" />
+    <ClInclude Include="..\src\common\FileIO.h" />
+    <ClInclude Include="..\src\common\HostMetadata.h" />
+    <ClInclude Include="..\src\common\LibHeifException.h" />
+    <ClInclude Include="..\src\common\OSErrException.h" />
+    <ClInclude Include="..\src\common\ReadMetadata.h" />
+    <ClInclude Include="..\src\common\ScopedBufferSuite.h" />
+    <ClInclude Include="..\src\common\ScopedHandleSuite.h" />
+    <ClInclude Include="..\src\common\ScopedHeif.h" />
+    <ClInclude Include="..\src\common\version.h" />
+    <ClInclude Include="..\src\common\WriteMetadata.h" />
+    <ClInclude Include="..\src\win\FileIOWin.h" />
+    <ClInclude Include="..\src\win\MemoryWin.h" />
+    <ClInclude Include="..\src\win\resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\common\AvifFormat.cpp" />
+    <ClCompile Include="..\src\common\BigDocument.cpp" />
+    <ClCompile Include="..\src\common\Common.cpp" />
+    <ClCompile Include="..\src\common\Estimate.cpp" />
+    <ClCompile Include="..\src\common\FileIO.cpp" />
+    <ClCompile Include="..\src\common\HostMetadata.cpp" />
+    <ClCompile Include="..\src\common\Memory.cpp" />
+    <ClCompile Include="..\src\common\Options.cpp" />
+    <ClCompile Include="..\src\common\Read.cpp" />
+    <ClCompile Include="..\src\common\ReadMetadata.cpp" />
+    <ClCompile Include="..\src\common\Scripting.cpp" />
+    <ClCompile Include="..\src\common\Utilities.cpp" />
+    <ClCompile Include="..\src\common\Write.cpp" />
+    <ClCompile Include="..\src\common\WriteMetadata.cpp" />
+    <ClCompile Include="..\src\win\dllmain.cpp" />
+    <ClCompile Include="..\src\win\FileIOWin.cpp" />
+    <ClCompile Include="..\src\win\MemoryWin.cpp" />
+    <ClCompile Include="..\src\win\UIWin.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\src\win\PiPL.rc" />
+    <ResourceCompile Include="..\src\win\AvifFormat.rc" />
+    <ResourceCompile Include="..\src\win\version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\src\common\AvifFormat.r">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cl /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Includes /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\Photoshop /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\PICA_SP /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\resources /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Resources /EP /DMSWindows=1 /DWIN32=1 /Tc"%(FullPath)" &gt; "$(IntDir)%(Filename).rr"
+..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\resources\cnvtpipl.exe "$(IntDir)%(Filename).rr" "$(IntDir)%(Filename).pipl"
+del "$(IntDir)%(Filename).rr"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).pipl;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cl /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Includes /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\Photoshop /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\PICA_SP /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\resources /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Resources /EP /DMSWindows=1 /DWIN32=1 /Tc"%(FullPath)" &gt; "$(IntDir)%(Filename).rr"
+..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\resources\cnvtpipl.exe "$(IntDir)%(Filename).rr" "$(IntDir)%(Filename).pipl"
+del "$(IntDir)%(Filename).rr"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).pipl;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">cl /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Includes /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\Photoshop /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\PICA_SP /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\resources /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Resources /EP /DMSWindows=1 /DWIN32=1 /Tc"%(FullPath)" &gt; "$(IntDir)%(Filename).rr"
+..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\resources\cnvtpipl.exe "$(IntDir)%(Filename).rr" "$(IntDir)%(Filename).pipl"
+del "$(IntDir)%(Filename).rr"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).pipl;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">cl /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Includes /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\Photoshop /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\PICA_SP /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\resources /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Resources /EP /DMSWindows=1 /DWIN32=1 /Tc"%(FullPath)" &gt; "$(IntDir)%(Filename).rr"
+..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\resources\cnvtpipl.exe "$(IntDir)%(Filename).rr" "$(IntDir)%(Filename).pipl"
+del "$(IntDir)%(Filename).rr"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).pipl;%(Outputs)</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
