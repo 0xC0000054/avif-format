@@ -2,8 +2,11 @@
 
 An AV1 Image (AVIF) file format plug-in for Adobe® Photoshop®.
 
-Single images can be loaded and saved using 8, 10 or 12 bits-per-channel.
-Lossless RGB compression is supported when saving 8-bits-per-channel images.
+Single images can be loaded and saved using 8, 10 or 12 bits-per-channel, image sequences and animations are not supported.
+
+Lossless RGB compression is supported when saving 8-bits-per-channel images, the plug-in considers all bit-depth conversions to be lossy.
+Photoshop edits 10-bit and 12-bit data as 16-bit which then has to be remapped to the 10-bit or 12-bit range when saving, and converting
+8-bit data to 10-bit or 12-bit will cause a loss of precision.
 
 This plug-in uses [libheif](https://github.com/strukturag/libheif) with the [AOM](https://aomedia.googlesource.com/aom/) decoder and encoder.
 
