@@ -99,6 +99,7 @@
       <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -126,6 +127,7 @@
       <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -153,6 +155,7 @@
       <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -183,6 +186,7 @@
       <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
