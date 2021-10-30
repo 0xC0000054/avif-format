@@ -105,7 +105,7 @@ namespace
 
         ScopedHeifEncoder encoder = GetDefaultAV1Encoder(context);
 
-        if (saveOptions.lossless)
+        if (formatRecord->depth == 8 && saveOptions.lossless)
         {
             heif_encoder_set_lossy_quality(encoder.get(), 100);
             heif_encoder_set_lossless(encoder.get(), true);
