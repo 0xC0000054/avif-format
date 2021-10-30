@@ -25,6 +25,7 @@
 #include "ScopedBufferSuite.h"
 #include "ScopedHeif.h"
 #include "WriteMetadata.h"
+#include <algorithm>
 #include <thread>
 #include <vector>
 
@@ -157,12 +158,8 @@ namespace
             throw std::runtime_error(GetUnsupportedEncoderMessage(encoderName));
         }
 
-        unsigned int threadCount = std::thread::hardware_concurrency();
-
-        if (threadCount >= 1 && threadCount <= 16)
-        {
-            heif_encoder_set_parameter_integer(encoder.get(), "threads", static_cast<int>(threadCount));
-        }
+        const unsigned int threadCount = std::clamp(std::thread::hardware_concurrency(), 1U, 16U);
+        heif_encoder_set_parameter_integer(encoder.get(), "threads", static_cast<int>(threadCount));
 
         ScopedHeifEncodingOptions encodingOptions(heif_encoding_options_alloc());
 
