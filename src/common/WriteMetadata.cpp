@@ -88,27 +88,30 @@ namespace
         {
             const int32 exifSize = exif.GetSize();
 
-            // The EXIF data block has a header that indicates the number of bytes
-            // that come before the start of the TIFF header.
-            // See ISO/IEC 23008-12:2017 section A.2.1.
-            const int64 exifSizeWithHeader = static_cast<int64>(exifSize) + 4;
-
-            if (exifSizeWithHeader <= std::numeric_limits<int32>::max())
+            if (exifSize > 0)
             {
-                ScopedHandleSuiteLock lock = exif.Lock();
-                void* exifDataPtr = lock.Data();
+                // The EXIF data block has a header that indicates the number of bytes
+                // that come before the start of the TIFF header.
+                // See ISO/IEC 23008-12:2017 section A.2.1.
+                const int64 exifSizeWithHeader = static_cast<int64>(exifSize) + 4;
 
-                if (exifDataPtr != nullptr)
+                if (exifSizeWithHeader <= std::numeric_limits<int32>::max())
                 {
-                    buffer.Reset(static_cast<int32>(exifSizeWithHeader));
+                    ScopedHandleSuiteLock lock = exif.Lock();
+                    void* exifDataPtr = lock.Data();
 
-                    uint8* destinationBuffer = static_cast<uint8*>(buffer.Lock());
+                    if (exifDataPtr != nullptr)
+                    {
+                        buffer.Reset(static_cast<int32>(exifSizeWithHeader));
 
-                    uint32_t* tiffHeaderOffset = reinterpret_cast<uint32_t*>(destinationBuffer);
-                    *tiffHeaderOffset = 0;
+                        uint8* destinationBuffer = static_cast<uint8*>(buffer.Lock());
 
-                    memcpy(destinationBuffer + sizeof(uint32_t), exifDataPtr, static_cast<size_t>(exifSize));
-                    result = true;
+                        uint32_t* tiffHeaderOffset = reinterpret_cast<uint32_t*>(destinationBuffer);
+                        *tiffHeaderOffset = 0;
+
+                        memcpy(destinationBuffer + sizeof(uint32_t), exifDataPtr, static_cast<size_t>(exifSize));
+                        result = true;
+                    }
                 }
             }
         }
@@ -162,12 +165,15 @@ void AddXmpMetadata(const FormatRecordPtr formatRecord, heif_context* context, h
     {
         const int32 xmpSize = xmp.GetSize();
 
-        ScopedHandleSuiteLock lock = xmp.Lock();
-        void* ptr = lock.Data();
-
-        if (ptr != nullptr)
+        if (xmpSize > 0)
         {
-            LibHeifException::ThrowIfError(heif_context_add_XMP_metadata(context, imageHandle, ptr, xmpSize));
+            ScopedHandleSuiteLock lock = xmp.Lock();
+            void* ptr = lock.Data();
+
+            if (ptr != nullptr)
+            {
+                LibHeifException::ThrowIfError(heif_context_add_XMP_metadata(context, imageHandle, ptr, xmpSize));
+            }
         }
     }
 }
