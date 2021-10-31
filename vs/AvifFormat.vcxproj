@@ -172,7 +172,7 @@
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "D:\Adobe CC Apps\Adobe Photoshop 2020\Plug-ins\File Formats" /y</Command>
+      <Command>copy "$(TargetPath)" "D:\Adobe CC Apps\Adobe Photoshop 2021\Plug-ins\File Formats" /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -205,7 +205,7 @@
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "D:\Adobe CC Apps\Adobe Photoshop 2020\Plug-ins\File Formats" /y</Command>
+      <Command>copy "$(TargetPath)" "D:\Adobe CC Apps\Adobe Photoshop 2021\Plug-ins\File Formats" /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
