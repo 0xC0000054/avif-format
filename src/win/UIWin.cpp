@@ -18,15 +18,26 @@
  * along with avif-format.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef _MSC_VER
+#pragma warning(push)
+// Disable C4505: unreferenced function with internal linkage has been removed
+#pragma warning(disable: 4505)
+#endif //  _MSC_VER
+
 #include "AvifFormat.h"
 #include "HostMetadata.h"
 #include "resource.h"
 #include "version.h"
+#include <aom/aom.h>
+#include <libheif/heif.h>
 #include <CommCtrl.h>
-#include <tchar.h>
 #include <windowsx.h>
 #include <algorithm>
 #include <array>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif //  _MSC_VER
 
 namespace
 {
@@ -94,11 +105,19 @@ namespace
 
     void InitAboutDialog(HWND hDlg) noexcept
     {
-        TCHAR s[256]{}, format[256]{};
+        char s[256]{}, format[256]{};
 
-        GetDlgItemText(hDlg, ABOUTFORMAT, format, 256);
-        _sntprintf_s(s, _countof(s), format, TEXT(VI_VERSION_STR));
-        SetDlgItemText(hDlg, ABOUTFORMAT, s);
+        GetDlgItemTextA(hDlg, ABOUTFORMAT, format, 256);
+        _snprintf_s(s, _countof(s), format, VI_VERSION_STR);
+        SetDlgItemTextA(hDlg, ABOUTFORMAT, s);
+
+        GetDlgItemTextA(hDlg, IDC_LIBHEIFVERSION, format, 256);
+        _snprintf_s(s, _countof(s), format, LIBHEIF_VERSION);
+        SetDlgItemTextA(hDlg, IDC_LIBHEIFVERSION, s);
+
+        GetDlgItemTextA(hDlg, IDC_AOMVERSION, format, 256);
+        _snprintf_s(s, _countof(s), format, aom_codec_version_str());
+        SetDlgItemTextA(hDlg, IDC_AOMVERSION, s);
     }
 
     INT_PTR CALLBACK AboutDlgProc(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lParam) noexcept
