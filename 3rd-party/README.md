@@ -8,7 +8,7 @@ You will need to download the Adobe Photoshop CS5 SDK from http://www.adobe.com/
 
 Clone AOM from your preferred tag:
 
-`git clone -b v3.0.0 --depth 1 https://aomedia.googlesource.com/aom`
+`git clone -b v3.2.0 --depth 1 https://aomedia.googlesource.com/aom`
 
 Change into the `aom` directory and create a build directory.
 In this example a 64-bit build using Visual Studio 2019 is used. 
@@ -24,7 +24,7 @@ The generated AOM library should be located in `aom/build64/Release`, this libra
 
 Clone libheif from your preferred tag:
 
-`git clone -b v1.11.0 --depth 1 https://github.com/strukturag/libheif`
+`git clone -b v1.12.0 --depth 1 https://github.com/strukturag/libheif`
 
 Change into the `libheif` directory and create a build directory.
 In this example a 64-bit build using Visual Studio 2019 is used. 
