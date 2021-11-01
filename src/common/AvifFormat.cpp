@@ -43,24 +43,30 @@ namespace
         constexpr int bufferSize = 50;
         uint8_t buffer[bufferSize] = {};
 
-        OSErr err = ReadData(formatRecord->dataFork, buffer, bufferSize);
+        // Seek to the start of the file.
+        OSErr err = SetFilePosition(formatRecord->dataFork, 0);
 
         if (err == noErr)
         {
-            try
+            err = ReadData(formatRecord->dataFork, buffer, bufferSize);
+
+            if (err == noErr)
             {
-                if (!heif_has_compatible_brand(buffer, bufferSize, "avif"))
+                try
+                {
+                    if (!heif_has_compatible_brand(buffer, bufferSize, "avif"))
+                    {
+                        err = formatCannotRead;
+                    }
+                }
+                catch (const std::bad_alloc&)
+                {
+                    err = memFullErr;
+                }
+                catch (...)
                 {
                     err = formatCannotRead;
                 }
-            }
-            catch (const std::bad_alloc&)
-            {
-                err = memFullErr;
-            }
-            catch (...)
-            {
-                err = formatCannotRead;
             }
         }
 

@@ -145,6 +145,9 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
             throw std::bad_alloc();
         }
 
+        // Seek to the start of the file.
+        OSErrException::ThrowIfError(SetFilePosition(formatRecord->dataFork, 0));
+
         LibHeifException::ThrowIfError(heif_context_read_from_reader(
             context.get(),
             &readerCallbacks,
