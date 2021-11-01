@@ -379,8 +379,6 @@ namespace
     }
 }
 
-
-
 bool DescriptorSuiteIsAvailable(const FormatRecordPtr formatRecord)
 {
     static bool descriptorSuiteAvailable = HostDescriptorAvailable(formatRecord->descriptorParameters);
