@@ -76,7 +76,7 @@ resource 'PiPL' (ResourceID, plugInName " PiPL", purgeable)
         HasTerminology { plugInClassID,
                          plugInEventID,
                          ResourceID,
-                         "597B1E83-4F1B-4A1E-9BF8-0768DA0D2763" },
+                         vendorName " " plugInName },
 
         SupportedModes
         {
