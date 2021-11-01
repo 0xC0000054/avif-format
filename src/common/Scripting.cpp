@@ -117,7 +117,7 @@ OSErr ReadScriptParamsOnWrite(FormatRecordPtr formatRecord, SaveUIOptions& optio
         *showDialog = true;
     }
 
-    if (DescriptorSuiteIsAvaliable(formatRecord))
+    if (DescriptorSuiteIsAvailable(formatRecord))
     {
         DescriptorKeyID				key = 0;
         DescriptorTypeID			type = 0;
@@ -219,7 +219,7 @@ OSErr WriteScriptParamsOnWrite(FormatRecordPtr formatRecord, const SaveUIOptions
 {
     OSErr error = noErr;
 
-    if (DescriptorSuiteIsAvaliable(formatRecord))
+    if (DescriptorSuiteIsAvailable(formatRecord))
     {
         WriteDescriptorProcs* writeProcs = formatRecord->descriptorParameters->writeDescriptorProcs;
 

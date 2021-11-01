@@ -117,7 +117,7 @@ OSErr WriteScriptParamsOnWrite(FormatRecordPtr formatRecord, const SaveUIOptions
 
 // Utility functions
 
-bool DescriptorSuiteIsAvaliable(const FormatRecordPtr formatRecord);
+bool DescriptorSuiteIsAvailable(const FormatRecordPtr formatRecord);
 bool HandleSuiteIsAvailable(const FormatRecordPtr formatRecord);
 bool HostImageModeSupported(const FormatRecordPtr formatRecord);
 bool HostSupportsRequiredFeatures(const FormatRecordPtr formatRecord);
