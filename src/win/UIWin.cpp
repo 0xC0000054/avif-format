@@ -374,7 +374,7 @@ namespace
 
             CenterDialog(hDlg);
             InitSaveDialog(hDlg, state);
-            break;
+            return TRUE;
         case WM_COMMAND:
             item = LOWORD(wParam);
             cmd = HIWORD(wParam);
@@ -550,12 +550,9 @@ namespace
                 break;
             }
             break;
-
-        default:
-            return FALSE;
         }
 
-        return TRUE;
+        return FALSE;
     }
 }
 
