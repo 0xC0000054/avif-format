@@ -86,6 +86,7 @@ namespace
         globals->saveOptions.keepColorProfile = false;
         globals->saveOptions.keepExif = false;
         globals->saveOptions.keepXmp = false;
+        globals->saveOptions.premultipliedAlpha = false;
     }
 }
 

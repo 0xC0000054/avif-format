@@ -54,6 +54,7 @@ struct SaveUIOptions
     bool keepColorProfile;
     bool keepExif;
     bool keepXmp;
+    bool premultipliedAlpha;
 };
 
 struct Globals

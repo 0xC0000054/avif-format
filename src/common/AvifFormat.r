@@ -179,6 +179,12 @@ resource 'aete' (ResourceID, plugInName " dictionary", purgeable)
                 "",
                 flagsSingleProperty,
 
+                "premultiplied alpha",
+                keyPremultipliedAlpha,
+                typeBoolean,
+                "",
+                flagsSingleProperty,
+
                 "image depth",
                 keyImageBitDepth,
                 typeImageBitDepth,

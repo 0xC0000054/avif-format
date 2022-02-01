@@ -22,6 +22,7 @@
 #include "FileIO.h"
 #include "LibHeifException.h"
 #include "OSErrException.h"
+#include "PremultipliedAlpha.h"
 #include "ScopedBufferSuite.h"
 #include "ScopedHeif.h"
 #include "WriteMetadata.h"
@@ -631,6 +632,14 @@ OSErr DoWriteStart(FormatRecordPtr formatRecord, SaveUIOptions& options)
                     heifImageData,
                     heifImageStride,
                     heifImageBitDepth);
+            }
+
+            // The premultiplied alpha conversion can cause colors to drift, so it is
+            // disabled for lossless compression.
+            if (hasAlpha && options.premultipliedAlpha && !options.lossless)
+            {
+                PremultiplyAlpha(heifImageData, imageSize.h, imageSize.v, heifImageStride, heifImageBitDepth);
+                heif_image_set_premultiplied_alpha(image.get(), true);
             }
         }
 

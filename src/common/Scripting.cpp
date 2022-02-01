@@ -190,6 +190,12 @@ OSErr ReadScriptParamsOnWrite(FormatRecordPtr formatRecord, SaveUIOptions& optio
                         options.keepXmp = boolValue;
                     }
                     break;
+                case keyPremultipliedAlpha:
+                    if (readProcs->getBooleanProc(token, &boolValue) == noErr)
+                    {
+                        options.premultipliedAlpha = boolValue;
+                    }
+                    break;
                 case typeImageBitDepth:
                     if (readProcs->getEnumeratedProc(token, &enumValue) == noErr)
                     {
@@ -263,6 +269,11 @@ OSErr WriteScriptParamsOnWrite(FormatRecordPtr formatRecord, const SaveUIOptions
             if (options.keepXmp)
             {
                 writeProcs->putBooleanProc(token, keyKeepXMP, options.keepXmp);
+            }
+
+            if (options.premultipliedAlpha)
+            {
+                writeProcs->putBooleanProc(token, keyPremultipliedAlpha, options.premultipliedAlpha);
             }
 
             enumValue = ImageBitDepthToDescriptor(options.imageBitDepth);

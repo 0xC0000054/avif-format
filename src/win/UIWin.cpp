@@ -190,6 +190,7 @@ namespace
             hasColorProfile(HasColorProfileMetadata(formatRecord)),
             hasExif(HasExifMetadata(formatRecord)),
             hasXmp(HasXmpMetadata(formatRecord)),
+            hasAlphaChannel(formatRecord->planes == 4),
             losslessCheckboxEnabled(formatRecord->depth == 8)
         {
             options.quality = saveOptions.quality;
@@ -200,6 +201,7 @@ namespace
             options.keepColorProfile = saveOptions.keepColorProfile && hasColorProfile;
             options.keepExif = saveOptions.keepExif && hasExif;
             options.keepXmp = saveOptions.keepXmp && hasXmp;
+            options.premultipliedAlpha = saveOptions.premultipliedAlpha && hasAlphaChannel;
         }
 
         const SaveUIOptions& GetSaveOptions() const
@@ -240,6 +242,7 @@ namespace
             EnableWindow(GetDlgItem(hDlg, IDC_QUALITY_EDIT), enabled);
             EnableWindow(GetDlgItem(hDlg, IDC_QUALITY_EDIT_SPIN), enabled);
             EnableWindow(GetDlgItem(hDlg, IDC_CHROMA_SUBSAMPLING_COMBO), enabled);
+            EnableWindow(GetDlgItem(hDlg, IDC_PREMULTIPLIED_ALPHA_CHECK), enabled);
         }
 
         void InitializeDialog(HWND hDlg) noexcept
@@ -254,6 +257,7 @@ namespace
             HWND keepColorProfileCheckbox = GetDlgItem(hDlg, IDC_KEEP_COLOR_PROFILE_CHECK);
             HWND keepExifCheckbox = GetDlgItem(hDlg, IDC_KEEP_EXIF_CHECK);
             HWND keepXmpCheckbox = GetDlgItem(hDlg, IDC_KEEP_XMP_CHECK);
+            HWND premultipliedAlphaCheckbox = GetDlgItem(hDlg, IDC_PREMULTIPLIED_ALPHA_CHECK);
             HWND pixelDepthCombo = GetDlgItem(hDlg, IDC_IMAGE_DEPTH_COMBO);
 
             SendMessage(qualitySlider, TBM_SETRANGEMIN, FALSE, 0);
@@ -367,6 +371,17 @@ namespace
                 EnableWindow(keepXmpCheckbox, false);
             }
 
+            if (hasAlphaChannel)
+            {
+                Button_SetCheck(premultipliedAlphaCheckbox, options.premultipliedAlpha);
+                EnableWindow(premultipliedAlphaCheckbox, true);
+            }
+            else
+            {
+                Button_SetCheck(premultipliedAlphaCheckbox, false);
+                EnableWindow(premultipliedAlphaCheckbox, false);
+            }
+
             SendMessage(pixelDepthCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("8-bit")));
             SendMessage(pixelDepthCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("10-bit")));
             SendMessage(pixelDepthCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("12-bit")));
@@ -445,6 +460,9 @@ namespace
                         break;
                     case IDC_KEEP_XMP_CHECK:
                         options.keepXmp = Button_GetCheck(controlHwnd) == BST_CHECKED;
+                        break;
+                    case IDC_PREMULTIPLIED_ALPHA_CHECK:
+                        options.premultipliedAlpha = Button_GetCheck(controlHwnd) == BST_CHECKED;
                         break;
                     case IDC_LOSSLESS_CHECK:
                         options.lossless = Button_GetCheck(controlHwnd) == BST_CHECKED;
@@ -579,6 +597,7 @@ namespace
         const bool hasColorProfile;
         const bool hasExif;
         const bool hasXmp;
+        const bool hasAlphaChannel;
         bool losslessCheckboxEnabled; // Used to track state when changing the save bit-depth.
     };
 }
@@ -617,6 +636,7 @@ bool DoSaveUI(const FormatRecordPtr formatRecord, SaveUIOptions& options)
         options.keepColorProfile = dialogOptions.keepColorProfile;
         options.keepExif = dialogOptions.keepExif;
         options.keepXmp = dialogOptions.keepXmp;
+        options.premultipliedAlpha = dialogOptions.premultipliedAlpha;
 
         return true;
     }

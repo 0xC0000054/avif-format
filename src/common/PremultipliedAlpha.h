@@ -23,6 +23,8 @@
 
 #include "Common.h"
 
+void PremultiplyAlpha(uint8_t* data, int width, int height, int stride, int bitDepth);
+
 void UnpremultiplyAlpha(uint8_t* data, int width, int height, int stride, int bitDepth);
 
 #endif // PREMULTIPLIEDALPHA_H

@@ -44,6 +44,7 @@
 #define keyKeepColorProfile 'kpmC'
 #define keyKeepEXIF 'kpmE'
 #define keyKeepXMP 'kpmX'
+#define keyPremultipliedAlpha 'pmAl'
 #define keyImageBitDepth 'av1B'
 
 #define typeCompressionSpeed 'coSp'
