@@ -90,6 +90,9 @@
     <TargetName>Av1Image</TargetName>
     <TargetExt>.8bi</TargetExt>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
@@ -216,6 +219,7 @@
     <ClInclude Include="..\src\common\HostMetadata.h" />
     <ClInclude Include="..\src\common\LibHeifException.h" />
     <ClInclude Include="..\src\common\OSErrException.h" />
+    <ClInclude Include="..\src\common\PremultipliedAlpha.h" />
     <ClInclude Include="..\src\common\ReadMetadata.h" />
     <ClInclude Include="..\src\common\ScopedBufferSuite.h" />
     <ClInclude Include="..\src\common\ScopedHandleSuite.h" />
@@ -235,6 +239,7 @@
     <ClCompile Include="..\src\common\HostMetadata.cpp" />
     <ClCompile Include="..\src\common\Memory.cpp" />
     <ClCompile Include="..\src\common\Options.cpp" />
+    <ClCompile Include="..\src\common\PremultipliedAlpha.cpp" />
     <ClCompile Include="..\src\common\Read.cpp" />
     <ClCompile Include="..\src\common\ReadMetadata.cpp" />
     <ClCompile Include="..\src\common\Scripting.cpp" />

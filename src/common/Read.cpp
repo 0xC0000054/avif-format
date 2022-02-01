@@ -23,6 +23,7 @@
 #include "LibHeifException.h"
 #include "OSErrException.h"
 #include "ReadMetadata.h"
+#include "PremultipliedAlpha.h"
 #include "ScopedHeif.h"
 #include <memory>
 
@@ -209,6 +210,11 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
 
         int stride;
         uint8_t* data = heif_image_get_plane(image.get(), heif_channel_interleaved, &stride);
+
+        if (hasAlpha && heif_image_handle_is_premultiplied_alpha(primaryImage.get()))
+        {
+            UnpremultiplyAlpha(data, width, height, stride, lumaBitsPerPixel);
+        }
 
         formatRecord->data = data;
         formatRecord->planes = hasAlpha ? 4 : 3;
