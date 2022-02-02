@@ -198,6 +198,7 @@ namespace
             options.compressionSpeed = saveOptions.compressionSpeed;
             options.imageBitDepth = formatRecord->depth == 8 ? ImageBitDepth::Eight : saveOptions.imageBitDepth;
             options.lossless = saveOptions.lossless && losslessCheckboxEnabled;
+            options.losslessAlpha = saveOptions.losslessAlpha && losslessCheckboxEnabled;
             options.keepColorProfile = saveOptions.keepColorProfile && hasColorProfile;
             options.keepExif = saveOptions.keepExif && hasExif;
             options.keepXmp = saveOptions.keepXmp && hasXmp;
@@ -253,6 +254,7 @@ namespace
             HWND qualityEditBox = GetDlgItem(hDlg, IDC_QUALITY_EDIT);
             HWND qualityEditUpDown = GetDlgItem(hDlg, IDC_QUALITY_EDIT_SPIN);
             HWND losslessCheckbox = GetDlgItem(hDlg, IDC_LOSSLESS_CHECK);
+            HWND losslessAlphaCheckbox = GetDlgItem(hDlg, IDC_LOSSLESS_ALPHA_CHECK);
             HWND chromaSubsamplingCombo = GetDlgItem(hDlg, IDC_CHROMA_SUBSAMPLING_COMBO);
             HWND keepColorProfileCheckbox = GetDlgItem(hDlg, IDC_KEEP_COLOR_PROFILE_CHECK);
             HWND keepExifCheckbox = GetDlgItem(hDlg, IDC_KEEP_EXIF_CHECK);
@@ -277,11 +279,15 @@ namespace
                 Button_SetCheck(losslessCheckbox, options.lossless);
                 EnableWindow(losslessCheckbox, true);
                 EnableLossyCompressionSettings(hDlg, !options.lossless);
+                Button_SetCheck(losslessAlphaCheckbox, hasAlphaChannel && options.losslessAlpha);
+                EnableWindow(losslessAlphaCheckbox, hasAlphaChannel);
             }
             else
             {
                 Button_SetCheck(losslessCheckbox, false);
                 EnableWindow(losslessCheckbox, false);
+                Button_SetCheck(losslessAlphaCheckbox, false);
+                EnableWindow(losslessAlphaCheckbox, false);
             }
 
             // Swap the tab order of the Chroma Subsampling combo box and the Default compression speed radio button.
@@ -466,7 +472,11 @@ namespace
                         break;
                     case IDC_LOSSLESS_CHECK:
                         options.lossless = Button_GetCheck(controlHwnd) == BST_CHECKED;
+                        EnableWindow(GetDlgItem(hDlg, IDC_LOSSLESS_ALPHA_CHECK), !options.lossless);
                         EnableLossyCompressionSettings(hDlg, !options.lossless);
+                        break;
+                    case IDC_LOSSLESS_ALPHA_CHECK:
+                        options.losslessAlpha = Button_GetCheck(controlHwnd) == BST_CHECKED;
                         break;
                     case IDOK:
                     case IDCANCEL:
@@ -538,6 +548,14 @@ namespace
                                     }
 
                                     EnableWindow(losslessCheck, false);
+                                    if (hasAlphaChannel)
+                                    {
+                                        HWND losslessAlphaCheck = GetDlgItem(hDlg, IDC_LOSSLESS_ALPHA_CHECK);
+
+                                        losslessAlphaChecked = Button_GetCheck(losslessAlphaCheck) == BST_CHECKED;
+                                        Button_SetCheck(losslessAlphaCheck, BST_UNCHECKED);
+                                        EnableWindow(losslessAlphaCheck, false);
+                                    }
                                 }
                             }
                             else
@@ -547,6 +565,13 @@ namespace
                                     losslessCheckboxEnabled = true;
 
                                     EnableWindow(GetDlgItem(hDlg, IDC_LOSSLESS_CHECK), true);
+                                    if (hasAlphaChannel)
+                                    {
+                                        HWND losslessAlphaCheck = GetDlgItem(hDlg, IDC_LOSSLESS_ALPHA_CHECK);
+
+                                        Button_SetCheck(losslessAlphaCheck, losslessAlphaChecked ? BST_CHECKED : BST_UNCHECKED);
+                                        EnableWindow(losslessAlphaCheck, true);
+                                    }
                                 }
                             }
                         }
@@ -599,6 +624,7 @@ namespace
         const bool hasXmp;
         const bool hasAlphaChannel;
         bool losslessCheckboxEnabled; // Used to track state when changing the save bit-depth.
+        bool losslessAlphaChecked;
     };
 }
 

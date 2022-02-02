@@ -179,6 +179,12 @@ resource 'aete' (ResourceID, plugInName " dictionary", purgeable)
                 "",
                 flagsSingleProperty,
 
+                 "lossless alpha",
+                keyLosslessAlpha,
+                typeBoolean,
+                "",
+                flagsSingleProperty,
+
                 "premultiplied alpha",
                 keyPremultipliedAlpha,
                 typeBoolean,

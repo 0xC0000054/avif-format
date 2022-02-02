@@ -190,6 +190,12 @@ OSErr ReadScriptParamsOnWrite(FormatRecordPtr formatRecord, SaveUIOptions& optio
                         options.keepXmp = boolValue;
                     }
                     break;
+                case keyLosslessAlpha:
+                    if (readProcs->getBooleanProc(token, &boolValue) == noErr)
+                    {
+                        options.losslessAlpha = boolValue;
+                    }
+                    break;
                 case keyPremultipliedAlpha:
                     if (readProcs->getBooleanProc(token, &boolValue) == noErr)
                     {
@@ -269,6 +275,11 @@ OSErr WriteScriptParamsOnWrite(FormatRecordPtr formatRecord, const SaveUIOptions
             if (options.keepXmp)
             {
                 writeProcs->putBooleanProc(token, keyKeepXMP, options.keepXmp);
+            }
+
+            if (options.losslessAlpha)
+            {
+                writeProcs->putBooleanProc(token, keyLosslessAlpha, options.losslessAlpha);
             }
 
             if (options.premultipliedAlpha)

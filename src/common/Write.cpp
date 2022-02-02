@@ -132,6 +132,12 @@ namespace
             default:
                 throw OSErrException(formatBadParameters);
             }
+
+            if (formatRecord->depth == 8 && saveOptions.losslessAlpha)
+            {
+                heif_encoder_set_parameter_integer(encoder.get(), "alpha-quality", 100);
+                heif_encoder_set_parameter_boolean(encoder.get(), "lossless-alpha", true);
+            }
         }
 
         const char* encoderName = heif_encoder_get_name(encoder.get());

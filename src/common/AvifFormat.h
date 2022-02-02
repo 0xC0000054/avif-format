@@ -51,6 +51,7 @@ struct SaveUIOptions
     CompressionSpeed compressionSpeed;
     ImageBitDepth imageBitDepth;
     bool lossless;
+    bool losslessAlpha;
     bool keepColorProfile;
     bool keepExif;
     bool keepXmp;
