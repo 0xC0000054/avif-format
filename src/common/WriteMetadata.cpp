@@ -126,19 +126,17 @@ void AddColorProfileToImage(const FormatRecordPtr formatRecord, heif_image* imag
     {
         SetIccColorProfile(formatRecord, image, saveOptions);
     }
-    else
+
+    const heif_color_primaries primaries = heif_color_primaries_ITU_R_BT_709_5;
+    const heif_transfer_characteristics transferCharacteristics = heif_transfer_characteristic_IEC_61966_2_1;
+    heif_matrix_coefficients matrixCoefficients = heif_matrix_coefficients_ITU_R_BT_601_6;
+
+    if (saveOptions.lossless)
     {
-        const heif_color_primaries primaries = heif_color_primaries_ITU_R_BT_709_5;
-        const heif_transfer_characteristics transferCharacteristics = heif_transfer_characteristic_IEC_61966_2_1;
-        heif_matrix_coefficients matrixCoefficients = heif_matrix_coefficients_ITU_R_BT_601_6;
-
-        if (saveOptions.lossless)
-        {
-            matrixCoefficients = heif_matrix_coefficients_RGB_GBR;
-        }
-
-        SetNclxColorProfile(image, primaries, transferCharacteristics, matrixCoefficients);
+        matrixCoefficients = heif_matrix_coefficients_RGB_GBR;
     }
+
+    SetNclxColorProfile(image, primaries, transferCharacteristics, matrixCoefficients);
 }
 
 void AddExifMetadata(const FormatRecordPtr formatRecord, heif_context* context, heif_image_handle* imageHandle)
