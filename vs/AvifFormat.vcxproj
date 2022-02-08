@@ -102,7 +102,7 @@
       <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build32;..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -130,7 +130,7 @@
       <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build32;..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -158,7 +158,7 @@
       <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build64;..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -189,7 +189,7 @@
       <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build64;..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -215,6 +215,7 @@
     <ClInclude Include="..\src\common\AvifFormat.h" />
     <ClInclude Include="..\src\common\AvifFormatTerminology.h" />
     <ClInclude Include="..\src\common\Common.h" />
+    <ClInclude Include="..\src\common\ExifParser.h" />
     <ClInclude Include="..\src\common\FileIO.h" />
     <ClInclude Include="..\src\common\HostMetadata.h" />
     <ClInclude Include="..\src\common\LibHeifException.h" />
@@ -235,6 +236,7 @@
     <ClCompile Include="..\src\common\BigDocument.cpp" />
     <ClCompile Include="..\src\common\Common.cpp" />
     <ClCompile Include="..\src\common\Estimate.cpp" />
+    <ClCompile Include="..\src\common\ExifParser.cpp" />
     <ClCompile Include="..\src\common\FileIO.cpp" />
     <ClCompile Include="..\src\common\HostMetadata.cpp" />
     <ClCompile Include="..\src\common\Memory.cpp" />

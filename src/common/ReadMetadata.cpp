@@ -19,6 +19,7 @@
  */
 
 #include "ReadMetadata.h"
+#include "ExifParser.h"
 #include "LibHeifException.h"
 #include "OSErrException.h"
 #include "PIProperties.h"
@@ -28,20 +29,6 @@
 
 namespace
 {
-    bool CheckTiffFileSignature(const uint8* data, size_t dataLength)
-    {
-        // We must have at least 4 bytes to check the TIFF file signature.
-        if (dataLength < 4)
-        {
-            return false;
-        }
-
-        const char* const bigEndianTiffSignature = "MM\0*";
-        const char* const littleEndianTiffSignature = "II*\0";
-
-        return memcmp(data, bigEndianTiffSignature, 4) == 0 || memcmp(data, littleEndianTiffSignature, 4) == 0;
-    }
-
     bool HasIccProfile(const heif_image_handle* handle)
     {
         switch (heif_image_handle_get_color_profile_type(handle))
@@ -128,6 +115,10 @@ void ReadExifMetadata(const FormatRecordPtr formatRecord, const heif_image_handl
                 exifDataLength <= static_cast<size_t>(std::numeric_limits<int32>::max()) &&
                 CheckTiffFileSignature(exifBlock + headerStartOffset, exifDataLength))
             {
+                // Set the EXIF orientation value to top-left, this results in the host treating it as a no-op.
+                // The HEIF specification requires that readers ignore the EXIF orientation tag.
+                SetExifOrientationToTopLeft(exifBlock + headerStartOffset, exifDataLength);
+
                 Handle complexProperty = formatRecord->handleProcs->newProc(static_cast<int32>(exifDataLength));
 
                 if (complexProperty != nullptr)

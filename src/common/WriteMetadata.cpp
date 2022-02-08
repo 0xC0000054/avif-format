@@ -19,6 +19,7 @@
  */
 
 #include "WriteMetadata.h"
+#include "ExifParser.h"
 #include "HostMetadata.h"
 #include "LibHeifException.h"
 #include "ScopedBufferSuite.h"
