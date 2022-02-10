@@ -45,11 +45,18 @@ namespace
         return ScopedHeifImageHandle(encodedImageHandle);
     }
 
-    ScopedHeifEncoder GetDefaultAV1Encoder(heif_context* context)
+    ScopedHeifEncoder GetAOMEncoder(heif_context* context)
     {
         heif_encoder* tempEncoder;
 
-        LibHeifException::ThrowIfError(heif_context_get_encoder_for_format(context, heif_compression_AV1, &tempEncoder));
+        const heif_encoder_descriptor* aomEncoderDescriptor;
+
+        if (heif_context_get_encoder_descriptors(context, heif_compression_AV1, "aom", &aomEncoderDescriptor, 1) != 1)
+        {
+            throw std::runtime_error("Unable to get the AOM encoder descriptor.");
+        }
+
+        LibHeifException::ThrowIfError(heif_context_get_encoder(context, aomEncoderDescriptor, &tempEncoder));
 
         return ScopedHeifEncoder(tempEncoder);
     }
@@ -73,28 +80,6 @@ namespace
         LibHeifException::ThrowIfError(heif_context_write(context, &writer, reinterpret_cast<void*>(formatRecord->dataFork)));
     }
 
-    std::string GetUnsupportedEncoderMessage(const char* encoderName)
-    {
-        const int requiredLength = std::snprintf(nullptr, 0, "Unsupported AV1 encoder %s.", encoderName);
-
-        if (requiredLength <= 0)
-        {
-            return "Unsupported AV1 encoder.";
-        }
-
-        const size_t lengthWithTerminator = static_cast<size_t>(requiredLength) + 1;
-
-        auto buffer = std::make_unique<char[]>(lengthWithTerminator);
-
-        const int writtenLength = std::snprintf(
-            buffer.get(),
-            lengthWithTerminator,
-            "Unsupported AV1 encoder %s.",
-            encoderName);
-
-        return std::string(buffer.get(), buffer.get() + writtenLength);
-    }
-
     void EncodeAndSaveImage(
         const FormatRecordPtr formatRecord,
         heif_context* context,
@@ -105,7 +90,7 @@ namespace
 
         AddColorProfileToImage(formatRecord, image, saveOptions);
 
-        ScopedHeifEncoder encoder = GetDefaultAV1Encoder(context);
+        ScopedHeifEncoder encoder = GetAOMEncoder(context);
 
         if (formatRecord->depth == 8 && saveOptions.lossless)
         {
@@ -140,29 +125,20 @@ namespace
             }
         }
 
-        const char* encoderName = heif_encoder_get_name(encoder.get());
-
-        if (_strnicmp(encoderName, "AOM", 3) == 0)
+        switch (saveOptions.compressionSpeed)
         {
-            switch (saveOptions.compressionSpeed)
-            {
-            case CompressionSpeed::Fastest:
-                heif_encoder_set_parameter_integer(encoder.get(), "speed", 6);
-                heif_encoder_set_parameter_boolean(encoder.get(), "realtime", true);
-                break;
-            case CompressionSpeed::Slowest:
-                heif_encoder_set_parameter_integer(encoder.get(), "speed", 1);
-                break;
-            case CompressionSpeed::Default:
-                heif_encoder_set_parameter_integer(encoder.get(), "speed", 4);
-                break;
-            default:
-                throw OSErrException(formatBadParameters);
-            }
-        }
-        else
-        {
-            throw std::runtime_error(GetUnsupportedEncoderMessage(encoderName));
+        case CompressionSpeed::Fastest:
+            heif_encoder_set_parameter_integer(encoder.get(), "speed", 6);
+            heif_encoder_set_parameter_boolean(encoder.get(), "realtime", true);
+            break;
+        case CompressionSpeed::Slowest:
+            heif_encoder_set_parameter_integer(encoder.get(), "speed", 1);
+            break;
+        case CompressionSpeed::Default:
+            heif_encoder_set_parameter_integer(encoder.get(), "speed", 4);
+            break;
+        default:
+            throw OSErrException(formatBadParameters);
         }
 
         const unsigned int threadCount = std::clamp(std::thread::hardware_concurrency(), 1U, 16U);
