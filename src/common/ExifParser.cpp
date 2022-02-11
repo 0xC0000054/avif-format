@@ -61,7 +61,7 @@ namespace
 
     bool TryReadLong(const uint8* data, size_t startOffset, size_t dataLength, bool bigEndian, uint32& result)
     {
-        if ((startOffset + sizeof(uint32)) >= dataLength)
+        if ((startOffset + sizeof(uint32)) > dataLength)
         {
             result = 0;
             return false;
@@ -73,7 +73,7 @@ namespace
 
     bool TryReadShort(const uint8* data, size_t startOffset, size_t dataLength, bool bigEndian, uint16& result)
     {
-        if ((startOffset + sizeof(uint16)) >= dataLength)
+        if ((startOffset + sizeof(uint16)) > dataLength)
         {
             result = 0;
             return false;
