@@ -151,7 +151,7 @@ void SetExifOrientationToTopLeft(uint8* data, size_t dataLength)
 
                 const size_t directoryEntryLengthInBytes = static_cast<size_t>(directoryEntryCount) * tiffIfdEntrySize;
 
-                if ((offset + directoryEntryLengthInBytes) < length)
+                if ((offset + directoryEntryLengthInBytes) <= length)
                 {
                     constexpr uint16 orientationTag = 274;
                     constexpr uint16 orientationType = 3; // SHORT - 16-bit unsigned integer
