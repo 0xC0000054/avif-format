@@ -99,7 +99,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;AVIFFORMAT_EXPORTS;_WINDOWS;_USRDLL;NOMINMAX;LIBHEIF_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build32;..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -109,7 +109,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>aom.lib;heif.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\3rd-party\libheif\build32\libheif\Debug;..\3rd-party\aom\build32\Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\3rd-party\libheif\build-$(PlatformTarget)\libheif\$(ConfigurationName);..\3rd-party\aom\build-$(PlatformTarget)\$(ConfigurationName)</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\src\common;$(IntDir)</AdditionalIncludeDirectories>
@@ -127,7 +127,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;AVIFFORMAT_EXPORTS;_WINDOWS;_USRDLL;NOMINMAX;LIBHEIF_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build32;..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -139,7 +139,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>aom.lib;heif.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\3rd-party\libheif\build32\libheif\Release;..\3rd-party\aom\build32\Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\3rd-party\libheif\build-$(PlatformTarget)\libheif\$(ConfigurationName);..\3rd-party\aom\build-$(PlatformTarget)\$(ConfigurationName)</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\src\common;$(IntDir)</AdditionalIncludeDirectories>
@@ -155,7 +155,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;AVIFFORMAT_EXPORTS;_WINDOWS;_USRDLL;WIN32;NOMINMAX;LIBHEIF_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build64;..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -164,7 +164,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>..\3rd-party\libheif\build64\libheif\Debug;..\3rd-party\aom\build64\Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\3rd-party\libheif\build-$(PlatformTarget)\libheif\$(ConfigurationName);..\3rd-party\aom\build-$(PlatformTarget)\$(ConfigurationName)</AdditionalLibraryDirectories>
       <AdditionalDependencies>aom.lib;heif.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
@@ -186,7 +186,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;AVIFFORMAT_EXPORTS;_WINDOWS;_USRDLL;WIN32;NOMINMAX;LIBHEIF_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build64;..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -197,7 +197,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>..\3rd-party\libheif\build64\libheif\Release;..\3rd-party\aom\build64\Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\3rd-party\libheif\build-$(PlatformTarget)\libheif\$(ConfigurationName);..\3rd-party\aom\build-$(PlatformTarget)\$(ConfigurationName)</AdditionalLibraryDirectories>
       <AdditionalDependencies>aom.lib;heif.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
