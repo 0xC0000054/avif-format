@@ -99,7 +99,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;AVIFFORMAT_EXPORTS;_WINDOWS;_USRDLL;NOMINMAX;LIBHEIF_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -127,7 +127,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;AVIFFORMAT_EXPORTS;_WINDOWS;_USRDLL;NOMINMAX;LIBHEIF_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -155,7 +155,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;AVIFFORMAT_EXPORTS;_WINDOWS;_USRDLL;WIN32;NOMINMAX;LIBHEIF_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -186,7 +186,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;AVIFFORMAT_EXPORTS;_WINDOWS;_USRDLL;WIN32;NOMINMAX;LIBHEIF_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_cs5_sdk_win\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -261,20 +261,20 @@
   <ItemGroup>
     <CustomBuild Include="..\src\common\AvifFormat.r">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cl /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Includes /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\Photoshop /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\PICA_SP /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\resources /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Resources /EP /DMSWindows=1 /DWIN32=1 /Tc"%(FullPath)" &gt; "$(IntDir)%(Filename).rr"
-..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\resources\cnvtpipl.exe "$(IntDir)%(Filename).rr" "$(IntDir)%(Filename).pipl"
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">cl /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\Common\Includes /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\PhotoshopAPI\Photoshop /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\PhotoshopAPI\PICA_SP /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\PhotoshopAPI\resources /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\Common\Resources /EP /DMSWindows=1 /DWIN32=1 /Tc"%(FullPath)" &gt; "$(IntDir)%(Filename).rr"
+..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\resources\cnvtpipl.exe "$(IntDir)%(Filename).rr" "$(IntDir)%(Filename).pipl"
 del "$(IntDir)%(Filename).rr"</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename).pipl;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cl /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Includes /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\Photoshop /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\PICA_SP /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\resources /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Resources /EP /DMSWindows=1 /DWIN32=1 /Tc"%(FullPath)" &gt; "$(IntDir)%(Filename).rr"
-..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\resources\cnvtpipl.exe "$(IntDir)%(Filename).rr" "$(IntDir)%(Filename).pipl"
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">cl /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\Common\Includes /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\PhotoshopAPI\Photoshop /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\PhotoshopAPI\PICA_SP /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\PhotoshopAPI\resources /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\Common\Resources /EP /DMSWindows=1 /DWIN32=1 /Tc"%(FullPath)" &gt; "$(IntDir)%(Filename).rr"
+..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\resources\cnvtpipl.exe "$(IntDir)%(Filename).rr" "$(IntDir)%(Filename).pipl"
 del "$(IntDir)%(Filename).rr"</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename).pipl;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">cl /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Includes /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\Photoshop /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\PICA_SP /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\resources /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Resources /EP /DMSWindows=1 /DWIN32=1 /Tc"%(FullPath)" &gt; "$(IntDir)%(Filename).rr"
-..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\resources\cnvtpipl.exe "$(IntDir)%(Filename).rr" "$(IntDir)%(Filename).pipl"
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">cl /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\Common\Includes /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\PhotoshopAPI\Photoshop /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\PhotoshopAPI\PICA_SP /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\PhotoshopAPI\resources /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\Common\Resources /EP /DMSWindows=1 /DWIN32=1 /Tc"%(FullPath)" &gt; "$(IntDir)%(Filename).rr"
+..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\resources\cnvtpipl.exe "$(IntDir)%(Filename).rr" "$(IntDir)%(Filename).pipl"
 del "$(IntDir)%(Filename).rr"</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).pipl;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">cl /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Includes /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\Photoshop /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\PICA_SP /I..\3rd-party\adobe_photoshop_cs5_sdk_win\PhotoshopAPI\resources /I..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\Common\Resources /EP /DMSWindows=1 /DWIN32=1 /Tc"%(FullPath)" &gt; "$(IntDir)%(Filename).rr"
-..\3rd-party\adobe_photoshop_cs5_sdk_win\samplecode\resources\cnvtpipl.exe "$(IntDir)%(Filename).rr" "$(IntDir)%(Filename).pipl"
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">cl /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\Common\Includes /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\PhotoshopAPI\Photoshop /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\PhotoshopAPI\PICA_SP /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\PhotoshopAPI\resources /I..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\Common\Resources /EP /DMSWindows=1 /DWIN32=1 /Tc"%(FullPath)" &gt; "$(IntDir)%(Filename).rr"
+..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\resources\cnvtpipl.exe "$(IntDir)%(Filename).rr" "$(IntDir)%(Filename).pipl"
 del "$(IntDir)%(Filename).rr"</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).pipl;%(Outputs)</Outputs>
     </CustomBuild>
