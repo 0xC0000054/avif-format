@@ -59,14 +59,17 @@ resource 'PiPL' (ResourceID, plugInName " PiPL", purgeable)
         Version { (latestFormatVersion << 16) | latestFormatSubVersion },
 
         #ifdef __PIMac__
-            #if (defined(__x86_64__))
+            #if defined(__arm64__)
+                CodeMacARM64 { "PluginMain" },
+            #elif defined(__x86_64__)
                 CodeMacIntel64 { "PluginMain" },
-            #endif
-            #if (defined(__i386__))
+            #elif defined(__i386__)
                 CodeMacIntel32 { "PluginMain" },
             #endif
         #else
-            #if defined(_WIN64)
+            #if defined(_M_ARM64)
+                CodeWin64ARM { "PluginMain" },
+            #elif defined(_M_AMD64)
                 CodeWin64X86 { "PluginMain" },
             #else
                 CodeWin32X86 { "PluginMain" },
