@@ -14,7 +14,7 @@ The latest version can be downloaded from the [Releases](https://github.com/0xC0
 
 ### System Requirements
 
-* Windows 7, 8 or 10.
+* Windows 7, 8, 10 or 11.
 * A compatible 32-bit or 64-bit host application.
 
 ## Installation
