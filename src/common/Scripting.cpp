@@ -213,6 +213,12 @@ OSErr ReadScriptParamsOnWrite(FormatRecordPtr formatRecord, SaveUIOptions& optio
 
             error = readProcs->closeReadDescriptorProc(token); // closes & disposes.
 
+            if (error == errMissingParameter)
+            {
+                // A missing parameter is not a fatal error.
+                error = noErr;
+            }
+
             // Dispose the parameter block descriptor:
             formatRecord->handleProcs->disposeProc(formatRecord->descriptorParameters->descriptor);
             formatRecord->descriptorParameters->descriptor = nullptr;
