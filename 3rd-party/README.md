@@ -9,7 +9,7 @@ Extract the downloaded SDK and rename the folder to `adobe_photoshop_sdk`.
 
 Clone AOM from your preferred tag:
 
-`git clone -b v3.3.0 --depth 1 https://aomedia.googlesource.com/aom`
+`git clone -b v3.4.0 --depth 1 https://aomedia.googlesource.com/aom`
 
 Change into the `aom` directory and create a build directory.
 
