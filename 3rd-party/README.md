@@ -9,7 +9,7 @@ Extract the downloaded SDK and rename the folder to `adobe_photoshop_sdk`.
 
 Clone AOM from your preferred tag:
 
-`git clone -b v3.4.0 --depth 1 https://aomedia.googlesource.com/aom`
+`git clone -b v3.5.0 --depth 1 https://aomedia.googlesource.com/aom`
 
 Change into the `aom` directory and create a build directory.
 
@@ -41,7 +41,7 @@ The generated AOM library should be located in `aom/build-<platform>/Release`, t
 
 Clone libheif from your preferred tag:
 
-`git clone -b v1.12.0 --depth 1 https://github.com/strukturag/libheif`
+`git clone -b v1.13.0 --depth 1 https://github.com/strukturag/libheif`
 
 Change into the `libheif` directory and create a build directory.
 
