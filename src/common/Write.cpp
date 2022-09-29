@@ -542,9 +542,13 @@ OSErr DoWriteStart(FormatRecordPtr formatRecord, SaveUIOptions& options)
     OSErr err = noErr;
 
     ReadScriptParamsOnWrite(formatRecord, options, nullptr);
+    bool libheifInitialized = false;
 
     try
     {
+        LibHeifException::ThrowIfError(heif_init(nullptr));
+        libheifInitialized = true;
+
         formatRecord->progressProc(0, 100);
 
         ScopedHeifContext context(heif_context_alloc());
@@ -646,6 +650,11 @@ OSErr DoWriteStart(FormatRecordPtr formatRecord, SaveUIOptions& options)
     catch (...)
     {
         err = writErr;
+    }
+
+    if (libheifInitialized)
+    {
+        heif_deinit();
     }
 
     formatRecord->data = nullptr;

@@ -134,11 +134,15 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
     globals->context = nullptr;
     globals->imageHandle = nullptr;
     globals->image = nullptr;
+    globals->libheifInitialized = false;
 
     OSErr err = noErr;
 
     try
     {
+        LibHeifException::ThrowIfError(heif_init(nullptr));
+        globals->libheifInitialized = true;
+
         ScopedHeifContext context(heif_context_alloc());
 
         if (context == nullptr)
@@ -329,6 +333,12 @@ OSErr DoReadFinish(Globals* globals)
     {
         heif_context_free(globals->context);
         globals->context = nullptr;
+    }
+
+    if (globals->libheifInitialized)
+    {
+        heif_deinit();
+        globals->libheifInitialized = false;
     }
 
     return noErr;

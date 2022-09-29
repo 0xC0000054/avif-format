@@ -88,6 +88,7 @@ namespace
         globals->saveOptions.keepExif = false;
         globals->saveOptions.keepXmp = false;
         globals->saveOptions.premultipliedAlpha = false;
+        globals->libheifInitialized = false;
     }
 }
 

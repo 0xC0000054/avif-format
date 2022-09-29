@@ -65,6 +65,7 @@ struct Globals
     heif_image* image;
 
     SaveUIOptions saveOptions;
+    bool libheifInitialized;
 };
 
 DLLExport MACPASCAL void PluginMain(
