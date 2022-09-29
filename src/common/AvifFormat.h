@@ -78,9 +78,6 @@ DLLExport MACPASCAL void PluginMain(
 
 OSErr HandleErrorMessage(FormatRecordPtr formatRecord, const char* const message, OSErr fallbackErrorCode);
 
-VPoint GetImageSize(const FormatRecordPtr formatRecord);
-void SetRect(FormatRecordPtr formatRecord, int32 top, int32 left, int32 bottom, int32 right);
-
 OSErr NewPIHandle(const FormatRecordPtr formatRecord, int32 size, Handle* handle);
 void DisposePIHandle(const FormatRecordPtr formatRecord, Handle handle);
 Ptr LockPIHandle(const FormatRecordPtr formatRecord, Handle handle, Boolean moveHigh);

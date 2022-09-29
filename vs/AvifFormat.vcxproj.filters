@@ -92,9 +92,6 @@
     <ClCompile Include="..\src\common\Write.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\common\BigDocument.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\common\Options.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

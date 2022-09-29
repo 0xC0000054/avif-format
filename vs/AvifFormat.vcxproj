@@ -331,7 +331,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\common\AvifFormat.cpp" />
-    <ClCompile Include="..\src\common\BigDocument.cpp" />
     <ClCompile Include="..\src\common\Common.cpp" />
     <ClCompile Include="..\src\common\Estimate.cpp" />
     <ClCompile Include="..\src\common\ExifParser.cpp" />

@@ -379,6 +379,42 @@ namespace
     }
 }
 
+VPoint GetImageSize(const FormatRecordPtr formatRecord)
+{
+    VPoint imageSize;
+
+    if (formatRecord->HostSupports32BitCoordinates && formatRecord->PluginUsing32BitCoordinates)
+    {
+        imageSize.h = formatRecord->imageSize32.h;
+        imageSize.v = formatRecord->imageSize32.v;
+    }
+    else
+    {
+        imageSize.h = formatRecord->imageSize.h;
+        imageSize.v = formatRecord->imageSize.v;
+    }
+
+    return imageSize;
+}
+
+void SetRect(FormatRecordPtr formatRecord, int32 top, int32 left, int32 bottom, int32 right)
+{
+    if (formatRecord->HostSupports32BitCoordinates && formatRecord->PluginUsing32BitCoordinates)
+    {
+        formatRecord->theRect32.top = top;
+        formatRecord->theRect32.left = left;
+        formatRecord->theRect32.bottom = bottom;
+        formatRecord->theRect32.right = right;
+    }
+    else
+    {
+        formatRecord->theRect.top = static_cast<int16>(top);
+        formatRecord->theRect.left = static_cast<int16>(left);
+        formatRecord->theRect.bottom = static_cast<int16>(bottom);
+        formatRecord->theRect.right = static_cast<int16>(right);
+    }
+}
+
 bool DescriptorSuiteIsAvailable(const FormatRecordPtr formatRecord)
 {
     static bool descriptorSuiteAvailable = HostDescriptorAvailable(formatRecord->descriptorParameters);
