@@ -152,6 +152,7 @@ namespace
         }
 
         encodingOptions->save_two_colr_boxes_when_ICC_and_nclx_available = true;
+        encodingOptions->macOS_compatibility_workaround_no_nclx_profile = false;
 
         // Check if cancellation has been requested before staring the encode.
         // Unfortunately, most encoders do not provide a way to cancel an encode that is in progress.
