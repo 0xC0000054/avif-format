@@ -18,7 +18,7 @@
  * along with avif-format.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "AvifFormat.h"
+#include "Utilities.h"
 
 namespace
 {

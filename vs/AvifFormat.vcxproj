@@ -322,6 +322,7 @@
     <ClInclude Include="..\src\common\ScopedBufferSuite.h" />
     <ClInclude Include="..\src\common\ScopedHandleSuite.h" />
     <ClInclude Include="..\src\common\ScopedHeif.h" />
+    <ClInclude Include="..\src\common\Utilities.h" />
     <ClInclude Include="..\src\common\version.h" />
     <ClInclude Include="..\src\common\WriteMetadata.h" />
     <ClInclude Include="..\src\win\FileIOWin.h" />

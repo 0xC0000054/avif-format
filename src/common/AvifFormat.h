@@ -22,6 +22,7 @@
 #define AVIFFORMAT_H
 
 #include "Common.h"
+#include "Utilities.h"
 
 enum class ChromaSubsampling
 {
@@ -117,13 +118,5 @@ OSErr DoWriteFinish(FormatRecordPtr formatRecord, const SaveUIOptions& options);
 
 OSErr ReadScriptParamsOnWrite(FormatRecordPtr formatRecord, SaveUIOptions& options, Boolean* showDialog);
 OSErr WriteScriptParamsOnWrite(FormatRecordPtr formatRecord, const SaveUIOptions& options);
-
-// Utility functions
-
-bool DescriptorSuiteIsAvailable(const FormatRecordPtr formatRecord);
-bool HandleSuiteIsAvailable(const FormatRecordPtr formatRecord);
-bool HostImageModeSupported(const FormatRecordPtr formatRecord);
-bool HostSupportsRequiredFeatures(const FormatRecordPtr formatRecord);
-bool PropertySuiteIsAvailable(const FormatRecordPtr formatRecord);
 
 #endif // !AVIFFORMAT_H
