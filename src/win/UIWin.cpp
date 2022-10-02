@@ -243,7 +243,11 @@ namespace
             EnableWindow(GetDlgItem(hDlg, IDC_QUALITY_EDIT), enabled);
             EnableWindow(GetDlgItem(hDlg, IDC_QUALITY_EDIT_SPIN), enabled);
             EnableWindow(GetDlgItem(hDlg, IDC_CHROMA_SUBSAMPLING_COMBO), enabled);
-            EnableWindow(GetDlgItem(hDlg, IDC_PREMULTIPLIED_ALPHA_CHECK), enabled);
+
+            if (hasAlphaChannel)
+            {
+                EnableWindow(GetDlgItem(hDlg, IDC_PREMULTIPLIED_ALPHA_CHECK), enabled);
+            }
         }
 
         void InitializeDialog(HWND hDlg) noexcept
