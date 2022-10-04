@@ -191,21 +191,5 @@ void PluginMain(const short selector, FormatRecordPtr formatRecord, intptr_t* da
 
 OSErr HandleErrorMessage(FormatRecordPtr formatRecord, const char* const message, OSErr fallbackErrorCode)
 {
-    if (formatRecord->errorString != nullptr)
-    {
-        const size_t length = strlen(message);
-
-        if (length <= 254)
-        {
-            uint8* errorReportString = reinterpret_cast<uint8*>(formatRecord->errorString);
-
-            errorReportString[0] = static_cast<uint8>(length);
-            memcpy(&errorReportString[1], message, length);
-            errorReportString[length + 1] = 0;
-
-            return errReportString;
-        }
-    }
-
     return ShowErrorDialog(formatRecord, message, fallbackErrorCode);
 }
