@@ -476,7 +476,10 @@ namespace
                         break;
                     case IDC_LOSSLESS_CHECK:
                         options.lossless = Button_GetCheck(controlHwnd) == BST_CHECKED;
-                        EnableWindow(GetDlgItem(hDlg, IDC_LOSSLESS_ALPHA_CHECK), !options.lossless);
+                        if (hasAlphaChannel)
+                        {
+                            EnableWindow(GetDlgItem(hDlg, IDC_LOSSLESS_ALPHA_CHECK), !options.lossless);
+                        }
                         EnableLossyCompressionSettings(hDlg, !options.lossless);
                         break;
                     case IDC_LOSSLESS_ALPHA_CHECK:
