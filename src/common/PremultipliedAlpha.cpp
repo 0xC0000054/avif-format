@@ -46,19 +46,6 @@
 #include "PremultipliedAlpha.h"
 #include <algorithm>
 
-namespace
-{
-    float PremultiplyColor(float color, float alpha, float maxValue)
-    {
-        return roundf(color * alpha / maxValue);
-    }
-
-    float UnpremultiplyColor(float color, float alpha, float maxValue)
-    {
-        return std::min(roundf(color * maxValue / alpha), maxValue);
-    }
-}
-
 void PremultiplyAlpha(uint8_t* data, int width, int height, int stride, int bitDepth)
 {
     constexpr int channelCount = 4;
@@ -142,85 +129,30 @@ void PremultiplyAlpha(uint8_t* data, int width, int height, int stride, int bitD
     }
 }
 
-void UnpremultiplyAlpha(uint8_t* data, int width, int height, int stride, int bitDepth)
+float PremultiplyColor(float color, float alpha, float maxValue)
 {
-    constexpr int channelCount = 4;
-    const int rowLength = width * channelCount;
+    return roundf(color * alpha / maxValue);
+}
 
-    if (bitDepth > 8)
-    {
-        const int maxValue = (1 << bitDepth) - 1;
-        const float maxValueF = static_cast<float>(maxValue);
+float UnpremultiplyColor(float color, float alpha, float maxValue)
+{
+    return std::min(color * maxValue / alpha, maxValue);
+}
 
-        for (int y = 0; y < height; y++)
-        {
-            uint16_t* row = reinterpret_cast<uint16_t*>(data + (static_cast<int64>(y) * stride));
+uint8_t UnpremultiplyColor(uint8_t color, uint8_t alpha)
+{
+    constexpr float maxValueFloat = 255.0f;
 
-            for (int x = 0; x < rowLength; x += channelCount)
-            {
-                uint16_t alpha = row[x + 3];
+    const float value = UnpremultiplyColor(static_cast<float>(color), static_cast<float>(alpha), maxValueFloat);
 
-                if (alpha == maxValue)
-                {
-                    continue;
-                }
-                else
-                {
-                    switch (alpha)
-                    {
-                    case 0:
-                        row[x] = 0;
-                        row[x + 1] = 0;
-                        row[x + 2] = 0;
-                        break;
-                    default:
-                        const float alphaF = static_cast<float>(alpha);
+    return static_cast<uint8_t>(std::min(roundf(value), maxValueFloat));
+}
 
-                        row[x] = static_cast<uint16_t>(UnpremultiplyColor(static_cast<float>(row[x]), alphaF, maxValueF));
-                        row[x + 1] = static_cast<uint16_t>(UnpremultiplyColor(static_cast<float>(row[x + 1]), alphaF, maxValueF));
-                        row[x + 2] = static_cast<uint16_t>(UnpremultiplyColor(static_cast<float>(row[x + 2]), alphaF, maxValueF));
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-        constexpr int maxValue = 255;
-        constexpr float maxValueF = 255.0f;
+uint16_t UnpremultiplyColor(uint16_t color, uint16_t alpha, uint16_t maxValue)
+{
+    const float maxValueFloat = static_cast<float>(maxValue);
 
-        for (int y = 0; y < height; y++)
-        {
-            uint8_t* row = data + (static_cast<int64>(y) * stride);
+    const float value = UnpremultiplyColor(static_cast<float>(color), static_cast<float>(alpha), maxValueFloat);
 
-            for (int x = 0; x < rowLength; x += channelCount)
-            {
-                uint8_t alpha = row[x + 3];
-
-                if (alpha == maxValue)
-                {
-                    continue;
-                }
-                else
-                {
-                    switch (alpha)
-                    {
-                    case 0:
-                        row[x] = 0;
-                        row[x + 1] = 0;
-                        row[x + 2] = 0;
-                        break;
-                    default:
-                        const float alphaF = static_cast<float>(alpha);
-
-                        row[x] = static_cast<uint8_t>(UnpremultiplyColor(static_cast<float>(row[x]), alphaF, maxValueF));
-                        row[x + 1] = static_cast<uint8_t>(UnpremultiplyColor(static_cast<float>(row[x + 1]), alphaF, maxValueF));
-                        row[x + 2] = static_cast<uint8_t>(UnpremultiplyColor(static_cast<float>(row[x + 2]), alphaF, maxValueF));
-                        break;
-                    }
-                }
-            }
-        }
-    }
+    return static_cast<uint16_t>(std::min(roundf(value), maxValueFloat));
 }

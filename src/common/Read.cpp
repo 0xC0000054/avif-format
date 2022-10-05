@@ -22,8 +22,8 @@
 #include "FileIO.h"
 #include "LibHeifException.h"
 #include "OSErrException.h"
+#include "ReadHeifImage.h"
 #include "ReadMetadata.h"
-#include "PremultipliedAlpha.h"
 #include "ScopedHeif.h"
 #include <memory>
 
@@ -107,6 +107,46 @@ namespace
 
         return ScopedHeifImageHandle(imageHandle);
     }
+
+    ScopedHeifNclxProfile GetNclxColorProfile(const heif_image* image)
+    {
+        heif_color_profile_nclx* nclxProfile;
+
+        heif_error err = heif_image_get_nclx_color_profile(image, &nclxProfile);
+
+        if (err.code != heif_error_Ok)
+        {
+            switch (err.code)
+            {
+            case heif_error_Color_profile_does_not_exist:
+                nclxProfile = nullptr;
+                break;
+            default:
+                throw LibHeifException(err);
+            }
+        }
+
+        return ScopedHeifNclxProfile(nclxProfile);
+    }
+
+    AlphaState GetAlphaState(const heif_image_handle* imageHandle)
+    {
+        AlphaState alphaState = AlphaState::None;
+
+        if (heif_image_handle_has_alpha_channel(imageHandle))
+        {
+            if (heif_image_handle_is_premultiplied_alpha(imageHandle))
+            {
+                alphaState = AlphaState::Premultiplied;
+            }
+            else
+            {
+                alphaState = AlphaState::Straight;
+            }
+        }
+
+        return alphaState;
+    }
 }
 
 OSErr DoReadPrepare(FormatRecordPtr formatRecord)
@@ -166,33 +206,6 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
         const bool hasAlpha = heif_image_handle_has_alpha_channel(primaryImage.get());
         const int lumaBitsPerPixel = heif_image_handle_get_luma_bits_per_pixel(primaryImage.get());
 
-        const heif_colorspace colorSpace = heif_colorspace_RGB;
-        heif_chroma chroma;
-
-        switch (lumaBitsPerPixel)
-        {
-        case 8:
-            formatRecord->imageMode = plugInModeRGBColor;
-            formatRecord->depth = 8;
-            formatRecord->planeBytes = 1;
-            chroma = hasAlpha ? heif_chroma_interleaved_RGBA : heif_chroma_interleaved_RGB;
-            break;
-        case 10:
-        case 12:
-            formatRecord->imageMode = plugInModeRGB48;
-            formatRecord->depth = 16;
-            formatRecord->planeBytes = 2;
-            formatRecord->maxValue = (1 << lumaBitsPerPixel) - 1;
-#ifdef __PIMacPPC__
-            chroma = hasAlpha ? heif_chroma_interleaved_RRGGBBAA_BE : heif_chroma_interleaved_RRGGBB_BE;
-#else
-            chroma = hasAlpha ? heif_chroma_interleaved_RRGGBBAA_LE : heif_chroma_interleaved_RRGGBB_LE;
-#endif // __PIMacPPC__
-            break;
-        default:
-            throw OSErrException(formatCannotRead);
-        }
-
         if (formatRecord->HostSupports32BitCoordinates && formatRecord->PluginUsing32BitCoordinates)
         {
             formatRecord->imageSize32.h = width;
@@ -210,32 +223,93 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
             formatRecord->imageSize.v = static_cast<int16>(height);
         }
 
-        ScopedHeifImage image = DecodeImage(primaryImage.get(), colorSpace, chroma);
+        ScopedHeifImage image = DecodeImage(primaryImage.get(), heif_colorspace_undefined, heif_chroma_undefined);
 
-        int stride;
-        uint8_t* data = heif_image_get_plane(image.get(), heif_channel_interleaved, &stride);
+        const heif_colorspace colorSpace = heif_image_get_colorspace(image.get());
+        const heif_chroma chroma = heif_image_get_chroma_format(image.get());
 
-        if (hasAlpha && heif_image_handle_is_premultiplied_alpha(primaryImage.get()))
+        if (colorSpace == heif_colorspace_monochrome)
         {
-            UnpremultiplyAlpha(data, width, height, stride, lumaBitsPerPixel);
+            if (chroma != heif_chroma_monochrome)
+            {
+                throw std::runtime_error("Unsupported chroma format for a monochrome image.");
+            }
+
+            switch (lumaBitsPerPixel)
+            {
+            case 8:
+                formatRecord->imageMode = plugInModeGrayScale;
+                formatRecord->depth = 8;
+                break;
+            case 10:
+            case 12:
+                formatRecord->imageMode = plugInModeGray16;
+                formatRecord->depth = 16;
+                break;
+            default:
+                throw OSErrException(formatCannotRead);
+            }
+            formatRecord->planes = hasAlpha ? 2 : 1;
+        }
+        else if (colorSpace == heif_colorspace_RGB)
+        {
+            if (chroma != heif_chroma_444)
+            {
+                throw std::runtime_error("Unsupported chroma format for a RGB image.");
+            }
+
+            switch (lumaBitsPerPixel)
+            {
+            case 8:
+                formatRecord->imageMode = plugInModeRGBColor;
+                formatRecord->depth = 8;
+                break;
+            case 10:
+            case 12:
+                formatRecord->imageMode = plugInModeRGB48;
+                formatRecord->depth = 16;
+                break;
+            default:
+                throw OSErrException(formatCannotRead);
+            }
+            formatRecord->planes = hasAlpha ? 4 : 3;
+        }
+        else if (colorSpace == heif_colorspace_YCbCr)
+        {
+            if (chroma != heif_chroma_420 && chroma != heif_chroma_422 && chroma != heif_chroma_444)
+            {
+                throw std::runtime_error("Unsupported chroma format for a YCbCr image.");
+            }
+
+            switch (lumaBitsPerPixel)
+            {
+            case 8:
+                formatRecord->imageMode = plugInModeRGBColor;
+                formatRecord->depth = 8;
+                break;
+            case 10:
+            case 12:
+                formatRecord->imageMode = plugInModeRGB48;
+                formatRecord->depth = 16;
+                break;
+            default:
+                throw OSErrException(formatCannotRead);
+            }
+            formatRecord->planes = hasAlpha ? 4 : 3;
+        }
+        else
+        {
+            throw std::runtime_error("Unsupported image color space, expected monochrome, RGB or YCbCr.");
         }
 
-        formatRecord->data = data;
-        formatRecord->planes = hasAlpha ? 4 : 3;
-        formatRecord->loPlane = 0;
-        formatRecord->hiPlane = formatRecord->planes - 1;
-        formatRecord->colBytes = static_cast<int16>(formatRecord->planes * formatRecord->planeBytes);
-        formatRecord->rowBytes = stride;
-
-        if (hasAlpha && formatRecord->transparencyPlane != 0)
+        if (hasAlpha && formatRecord->transparencyPlane)
         {
-            formatRecord->transparencyPlane = 3;
+            // Transparency data is always the last plane in the image.
+            formatRecord->transparencyPlane = formatRecord->planes - 1;
         }
-
-        SetRect(formatRecord, 0, 0, height, width);
 
         // The context, image handle and image must remain valid until DoReadFinish is called.
-        // The host will read the image data when DoReadStart returns, and the meta-data will be set in DoReadContinue.
+        // The image data and meta-data will be set in DoReadContinue.
         globals->context = context.release();
         globals->imageHandle = primaryImage.release();
         globals->image = image.release();
@@ -268,13 +342,35 @@ OSErr DoReadContinue(FormatRecordPtr formatRecord, Globals* globals)
 {
     PrintFunctionName();
 
-    formatRecord->data = nullptr;
-    SetRect(formatRecord, 0, 0, 0, 0);
-
     OSErr err = noErr;
 
     try
     {
+        ScopedHeifNclxProfile nclxProfile = GetNclxColorProfile(globals->image);
+
+        const AlphaState alphaState = GetAlphaState(globals->imageHandle);
+
+        switch (formatRecord->imageMode)
+        {
+        case plugInModeGrayScale:
+            ReadHeifImageGrayEightBit(globals->image, alphaState, nclxProfile.get(), formatRecord);
+            break;
+        case plugInModeGray16:
+            ReadHeifImageGraySixteenBit(globals->image, alphaState, nclxProfile.get(), formatRecord);
+            break;
+        case plugInModeRGBColor:
+            ReadHeifImageRGBEightBit(globals->image, alphaState, nclxProfile.get(), formatRecord);
+            break;
+        case plugInModeRGB48:
+            ReadHeifImageRGBSixteenBit(globals->image, alphaState, nclxProfile.get(), formatRecord);
+            break;
+        default:
+            throw OSErrException(formatCannotRead);
+        }
+
+        SetRect(formatRecord, 0, 0, 0, 0);
+        formatRecord->data = nullptr;
+
         if (HandleSuiteIsAvailable(formatRecord))
         {
             if (PropertySuiteIsAvailable(formatRecord))

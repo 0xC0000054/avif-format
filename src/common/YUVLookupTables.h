@@ -18,19 +18,22 @@
  * along with avif-format.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PREMULTIPLIEDALPHA_H
-#define PREMULTIPLIEDALPHA_H
+#ifndef YUVLOOKUPTABLES_H
+#define YUVLOOKUPTABLES_H
 
 #include "Common.h"
+#include <memory>
 
-void PremultiplyAlpha(uint8_t* data, int width, int height, int stride, int bitDepth);
+struct YUVLookupTables
+{
+    std::unique_ptr<float[]> unormFloatTableY;
+    std::unique_ptr<float[]> unormFloatTableUV;
+    std::unique_ptr<float[]> unormFloatTableAlpha;
+    const int yuvMaxChannel;
 
-float PremultiplyColor(float color, float alpha, float maxValue);
+    YUVLookupTables(const heif_color_profile_nclx* nclx, int32_t bitDepth, bool monochrome, bool hasAlpha);
+};
 
-float UnpremultiplyColor(float color, float alpha, float maxValue);
+#endif // !YUVLOOKUPTABLES_H
 
-uint8_t UnpremultiplyColor(uint8_t color, uint8_t alpha);
 
-uint16_t UnpremultiplyColor(uint16_t color, uint16_t alpha, uint16_t maxValue);
-
-#endif // PREMULTIPLIEDALPHA_H

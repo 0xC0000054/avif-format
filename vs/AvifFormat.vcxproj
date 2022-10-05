@@ -318,6 +318,7 @@
     <ClInclude Include="..\src\common\LibHeifException.h" />
     <ClInclude Include="..\src\common\OSErrException.h" />
     <ClInclude Include="..\src\common\PremultipliedAlpha.h" />
+    <ClInclude Include="..\src\common\ReadHeifImage.h" />
     <ClInclude Include="..\src\common\ReadMetadata.h" />
     <ClInclude Include="..\src\common\ScopedBufferSuite.h" />
     <ClInclude Include="..\src\common\ScopedHandleSuite.h" />
@@ -325,6 +326,9 @@
     <ClInclude Include="..\src\common\Utilities.h" />
     <ClInclude Include="..\src\common\version.h" />
     <ClInclude Include="..\src\common\WriteMetadata.h" />
+    <ClInclude Include="..\src\common\YUVCoefficiants.h" />
+    <ClInclude Include="..\src\common\YUVDecode.h" />
+    <ClInclude Include="..\src\common\YUVLookupTables.h" />
     <ClInclude Include="..\src\win\FileIOWin.h" />
     <ClInclude Include="..\src\win\MemoryWin.h" />
     <ClInclude Include="..\src\win\resource.h" />
@@ -340,11 +344,15 @@
     <ClCompile Include="..\src\common\Options.cpp" />
     <ClCompile Include="..\src\common\PremultipliedAlpha.cpp" />
     <ClCompile Include="..\src\common\Read.cpp" />
+    <ClCompile Include="..\src\common\ReadHeifImage.cpp" />
     <ClCompile Include="..\src\common\ReadMetadata.cpp" />
     <ClCompile Include="..\src\common\Scripting.cpp" />
     <ClCompile Include="..\src\common\Utilities.cpp" />
     <ClCompile Include="..\src\common\Write.cpp" />
     <ClCompile Include="..\src\common\WriteMetadata.cpp" />
+    <ClCompile Include="..\src\common\YUVCoefficiants.cpp" />
+    <ClCompile Include="..\src\common\YuvDecode.cpp" />
+    <ClCompile Include="..\src\common\YuvLookupTables.cpp" />
     <ClCompile Include="..\src\win\dllmain.cpp" />
     <ClCompile Include="..\src\win\FileIOWin.cpp" />
     <ClCompile Include="..\src\win\MemoryWin.cpp" />

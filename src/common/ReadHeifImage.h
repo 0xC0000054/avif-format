@@ -18,19 +18,40 @@
  * along with avif-format.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PREMULTIPLIEDALPHA_H
-#define PREMULTIPLIEDALPHA_H
+#ifndef READHEIFIMAGE_H
+#define READHEIFIMAGE_H
 
 #include "Common.h"
 
-void PremultiplyAlpha(uint8_t* data, int width, int height, int stride, int bitDepth);
+enum class AlphaState
+{
+    None,
+    Straight,
+    Premultiplied
+};
 
-float PremultiplyColor(float color, float alpha, float maxValue);
+void ReadHeifImageGrayEightBit(
+    const heif_image* image,
+    AlphaState alphaState,
+    const heif_color_profile_nclx* nclxProfile,
+    FormatRecordPtr formatRecord);
 
-float UnpremultiplyColor(float color, float alpha, float maxValue);
+void ReadHeifImageRGBEightBit(
+    const heif_image* image,
+    AlphaState alphaState,
+    const heif_color_profile_nclx* nclxProfile,
+    FormatRecordPtr formatRecord);
 
-uint8_t UnpremultiplyColor(uint8_t color, uint8_t alpha);
+void ReadHeifImageGraySixteenBit(
+    const heif_image* image,
+    AlphaState alphaState,
+    const heif_color_profile_nclx* nclxProfile,
+    FormatRecordPtr formatRecord);
 
-uint16_t UnpremultiplyColor(uint16_t color, uint16_t alpha, uint16_t maxValue);
+void ReadHeifImageRGBSixteenBit(
+    const heif_image* image,
+    AlphaState alphaState,
+    const heif_color_profile_nclx* nclxProfile,
+    FormatRecordPtr formatRecord);
 
-#endif // PREMULTIPLIEDALPHA_H
+#endif // !READHEIFIMAGE_H

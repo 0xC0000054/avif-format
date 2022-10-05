@@ -84,7 +84,7 @@ resource 'PiPL' (ResourceID, plugInName " PiPL", purgeable)
         SupportedModes
         {
             noBitmap,
-            noGrayScale,
+            doesSupportGrayScale,
             noIndexedColor,
             doesSupportRGBColor,
             noCMYKColor,
@@ -95,13 +95,13 @@ resource 'PiPL' (ResourceID, plugInName " PiPL", purgeable)
             noLABColor
         },
 
-        EnableInfo { "in (PSHOP_ImageMode, RGBMode, RGB48Mode)" },
+        EnableInfo { "in (PSHOP_ImageMode, RGBMode, RGB48Mode, GrayScaleMode, Gray16Mode)" },
 
         PlugInMaxSize { 1073741824, 1073741824 },
 
         FormatMaxSize { { 32767, 32767 } },
 
-        FormatMaxChannels { { 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 4 } },
+        FormatMaxChannels { { 0, 2, 0, 4, 0, 0, 0, 0, 0, 0, 2, 4 } },
 
         FmtFileType { 'AV1F', '8BIM' },
         //ReadTypes { { '8B1F', '    ' } },
