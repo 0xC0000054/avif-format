@@ -309,6 +309,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\common\AlphaState.h" />
     <ClInclude Include="..\src\common\AvifFormat.h" />
     <ClInclude Include="..\src\common\AvifFormatTerminology.h" />
     <ClInclude Include="..\src\common\Common.h" />
@@ -325,6 +326,7 @@
     <ClInclude Include="..\src\common\ScopedHeif.h" />
     <ClInclude Include="..\src\common\Utilities.h" />
     <ClInclude Include="..\src\common\version.h" />
+    <ClInclude Include="..\src\common\WriteHeifImage.h" />
     <ClInclude Include="..\src\common\WriteMetadata.h" />
     <ClInclude Include="..\src\common\YUVCoefficiants.h" />
     <ClInclude Include="..\src\common\YUVDecode.h" />
@@ -349,6 +351,7 @@
     <ClCompile Include="..\src\common\Scripting.cpp" />
     <ClCompile Include="..\src\common\Utilities.cpp" />
     <ClCompile Include="..\src\common\Write.cpp" />
+    <ClCompile Include="..\src\common\WriteHeifImage.cpp" />
     <ClCompile Include="..\src\common\WriteMetadata.cpp" />
     <ClCompile Include="..\src\common\YUVCoefficiants.cpp" />
     <ClCompile Include="..\src\common\YuvDecode.cpp" />

@@ -18,34 +18,36 @@
  * along with avif-format.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef READHEIFIMAGE_H
-#define READHEIFIMAGE_H
+#ifndef WRITEHEIFIMAGE_H
+#define WRITEHEIFIMAGE_H
 
-#include "Common.h"
+#include "AvifFormat.h"
 #include "AlphaState.h"
+#include "ScopedHeif.h"
 
-void ReadHeifImageGrayEightBit(
-    const heif_image* image,
+ScopedHeifImage CreateHeifImageGrayEightBit(
+    FormatRecordPtr formatRecord,
     AlphaState alphaState,
-    const heif_color_profile_nclx* nclxProfile,
-    FormatRecordPtr formatRecord);
+    const VPoint& imageSize,
+    const SaveUIOptions& saveOptions);
 
-void ReadHeifImageRGBEightBit(
-    const heif_image* image,
+ScopedHeifImage CreateHeifImageGraySixteenBit(
+    FormatRecordPtr formatRecord,
     AlphaState alphaState,
-    const heif_color_profile_nclx* nclxProfile,
-    FormatRecordPtr formatRecord);
+    const VPoint& imageSize,
+    const SaveUIOptions& saveOptions);
 
-void ReadHeifImageGraySixteenBit(
-    const heif_image* image,
+ScopedHeifImage CreateHeifImageRGBEightBit(
+    FormatRecordPtr formatRecord,
     AlphaState alphaState,
-    const heif_color_profile_nclx* nclxProfile,
-    FormatRecordPtr formatRecord);
+    const VPoint& imageSize,
+    const SaveUIOptions& saveOptions);
 
-void ReadHeifImageRGBSixteenBit(
-    const heif_image* image,
+ScopedHeifImage CreateHeifImageRGBSixteenBit(
+    FormatRecordPtr formatRecord,
     AlphaState alphaState,
-    const heif_color_profile_nclx* nclxProfile,
-    FormatRecordPtr formatRecord);
+    const VPoint& imageSize,
+    const SaveUIOptions& saveOptions);
 
-#endif // !READHEIFIMAGE_H
+#endif // !WRITEHEIFIMAGE_H
+

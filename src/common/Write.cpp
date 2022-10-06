@@ -25,6 +25,7 @@
 #include "PremultipliedAlpha.h"
 #include "ScopedBufferSuite.h"
 #include "ScopedHeif.h"
+#include "WriteHeifImage.h"
 #include "WriteMetadata.h"
 #include <algorithm>
 #include <thread>
@@ -118,7 +119,7 @@ namespace
                 throw OSErrException(formatBadParameters);
             }
 
-            if (formatRecord->planes == 4 && formatRecord->depth == 8 && saveOptions.losslessAlpha)
+            if (HasAlphaChannel(formatRecord) && formatRecord->depth == 8 && saveOptions.losslessAlpha)
             {
                 heif_encoder_set_parameter_integer(encoder.get(), "alpha-quality", 100);
                 heif_encoder_set_parameter_boolean(encoder.get(), "lossless-alpha", true);
@@ -188,342 +189,25 @@ namespace
         formatRecord->progressProc(100, 100);
     }
 
-    ScopedHeifImage CreateHeifImage(int width, int height, heif_colorspace colorspace, heif_chroma chroma)
+    AlphaState GetAlphaState(const FormatRecordPtr formatRecord, const SaveUIOptions& saveOptions)
     {
-        heif_image* tempImage;
+        AlphaState alphaState = AlphaState::None;
 
-        LibHeifException::ThrowIfError(heif_image_create(width, height, colorspace, chroma, &tempImage));
-
-        return ScopedHeifImage(tempImage);
-    }
-
-    heif_chroma GetHeifImageChroma(ImageBitDepth bitDepth, bool hasAlpha)
-    {
-        heif_chroma chroma;
-
-        switch (bitDepth)
+        if (HasAlphaChannel(formatRecord))
         {
-        case ImageBitDepth::Eight:
-            chroma = hasAlpha ? heif_chroma_interleaved_RGBA : heif_chroma_interleaved_RGB;
-            break;
-        case ImageBitDepth::Ten:
-        case ImageBitDepth::Twelve:
-#ifdef __PIMacPPC__
-            chroma = hasAlpha ? heif_chroma_interleaved_RRGGBBAA_BE : heif_chroma_interleaved_RRGGBB_BE;
-#else
-            chroma = hasAlpha ? heif_chroma_interleaved_RRGGBBAA_LE : heif_chroma_interleaved_RRGGBB_LE;
-#endif // __PIMacPPC__
-            break;
-        default:
-            throw OSErrException(formatCannotRead);
+            // The premultiplied alpha conversion can cause colors to drift, so it is
+            // disabled for lossless compression.
+            if (saveOptions.premultipliedAlpha && !saveOptions.lossless)
+            {
+                alphaState = AlphaState::Premultiplied;
+            }
+            else
+            {
+                alphaState = AlphaState::Straight;
+            }
         }
 
-        return chroma;
-    }
-
-    int GetHeifImageBitDepth(ImageBitDepth bitDepth)
-    {
-        int value;
-
-        switch (bitDepth)
-        {
-        case ImageBitDepth::Eight:
-            value = 8;
-            break;
-        case ImageBitDepth::Ten:
-            value = 10;
-            break;
-        case ImageBitDepth::Twelve:
-            value = 12;
-            break;
-        default:
-            throw OSErrException(formatCannotRead);
-        }
-
-        return value;
-    }
-
-    std::vector<uint16> BuildEightBitToHeifImageLookup(int bitDepth)
-    {
-        std::vector<uint16> lookupTable;
-        lookupTable.reserve(256);
-
-        const int maxValue = (1 << bitDepth) - 1;
-        const float maxValueFloat = static_cast<float>(maxValue);
-
-        for (size_t i = 0; i < lookupTable.capacity(); i++)
-        {
-            int value = static_cast<int>(((static_cast<float>(i) / 255.0f) * maxValueFloat) + 0.5f);
-
-            if (value < 0)
-            {
-                value = 0;
-            }
-            else if (value > maxValue)
-            {
-                value = maxValue;
-            }
-
-            lookupTable.push_back(static_cast<uint16>(value));
-        }
-
-        return lookupTable;
-    }
-
-    std::vector<uint8> BuildSixteenBitToEightBitLookup()
-    {
-        std::vector<uint8> lookupTable;
-        lookupTable.reserve(32769);
-
-        constexpr int maxValue = std::numeric_limits<uint8>::max();
-        constexpr float maxValueFloat = static_cast<float>(maxValue);
-
-        for (size_t i = 0; i < lookupTable.capacity(); i++)
-        {
-            int value = static_cast<int>(((static_cast<float>(i) / 32768.0f) * maxValueFloat) + 0.5f);
-
-            if (value < 0)
-            {
-                value = 0;
-            }
-            else if (value > maxValue)
-            {
-                value = maxValue;
-            }
-
-            lookupTable.push_back(static_cast<uint8>(value));
-        }
-
-        return lookupTable;
-    }
-
-    std::vector<uint16> BuildSixteenBitToHeifImageLookup(int bitDepth)
-    {
-        std::vector<uint16> lookupTable;
-        lookupTable.reserve(32769);
-
-        const int maxValue = (1 << bitDepth) - 1;
-        const float maxValueFloat = static_cast<float>(maxValue);
-
-        for (size_t i = 0; i < lookupTable.capacity(); i++)
-        {
-            int value = static_cast<int>(((static_cast<float>(i) / 32768.0f) * maxValueFloat) + 0.5f);
-
-            if (value < 0)
-            {
-                value = 0;
-            }
-            else if (value > maxValue)
-            {
-                value = maxValue;
-            }
-
-            lookupTable.push_back(static_cast<uint16>(value));
-        }
-
-        return lookupTable;
-    }
-
-    void ConvertEightBitDataToHeifImage(
-        FormatRecordPtr formatRecord,
-        const VPoint& imageSize,
-        uint8_t* heifImageData,
-        int heifImageStride,
-        int heifImageBitDepth)
-    {
-        const int32 left = 0;
-        const int32 right = imageSize.h;
-
-        const int32 channelCount = formatRecord->planes;
-        const int32 rowLength = imageSize.h * channelCount;
-
-        if (heifImageBitDepth > 8)
-        {
-            // The 8-bit data must be converted to 10-bit or 12-bit when writing it to the heif_image.
-
-            std::vector<uint16> lookupTable = BuildEightBitToHeifImageLookup(heifImageBitDepth);
-
-            for (int32 y = 0; y < imageSize.v; y++)
-            {
-                if (formatRecord->abortProc())
-                {
-                    throw OSErrException(userCanceledErr);
-                }
-
-                const int32 top = y;
-                const int32 bottom = std::min(top + 1, imageSize.v);
-
-                SetRect(formatRecord, top, left, bottom, right);
-
-                OSErrException::ThrowIfError(formatRecord->advanceState());
-
-                const uint8* src = static_cast<const uint8*>(formatRecord->data);
-                uint16* dst = reinterpret_cast<uint16*>(heifImageData + ((static_cast<int64>(y) * heifImageStride)));
-
-                for (int32 x = 0; x < rowLength; x += channelCount)
-                {
-                    switch (channelCount)
-                    {
-                    case 3:
-                        dst[x] = lookupTable[src[x]];
-                        dst[x + 1] = lookupTable[src[x + 1]];
-                        dst[x + 2] = lookupTable[src[x + 2]];
-                        break;
-                    case 4:
-                        dst[x] = lookupTable[src[x]];
-                        dst[x + 1] = lookupTable[src[x + 1]];
-                        dst[x + 2] = lookupTable[src[x + 2]];
-                        dst[x + 3] = lookupTable[src[x + 3]];
-                        break;
-                    default:
-                        throw OSErrException(formatBadParameters);
-                    }
-                }
-            }
-        }
-        else
-        {
-            for (int32 y = 0; y < imageSize.v; y++)
-            {
-                if (formatRecord->abortProc())
-                {
-                    throw OSErrException(userCanceledErr);
-                }
-
-                const int32 top = y;
-                const int32 bottom = std::min(top + 1, imageSize.v);
-
-                SetRect(formatRecord, top, left, bottom, right);
-
-                OSErrException::ThrowIfError(formatRecord->advanceState());
-
-                const uint8* src = static_cast<const uint8*>(formatRecord->data);
-                uint8* dst = heifImageData + ((static_cast<int64>(y) * heifImageStride));
-
-                for (int32 x = 0; x < rowLength; x += channelCount)
-                {
-                    switch (channelCount)
-                    {
-                    case 3:
-                        dst[x] = src[x];
-                        dst[x + 1] = src[x + 1];
-                        dst[x + 2] = src[x + 2];
-                        break;
-                    case 4:
-                        dst[x] = src[x];
-                        dst[x + 1] = src[x + 1];
-                        dst[x + 2] = src[x + 2];
-                        dst[x + 3] = src[x + 3];
-                        break;
-                    default:
-                        throw OSErrException(formatBadParameters);
-                    }
-                }
-            }
-        }
-    }
-
-    void ConvertSixteenBitDataToHeifImage(
-        FormatRecordPtr formatRecord,
-        const VPoint& imageSize,
-        uint8_t* heifImageData,
-        int heifImageStride,
-        int heifImageBitDepth)
-    {
-        const int32 left = 0;
-        const int32 right = imageSize.h;
-
-        const int32 channelCount = formatRecord->planes;
-        const int32 rowLength = imageSize.h * channelCount;
-
-        if (heifImageBitDepth == 8)
-        {
-            // The 16-bit data must be converted to 8-bit when writing it to the heif_image.
-
-            std::vector<uint8> lookupTable = BuildSixteenBitToEightBitLookup();
-
-            for (int32 y = 0; y < imageSize.v; y++)
-            {
-                if (formatRecord->abortProc())
-                {
-                    throw OSErrException(userCanceledErr);
-                }
-
-                const int32 top = y;
-                const int32 bottom = std::min(top + 1, imageSize.v);
-
-                SetRect(formatRecord, top, left, bottom, right);
-
-                OSErrException::ThrowIfError(formatRecord->advanceState());
-
-                const uint16* src = static_cast<const uint16*>(formatRecord->data);
-                uint8* dst = heifImageData + ((static_cast<int64>(y) * heifImageStride));
-
-                for (int32 x = 0; x < rowLength; x += channelCount)
-                {
-                    switch (channelCount)
-                    {
-                    case 3:
-                        dst[x] = lookupTable[src[x]];
-                        dst[x + 1] = lookupTable[src[x + 1]];
-                        dst[x + 2] = lookupTable[src[x + 2]];
-                        break;
-                    case 4:
-                        dst[x] = lookupTable[src[x]];
-                        dst[x + 1] = lookupTable[src[x + 1]];
-                        dst[x + 2] = lookupTable[src[x + 2]];
-                        dst[x + 3] = lookupTable[src[x + 3]];
-                        break;
-                    default:
-                        throw OSErrException(formatBadParameters);
-                    }
-                }
-            }
-        }
-        else
-        {
-            // The 16-bit data must be converted to 10-bit or 12-bit when writing it to the heif_image.
-
-            std::vector<uint16> lookupTable = BuildSixteenBitToHeifImageLookup(heifImageBitDepth);
-
-            for (int32 y = 0; y < imageSize.v; y++)
-            {
-                if (formatRecord->abortProc())
-                {
-                    throw OSErrException(userCanceledErr);
-                }
-
-                const int32 top = y;
-                const int32 bottom = std::min(top + 1, imageSize.v);
-
-                SetRect(formatRecord, top, left, bottom, right);
-
-                OSErrException::ThrowIfError(formatRecord->advanceState());
-
-                const uint16* src = static_cast<const uint16*>(formatRecord->data);
-                uint16* dst = reinterpret_cast<uint16*>(heifImageData + ((static_cast<int64>(y) * heifImageStride)));
-
-                for (int32 x = 0; x < rowLength; x += channelCount)
-                {
-                    switch (channelCount)
-                    {
-                    case 3:
-                        dst[x] = lookupTable[src[x]];
-                        dst[x + 1] = lookupTable[src[x + 1]];
-                        dst[x + 2] = lookupTable[src[x + 2]];
-                        break;
-                    case 4:
-                        dst[x] = lookupTable[src[x]];
-                        dst[x + 1] = lookupTable[src[x + 1]];
-                        dst[x + 2] = lookupTable[src[x + 2]];
-                        dst[x + 3] = lookupTable[src[x + 3]];
-                        break;
-                    default:
-                        throw OSErrException(formatBadParameters);
-                    }
-                }
-            }
-        }
+        return alphaState;
     }
 }
 
@@ -560,22 +244,8 @@ OSErr DoWriteStart(FormatRecordPtr formatRecord, SaveUIOptions& options)
         }
 
         const VPoint imageSize = GetImageSize(formatRecord);
-        const bool hasAlpha = formatRecord->planes == 4;
+        const AlphaState alphaState = GetAlphaState(formatRecord, options);
 
-        const heif_colorspace colorSpace = heif_colorspace_RGB;
-        const heif_chroma chroma = GetHeifImageChroma(options.imageBitDepth, hasAlpha);
-        const int heifImageBitDepth = GetHeifImageBitDepth(options.imageBitDepth);
-
-        ScopedHeifImage image = CreateHeifImage(imageSize.h, imageSize.v, colorSpace, chroma);
-
-        LibHeifException::ThrowIfError(heif_image_add_plane(
-            image.get(),
-            heif_channel_interleaved,
-            imageSize.h,
-            imageSize.v,
-            heifImageBitDepth));
-
-        formatRecord->planes = hasAlpha ? 4 : 3;
         formatRecord->planeBytes = (formatRecord->depth + 7) / 8;
         formatRecord->loPlane = 0;
         formatRecord->hiPlane = formatRecord->planes - 1;
@@ -591,43 +261,47 @@ OSErr DoWriteStart(FormatRecordPtr formatRecord, SaveUIOptions& options)
         }
         else
         {
-            ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, static_cast<int32>(rowBytes));
-
-            formatRecord->data = buffer.Lock();
             formatRecord->rowBytes = static_cast<int32>(rowBytes);
+        }
 
-            // The image data is read into a temporary buffer, one row at a time.
-            // The host application may use a different stride value than the heif_image.
+        ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, formatRecord->rowBytes);
 
-            int heifImageStride;
-            uint8_t* heifImageData = heif_image_get_plane(image.get(), heif_channel_interleaved, &heifImageStride);
+        formatRecord->data = buffer.Lock();
 
-            if (formatRecord->depth == 8)
+        ScopedHeifImage image;
+
+        if (IsMonochromeImage(formatRecord))
+        {
+            switch (formatRecord->depth)
             {
-                ConvertEightBitDataToHeifImage(
-                    formatRecord,
-                    imageSize,
-                    heifImageData,
-                    heifImageStride,
-                    heifImageBitDepth);
+            case 8:
+                image = CreateHeifImageGrayEightBit(formatRecord, alphaState, imageSize, options);
+                break;
+            case 16:
+                image = CreateHeifImageGraySixteenBit(formatRecord, alphaState, imageSize, options);
+                break;
+            default:
+                throw OSErrException(formatBadParameters);
             }
-            else
+        }
+        else
+        {
+            switch (formatRecord->depth)
             {
-                ConvertSixteenBitDataToHeifImage(
-                    formatRecord,
-                    imageSize,
-                    heifImageData,
-                    heifImageStride,
-                    heifImageBitDepth);
+            case 8:
+                image = CreateHeifImageRGBEightBit(formatRecord, alphaState, imageSize, options);
+                break;
+            case 16:
+                image = CreateHeifImageRGBSixteenBit(formatRecord, alphaState, imageSize, options);
+                break;
+            default:
+                throw OSErrException(formatBadParameters);
             }
+        }
 
-            // The premultiplied alpha conversion can cause colors to drift, so it is
-            // disabled for lossless compression.
-            if (hasAlpha && options.premultipliedAlpha && !options.lossless)
-            {
-                PremultiplyAlpha(heifImageData, imageSize.h, imageSize.v, heifImageStride, heifImageBitDepth);
-                heif_image_set_premultiplied_alpha(image.get(), true);
-            }
+        if (alphaState == AlphaState::Premultiplied)
+        {
+            heif_image_set_premultiplied_alpha(image.get(), true);
         }
 
         EncodeAndSaveImage(formatRecord, context.get(), image.get(), options);

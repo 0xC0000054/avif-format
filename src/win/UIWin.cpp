@@ -190,11 +190,13 @@ namespace
             hasColorProfile(HasColorProfileMetadata(formatRecord)),
             hasExif(HasExifMetadata(formatRecord)),
             hasXmp(HasXmpMetadata(formatRecord)),
-            hasAlphaChannel(formatRecord->planes == 4),
+            hasAlphaChannel(HasAlphaChannel(formatRecord)),
+            monochrome(IsMonochromeImage(formatRecord)),
             losslessCheckboxEnabled(formatRecord->depth == 8)
         {
             options.quality = saveOptions.quality;
-            options.chromaSubsampling = saveOptions.chromaSubsampling;
+            // YUV 4:2:0 is used for monochrome images because AOM does not have a YUV 4:0:0 mode.
+            options.chromaSubsampling = monochrome ? ChromaSubsampling::Yuv420 : saveOptions.chromaSubsampling;
             options.compressionSpeed = saveOptions.compressionSpeed;
             options.imageBitDepth = formatRecord->depth == 8 ? ImageBitDepth::Eight : saveOptions.imageBitDepth;
             options.lossless = saveOptions.lossless && losslessCheckboxEnabled;
@@ -242,7 +244,11 @@ namespace
             EnableWindow(GetDlgItem(hDlg, IDC_QUALITY_SLIDER), enabled);
             EnableWindow(GetDlgItem(hDlg, IDC_QUALITY_EDIT), enabled);
             EnableWindow(GetDlgItem(hDlg, IDC_QUALITY_EDIT_SPIN), enabled);
-            EnableWindow(GetDlgItem(hDlg, IDC_CHROMA_SUBSAMPLING_COMBO), enabled);
+
+            if (!monochrome)
+            {
+                EnableWindow(GetDlgItem(hDlg, IDC_CHROMA_SUBSAMPLING_COMBO), enabled);
+            }
 
             if (hasAlphaChannel)
             {
@@ -297,39 +303,51 @@ namespace
             // Swap the tab order of the Chroma Subsampling combo box and the Default compression speed radio button.
             SetWindowPos(chromaSubsamplingCombo, GetDlgItem(hDlg, IDC_COMPRESSION_SPEED_DEFAULT_RADIO), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
-            std::array<UINT, 3> chromaSubsamplingResIds = { IDS_CHROMA_SUBSAMPLING_420,
-                                                            IDS_CHROMA_SUBSAMPLING_422,
-                                                            IDS_CHROMA_SUBSAMPLING_444 };
-
             constexpr int resourceBufferLength = 256;
             TCHAR resourceBuffer[resourceBufferLength]{};
 
-            for (size_t i = 0; i < chromaSubsamplingResIds.size(); i++)
+            if (monochrome)
             {
-                UINT id = chromaSubsamplingResIds[i];
-
-                if (LoadString(hInstance, id, resourceBuffer, resourceBufferLength) > 0)
+                if (LoadString(hInstance, IDS_CHROMA_SUBSAMPLING_400, resourceBuffer, resourceBufferLength) > 0)
                 {
                     SendMessage(chromaSubsamplingCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(resourceBuffer));
                 }
+                ComboBox_SetCurSel(chromaSubsamplingCombo, 0);
+                EnableWindow(chromaSubsamplingCombo, false);
             }
-
-            int selectedChromaSubsamplingIndex;
-            switch (options.chromaSubsampling)
+            else
             {
-            case ChromaSubsampling::Yuv422:
-                selectedChromaSubsamplingIndex = 1;
-                break;
-            case ChromaSubsampling::Yuv444:
-                selectedChromaSubsamplingIndex = 2;
-                break;
-            case ChromaSubsampling::Yuv420:
-            default:
-                selectedChromaSubsamplingIndex = 0;
-                break;
-            }
+                std::array<UINT, 3> chromaSubsamplingResIds = { IDS_CHROMA_SUBSAMPLING_420,
+                                                                IDS_CHROMA_SUBSAMPLING_422,
+                                                                IDS_CHROMA_SUBSAMPLING_444 };
 
-            ComboBox_SetCurSel(chromaSubsamplingCombo, selectedChromaSubsamplingIndex);
+                for (size_t i = 0; i < chromaSubsamplingResIds.size(); i++)
+                {
+                    UINT id = chromaSubsamplingResIds[i];
+
+                    if (LoadString(hInstance, id, resourceBuffer, resourceBufferLength) > 0)
+                    {
+                        SendMessage(chromaSubsamplingCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(resourceBuffer));
+                    }
+                }
+
+                int selectedChromaSubsamplingIndex;
+                switch (options.chromaSubsampling)
+                {
+                case ChromaSubsampling::Yuv422:
+                    selectedChromaSubsamplingIndex = 1;
+                    break;
+                case ChromaSubsampling::Yuv444:
+                    selectedChromaSubsamplingIndex = 2;
+                    break;
+                case ChromaSubsampling::Yuv420:
+                default:
+                    selectedChromaSubsamplingIndex = 0;
+                    break;
+                }
+
+                ComboBox_SetCurSel(chromaSubsamplingCombo, selectedChromaSubsamplingIndex);
+            }
 
             int selectedCompressionSpeed;
             switch (options.compressionSpeed)
@@ -630,6 +648,7 @@ namespace
         const bool hasExif;
         const bool hasXmp;
         const bool hasAlphaChannel;
+        const bool monochrome;
         bool losslessCheckboxEnabled; // Used to track state when changing the save bit-depth.
         bool losslessAlphaChecked;
     };

@@ -26,6 +26,9 @@
 VPoint GetImageSize(const FormatRecordPtr formatRecord);
 void SetRect(FormatRecordPtr formatRecord, int32 top, int32 left, int32 bottom, int32 right);
 
+bool HasAlphaChannel(const FormatRecordPtr formatRecord);
+bool IsMonochromeImage(const FormatRecordPtr formatRecord);
+
 bool DescriptorSuiteIsAvailable(const FormatRecordPtr formatRecord);
 bool HandleSuiteIsAvailable(const FormatRecordPtr formatRecord);
 bool HostImageModeSupported(const FormatRecordPtr formatRecord);

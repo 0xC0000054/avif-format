@@ -18,21 +18,14 @@
  * along with avif-format.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PREMULTIPLIEDALPHA_H
-#define PREMULTIPLIEDALPHA_H
+#ifndef ALPHASTATE_H
+#define ALPHASTATE_H
 
-#include "Common.h"
+enum class AlphaState
+{
+    None,
+    Straight,
+    Premultiplied
+};
 
-float PremultiplyColor(float color, float alpha, float maxValue);
-
-uint8_t PremultiplyColor(uint8_t color, uint8_t alpha);
-
-uint16_t PremultiplyColor(uint16_t color, uint16_t alpha, uint16_t maxValue);
-
-float UnpremultiplyColor(float color, float alpha, float maxValue);
-
-uint8_t UnpremultiplyColor(uint8_t color, uint8_t alpha);
-
-uint16_t UnpremultiplyColor(uint16_t color, uint16_t alpha, uint16_t maxValue);
-
-#endif // PREMULTIPLIEDALPHA_H
+#endif // !ALPHASTATE_H

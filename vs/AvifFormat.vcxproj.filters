@@ -84,6 +84,12 @@
     <ClInclude Include="..\src\common\YUVLookupTables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\common\WriteHeifImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\AlphaState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\common\AvifFormat.cpp">
@@ -153,6 +159,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\common\YuvLookupTables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\WriteHeifImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -49,7 +49,7 @@ namespace
         LibHeifException::ThrowIfError(heif_image_set_nclx_color_profile(image, nclxProfile.get()));
     }
 
-    void SetIccColorProfile(const FormatRecordPtr formatRecord, heif_image* image, const SaveUIOptions& saveOptions)
+    void SetIccColorProfile(const FormatRecordPtr formatRecord, heif_image* image)
     {
         const int32 dataSize = formatRecord->handleProcs->getSizeProc(formatRecord->iCCprofileData);
 
@@ -66,15 +66,6 @@ namespace
                     "prof",
                     data,
                     static_cast<size_t>(dataSize)));
-
-                if (saveOptions.lossless)
-                {
-                    SetNclxColorProfile(
-                        image,
-                        heif_color_primaries_unspecified,
-                        heif_transfer_characteristic_unspecified,
-                        heif_matrix_coefficients_RGB_GBR);
-                }
             }
         }
     }
@@ -125,14 +116,14 @@ void AddColorProfileToImage(const FormatRecordPtr formatRecord, heif_image* imag
 {
     if (saveOptions.keepColorProfile && HasColorProfileMetadata(formatRecord))
     {
-        SetIccColorProfile(formatRecord, image, saveOptions);
+        SetIccColorProfile(formatRecord, image);
     }
 
     const heif_color_primaries primaries = heif_color_primaries_ITU_R_BT_709_5;
     const heif_transfer_characteristics transferCharacteristics = heif_transfer_characteristic_IEC_61966_2_1;
     heif_matrix_coefficients matrixCoefficients = heif_matrix_coefficients_ITU_R_BT_601_6;
 
-    if (saveOptions.lossless)
+    if (saveOptions.lossless && !IsMonochromeImage(formatRecord))
     {
         matrixCoefficients = heif_matrix_coefficients_RGB_GBR;
     }

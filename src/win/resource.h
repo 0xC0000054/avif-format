@@ -7,6 +7,7 @@
 #define IDS_CHROMA_SUBSAMPLING_420      105
 #define IDS_CHROMA_SUBSAMPLING_422      106
 #define IDS_CHROMA_SUBSAMPLING_444      107
+#define IDS_CHROMA_SUBSAMPLING_400      108
 #define IDC_QUALITY                     1000
 #define IDC_QUALITY_SLIDER              1000
 #define ABOUTFORMAT                     1001

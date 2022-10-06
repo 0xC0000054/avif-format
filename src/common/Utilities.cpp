@@ -415,6 +415,33 @@ void SetRect(FormatRecordPtr formatRecord, int32 top, int32 left, int32 bottom, 
     }
 }
 
+bool HasAlphaChannel(const FormatRecordPtr formatRecord)
+{
+    switch (formatRecord->imageMode)
+    {
+    case plugInModeGrayScale:
+    case plugInModeGray16:
+        return formatRecord->planes == 2;
+    case plugInModeRGBColor:
+    case plugInModeRGB48:
+        return formatRecord->planes == 4;
+    default:
+        return false;
+    }
+}
+
+bool IsMonochromeImage(const FormatRecordPtr formatRecord)
+{
+    switch (formatRecord->imageMode)
+    {
+    case plugInModeGrayScale:
+    case plugInModeGray16:
+        return true;
+    default:
+        return false;
+    }
+}
+
 bool DescriptorSuiteIsAvailable(const FormatRecordPtr formatRecord)
 {
     static bool descriptorSuiteAvailable = HostDescriptorAvailable(formatRecord->descriptorParameters);
@@ -433,6 +460,8 @@ bool HostImageModeSupported(const FormatRecordPtr formatRecord)
 {
     switch (formatRecord->imageMode)
     {
+    case plugInModeGrayScale:
+    case plugInModeGray16:
     case plugInModeRGBColor:
     case plugInModeRGB48:
         return (formatRecord->depth == 8 || formatRecord->depth == 16);
