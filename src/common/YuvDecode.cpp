@@ -404,9 +404,9 @@ void DecodeYUV16RowToRGBA16(
 
         if (alphaPremultiplied)
         {
-            if (A < tables.yuvMaxChannel)
+            if (unormA < tables.yuvMaxChannel)
             {
-                if (A == 0)
+                if (unormA == 0)
                 {
                     R = 0;
                     G = 0;
