@@ -192,7 +192,8 @@ namespace
             hasXmp(HasXmpMetadata(formatRecord)),
             hasAlphaChannel(HasAlphaChannel(formatRecord)),
             monochrome(IsMonochromeImage(formatRecord)),
-            losslessCheckboxEnabled(formatRecord->depth == 8)
+            losslessCheckboxEnabled(formatRecord->depth == 8),
+            losslessAlphaChecked(false)
         {
             options.quality = saveOptions.quality;
             // YUV 4:2:0 is used for monochrome images because AOM does not have a YUV 4:0:0 mode.
