@@ -145,15 +145,15 @@ YUVLookupTables::YUVLookupTables(const heif_color_profile_nclx* nclx, int32_t bi
     const bool isIdentityMatrix = isColorImage && matrixCoefficient == heif_matrix_coefficients_RGB_GBR;
     const float yuvMaxChannelFloat = static_cast<float>(yuvMaxChannel);
 
-    unormFloatTableY = std::make_unique<float[]>(count);
+    unormFloatTableY = std::make_unique_for_overwrite<float[]>(count);
     if (isColorImage)
     {
-        unormFloatTableUV = std::make_unique<float[]>(count);
+        unormFloatTableUV = std::make_unique_for_overwrite<float[]>(count);
     }
 
     if (hasAlpha)
     {
-        unormFloatTableAlpha = std::make_unique<float[]>(count);
+        unormFloatTableAlpha = std::make_unique_for_overwrite<float[]>(count);
     }
 
     for (int i = 0; i < count; ++i)
