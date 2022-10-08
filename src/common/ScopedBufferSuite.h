@@ -47,7 +47,7 @@ public:
 
     ~ScopedBufferSuiteBuffer()
     {
-        Release();
+        Reset();
     }
 
     int32 GetSize() const noexcept
@@ -77,7 +77,7 @@ public:
 
     void Reset(int32 newBufferSize)
     {
-        Release();
+        Reset();
 
         OSErrException::ThrowIfError(bufferProcs->allocateProc(newBufferSize, &bufferID));
         bufferIDValid = true;
@@ -101,7 +101,7 @@ public:
 
 private:
 
-    void Release() noexcept
+    void Reset() noexcept
     {
         if (bufferIDValid)
         {
