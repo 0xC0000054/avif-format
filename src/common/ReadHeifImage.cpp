@@ -309,7 +309,7 @@ void ReadHeifImageGrayEightBit(
     const int32 left = 0;
     const int32 right = imageSize.h;
 
-    const YUVLookupTables tables(nclxProfile, 8, true, hasAlpha);
+    const YUVLookupTables tables(nclxProfile, lumaBitsPerPixel, true, hasAlpha);
 
     if (hasAlpha)
     {
