@@ -35,16 +35,21 @@ public:
 
     ~ScopedHandleSuiteLock()
     {
-        if (ptr != nullptr)
-        {
-            handleProcs->unlockProc(handle);
-            ptr = nullptr;
-        }
+        Unlock();
     }
 
     Ptr Data() const noexcept
     {
         return ptr;
+    }
+
+    void Unlock()
+    {
+        if (ptr != nullptr)
+        {
+            handleProcs->unlockProc(handle);
+            ptr = nullptr;
+        }
     }
 
 private:
@@ -61,6 +66,16 @@ public:
     {
     }
 
+    ScopedHandleSuiteHandle(const HandleProcs* handleProcs, int32 size)
+        : handleProcs(handleProcs), handle(handleProcs->newProc(size))
+    {
+        if (handle == nullptr)
+        {
+            // Failed to allocate the handle, this is treated as an out of memory error.
+            throw std::bad_alloc();
+        }
+    }
+
     ~ScopedHandleSuiteHandle()
     {
         if (handle != nullptr)
@@ -68,6 +83,11 @@ public:
             handleProcs->disposeProc(handle);
             handle = nullptr;
         }
+    }
+
+    Handle Get() const noexcept
+    {
+        return handle;
     }
 
     int32 GetSize() const

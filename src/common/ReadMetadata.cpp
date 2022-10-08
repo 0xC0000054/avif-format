@@ -24,6 +24,7 @@
 #include "OSErrException.h"
 #include "PIProperties.h"
 #include "ScopedBufferSuite.h"
+#include "ScopedHandleSuite.h"
 #include <stdexcept>
 #include <vector>
 
@@ -119,40 +120,28 @@ void ReadExifMetadata(const FormatRecordPtr formatRecord, const heif_image_handl
                 // The HEIF specification requires that readers ignore the EXIF orientation tag.
                 SetExifOrientationToTopLeft(exifBlock + headerStartOffset, exifDataLength);
 
-                Handle complexProperty = formatRecord->handleProcs->newProc(static_cast<int32>(exifDataLength));
+                ScopedHandleSuiteHandle complexProperty(formatRecord->handleProcs, static_cast<int32>(exifDataLength));
 
-                if (complexProperty != nullptr)
+                ScopedHandleSuiteLock lock = complexProperty.Lock();
+
+                Ptr ptr = lock.Data();
+
+                if (ptr != nullptr)
                 {
-                    Ptr ptr = formatRecord->handleProcs->lockProc(complexProperty, false);
+                    memcpy(ptr, exifBlock + headerStartOffset, exifDataLength);
 
-                    if (ptr != nullptr)
-                    {
-                        memcpy(ptr, exifBlock + headerStartOffset, exifDataLength);
+                    lock.Unlock();
 
-                        formatRecord->handleProcs->unlockProc(complexProperty);
-
-                        OSErr err = formatRecord->propertyProcs->setPropertyProc(
-                            kPhotoshopSignature,
-                            propEXIFData,
-                            0,
-                            0,
-                            complexProperty);
-
-                        // The host takes ownership of the handle if the call succeeds, we dispose the handle if it fails.
-                        if (err != noErr)
-                        {
-                            formatRecord->handleProcs->disposeProc(complexProperty);
-                        }
-                    }
-                    else
-                    {
-                        formatRecord->handleProcs->disposeProc(complexProperty);
-                        throw OSErrException(nilHandleErr);
-                    }
+                    OSErrException::ThrowIfError(formatRecord->propertyProcs->setPropertyProc(
+                        kPhotoshopSignature,
+                        propEXIFData,
+                        0,
+                        0,
+                        complexProperty.Get()));
                 }
                 else
                 {
-                    throw std::bad_alloc();
+                    throw OSErrException(nilHandleErr);
                 }
             }
         }
@@ -222,56 +211,28 @@ void ReadXmpMetadata(const FormatRecordPtr formatRecord, const heif_image_handle
 
         if (xmpDataLength > 0 && xmpDataLength <= static_cast<size_t>(std::numeric_limits<int32>::max()))
         {
-            Handle complexProperty = formatRecord->handleProcs->newProc(static_cast<int32>(xmpDataLength));
+            ScopedHandleSuiteHandle complexProperty(formatRecord->handleProcs, static_cast<int32>(xmpDataLength));
 
-            if (complexProperty != nullptr)
+            ScopedHandleSuiteLock lock = complexProperty.Lock();
+
+            Ptr ptr = lock.Data();
+
+            if (ptr != nullptr)
             {
-                Ptr ptr = formatRecord->handleProcs->lockProc(complexProperty, false);
+                LibHeifException::ThrowIfError(heif_image_handle_get_metadata(handle, xmpId, ptr));
 
-                if (ptr != nullptr)
-                {
-                    heif_error error = heif_image_handle_get_metadata(handle, xmpId, ptr);
+                lock.Unlock();
 
-                    formatRecord->handleProcs->unlockProc(complexProperty);
-
-                    if (error.code == heif_error_Ok)
-                    {
-                        OSErr err = formatRecord->propertyProcs->setPropertyProc(
-                            kPhotoshopSignature,
-                            propXMP,
-                            0,
-                            0,
-                            complexProperty);
-
-                        // The host takes ownership of the handle if the call succeeds, we dispose the handle if it fails.
-                        if (err != noErr)
-                        {
-                            formatRecord->handleProcs->disposeProc(complexProperty);
-                        }
-                    }
-                    else
-                    {
-                        formatRecord->handleProcs->disposeProc(complexProperty);
-
-                        if (LibHeifException::IsOutOfMemoryError(error))
-                        {
-                            throw std::bad_alloc();
-                        }
-                        else
-                        {
-                            throw LibHeifException(error);
-                        }
-                    }
-                }
-                else
-                {
-                    formatRecord->handleProcs->disposeProc(complexProperty);
-                    throw OSErrException(nilHandleErr);
-                }
+                OSErrException::ThrowIfError(formatRecord->propertyProcs->setPropertyProc(
+                    kPhotoshopSignature,
+                    propXMP,
+                    0,
+                    0,
+                    complexProperty.Get()));
             }
             else
             {
-                throw std::bad_alloc();
+                throw OSErrException(nilHandleErr);
             }
         }
     }
