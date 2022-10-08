@@ -117,6 +117,15 @@ public:
         return ScopedHandleSuiteLock(handleProcs, handle);
     }
 
+    // Returns the underlying handle and releases the ownership.
+    Handle Release()
+    {
+        Handle existing = handle;
+        handle = nullptr;
+
+        return existing;
+    }
+
     bool operator==(std::nullptr_t) const noexcept
     {
         return handle == nullptr;

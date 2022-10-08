@@ -149,47 +149,17 @@ void ReadIccProfileMetadata(const FormatRecordPtr formatRecord, const heif_image
 
         if (iccProfileLength > 0 && iccProfileLength <= static_cast<size_t>(std::numeric_limits<int32>::max()))
         {
-            Handle iccProfile = formatRecord->handleProcs->newProc(static_cast<int32>(iccProfileLength));
+            ScopedHandleSuiteHandle iccProfile(formatRecord->handleProcs, static_cast<int32>(iccProfileLength));
 
-            if (iccProfile != nullptr)
-            {
-                Ptr ptr = formatRecord->handleProcs->lockProc(iccProfile, false);
+            ScopedHandleSuiteLock lock = iccProfile.Lock();
 
-                if (ptr != nullptr)
-                {
-                    heif_error error = heif_image_handle_get_raw_color_profile(handle, ptr);
+            LibHeifException::ThrowIfError(heif_image_handle_get_raw_color_profile(handle, lock.Data()));
 
-                    formatRecord->handleProcs->unlockProc(iccProfile);
+            lock.Unlock();
 
-                    if (error.code == heif_error_Ok)
-                    {
-                        formatRecord->iCCprofileData = iccProfile;
-                        formatRecord->iCCprofileSize = static_cast<int32>(iccProfileLength);
-                    }
-                    else
-                    {
-                        formatRecord->handleProcs->disposeProc(iccProfile);
-
-                        if (LibHeifException::IsOutOfMemoryError(error))
-                        {
-                            throw std::bad_alloc();
-                        }
-                        else
-                        {
-                            throw LibHeifException(error);
-                        }
-                    }
-                }
-                else
-                {
-                    formatRecord->handleProcs->disposeProc(iccProfile);
-                    throw OSErrException(nilHandleErr);
-                }
-            }
-            else
-            {
-                throw std::bad_alloc();
-            }
+            // Ownership of the handle is transfered to the host through the iCCprofileData field.
+            formatRecord->iCCprofileData = iccProfile.Release();
+            formatRecord->iCCprofileSize = static_cast<int32>(iccProfileLength);
         }
     }
 }
