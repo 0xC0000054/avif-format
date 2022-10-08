@@ -38,8 +38,13 @@ public:
         Unlock();
     }
 
-    Ptr Data() const noexcept
+    Ptr Data() const
     {
+        if (ptr == nullptr)
+        {
+            throw std::runtime_error("The locked data pointer is invalid.");
+        }
+
         return ptr;
     }
 

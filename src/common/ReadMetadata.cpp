@@ -126,23 +126,16 @@ void ReadExifMetadata(const FormatRecordPtr formatRecord, const heif_image_handl
 
                 Ptr ptr = lock.Data();
 
-                if (ptr != nullptr)
-                {
-                    memcpy(ptr, exifBlock + headerStartOffset, exifDataLength);
+                memcpy(ptr, exifBlock + headerStartOffset, exifDataLength);
 
-                    lock.Unlock();
+                lock.Unlock();
 
-                    OSErrException::ThrowIfError(formatRecord->propertyProcs->setPropertyProc(
-                        kPhotoshopSignature,
-                        propEXIFData,
-                        0,
-                        0,
-                        complexProperty.Get()));
-                }
-                else
-                {
-                    throw OSErrException(nilHandleErr);
-                }
+                OSErrException::ThrowIfError(formatRecord->propertyProcs->setPropertyProc(
+                    kPhotoshopSignature,
+                    propEXIFData,
+                    0,
+                    0,
+                    complexProperty.Get()));
             }
         }
     }
@@ -217,23 +210,16 @@ void ReadXmpMetadata(const FormatRecordPtr formatRecord, const heif_image_handle
 
             Ptr ptr = lock.Data();
 
-            if (ptr != nullptr)
-            {
-                LibHeifException::ThrowIfError(heif_image_handle_get_metadata(handle, xmpId, ptr));
+            LibHeifException::ThrowIfError(heif_image_handle_get_metadata(handle, xmpId, ptr));
 
-                lock.Unlock();
+            lock.Unlock();
 
-                OSErrException::ThrowIfError(formatRecord->propertyProcs->setPropertyProc(
-                    kPhotoshopSignature,
-                    propXMP,
-                    0,
-                    0,
-                    complexProperty.Get()));
-            }
-            else
-            {
-                throw OSErrException(nilHandleErr);
-            }
+            OSErrException::ThrowIfError(formatRecord->propertyProcs->setPropertyProc(
+                kPhotoshopSignature,
+                propXMP,
+                0,
+                0,
+                complexProperty.Get()));
         }
     }
 }

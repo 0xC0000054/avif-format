@@ -59,14 +59,11 @@ namespace
 
             Ptr data = lock.Data();
 
-            if (data != nullptr)
-            {
-                LibHeifException::ThrowIfError(heif_image_set_raw_color_profile(
-                    image,
-                    "prof",
-                    data,
-                    static_cast<size_t>(dataSize)));
-            }
+            LibHeifException::ThrowIfError(heif_image_set_raw_color_profile(
+                image,
+                "prof",
+                data,
+                static_cast<size_t>(dataSize)));
         }
     }
 
@@ -92,18 +89,15 @@ namespace
                     ScopedHandleSuiteLock lock = exif.Lock();
                     void* exifDataPtr = lock.Data();
 
-                    if (exifDataPtr != nullptr)
-                    {
-                        buffer.Reset(static_cast<int32>(exifSizeWithHeader));
+                    buffer.Reset(static_cast<int32>(exifSizeWithHeader));
 
-                        uint8* destinationBuffer = static_cast<uint8*>(buffer.Lock());
+                    uint8* destinationBuffer = static_cast<uint8*>(buffer.Lock());
 
-                        uint32_t* tiffHeaderOffset = reinterpret_cast<uint32_t*>(destinationBuffer);
-                        *tiffHeaderOffset = 0;
+                    uint32_t* tiffHeaderOffset = reinterpret_cast<uint32_t*>(destinationBuffer);
+                    *tiffHeaderOffset = 0;
 
-                        memcpy(destinationBuffer + sizeof(uint32_t), exifDataPtr, static_cast<size_t>(exifSize));
-                        result = true;
-                    }
+                    memcpy(destinationBuffer + sizeof(uint32_t), exifDataPtr, static_cast<size_t>(exifSize));
+                    result = true;
                 }
             }
         }
@@ -160,10 +154,7 @@ void AddXmpMetadata(const FormatRecordPtr formatRecord, heif_context* context, h
             ScopedHandleSuiteLock lock = xmp.Lock();
             void* ptr = lock.Data();
 
-            if (ptr != nullptr)
-            {
-                LibHeifException::ThrowIfError(heif_context_add_XMP_metadata(context, imageHandle, ptr, xmpSize));
-            }
+            LibHeifException::ThrowIfError(heif_context_add_XMP_metadata(context, imageHandle, ptr, xmpSize));
         }
     }
 }
