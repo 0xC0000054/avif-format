@@ -33,6 +33,23 @@ public:
     {
     }
 
+    ScopedHandleSuiteLock(ScopedHandleSuiteLock&& other) noexcept
+        : handleProcs(other.handleProcs), handle(other.handle),  ptr(other.ptr)
+    {
+        other.ptr = nullptr;
+    }
+
+    ScopedHandleSuiteLock& operator=(ScopedHandleSuiteLock&& other) noexcept
+    {
+        handleProcs = other.handleProcs;
+        handle = other.handle;
+        ptr = other.ptr;
+
+        other.ptr = nullptr;
+
+        return *this;
+    }
+
     ScopedHandleSuiteLock(const ScopedHandleSuiteLock&) = delete;
     ScopedHandleSuiteLock& operator=(const ScopedHandleSuiteLock&) = delete;
 
@@ -61,7 +78,7 @@ public:
     }
 
 private:
-    const HandleProcs* const handleProcs;
+    const HandleProcs* handleProcs;
     Handle handle;
     Ptr ptr;
 };
@@ -82,6 +99,22 @@ public:
             // Failed to allocate the handle, this is treated as an out of memory error.
             throw std::bad_alloc();
         }
+    }
+
+    ScopedHandleSuiteHandle(ScopedHandleSuiteHandle&& other) noexcept
+        : handleProcs(other.handleProcs), handle(other.handle)
+    {
+        other.handle = nullptr;
+    }
+
+    ScopedHandleSuiteHandle& operator=(ScopedHandleSuiteHandle&& other) noexcept
+    {
+        handleProcs = other.handleProcs;
+        handle = other.handle;
+
+        other.handle = nullptr;
+
+        return *this;
     }
 
     ScopedHandleSuiteHandle(const ScopedHandleSuiteHandle&) = delete;
@@ -148,7 +181,7 @@ public:
     }
 
 private:
-    const HandleProcs* const handleProcs;
+    const HandleProcs* handleProcs;
     Handle handle;
 };
 

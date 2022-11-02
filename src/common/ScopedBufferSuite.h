@@ -42,6 +42,28 @@ public:
         bufferIDValid = true;
     }
 
+    ScopedBufferSuiteBuffer(ScopedBufferSuiteBuffer&& other) noexcept
+        : bufferID(other.bufferID), bufferProcs(other.bufferProcs), bufferIDValid(other.bufferIDValid),
+          bufferDataPtr(other.bufferDataPtr), size(other.size)
+    {
+        other.bufferDataPtr = nullptr;
+        other.bufferIDValid = false;
+    }
+
+    ScopedBufferSuiteBuffer& operator=(ScopedBufferSuiteBuffer&& other) noexcept
+    {
+        bufferID = other.bufferID;
+        bufferProcs = other.bufferProcs;
+        bufferIDValid = other.bufferIDValid;
+        bufferDataPtr = other.bufferDataPtr;
+        size = other.size;
+
+        other.bufferDataPtr = nullptr;
+        other.bufferIDValid = false;
+
+        return *this;
+    }
+
     ScopedBufferSuiteBuffer(const ScopedBufferSuiteBuffer&) = delete;
     ScopedBufferSuiteBuffer& operator=(const ScopedBufferSuiteBuffer&) = delete;
 
@@ -116,7 +138,7 @@ private:
         }
     }
 
-    const BufferProcs* const bufferProcs;
+    const BufferProcs* bufferProcs;
     BufferID bufferID;
     void* bufferDataPtr;
     int32 size;
