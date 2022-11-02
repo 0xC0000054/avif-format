@@ -360,3 +360,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# vcpkg local install folder
+vcpkg_installed/

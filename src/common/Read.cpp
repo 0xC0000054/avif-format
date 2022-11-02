@@ -19,6 +19,7 @@
  */
 
 #include "AvifFormat.h"
+#include "ColorProfileGeneration.h"
 #include "FileIO.h"
 #include "LibHeifException.h"
 #include "OSErrException.h"
@@ -113,6 +114,27 @@ namespace
         heif_color_profile_nclx* nclxProfile;
 
         heif_error err = heif_image_get_nclx_color_profile(image, &nclxProfile);
+
+        if (err.code != heif_error_Ok)
+        {
+            switch (err.code)
+            {
+            case heif_error_Color_profile_does_not_exist:
+                nclxProfile = nullptr;
+                break;
+            default:
+                throw LibHeifException(err);
+            }
+        }
+
+        return ScopedHeifNclxProfile(nclxProfile);
+    }
+
+    ScopedHeifNclxProfile GetNclxColorProfile(const heif_image_handle* image)
+    {
+        heif_color_profile_nclx* nclxProfile;
+
+        heif_error err = heif_image_handle_get_nclx_color_profile(image, &nclxProfile);
 
         if (err.code != heif_error_Ok)
         {
@@ -346,23 +368,23 @@ OSErr DoReadContinue(FormatRecordPtr formatRecord, Globals* globals)
 
     try
     {
-        ScopedHeifNclxProfile nclxProfile = GetNclxColorProfile(globals->image);
+        ScopedHeifNclxProfile imageNclxProfile = GetNclxColorProfile(globals->image);
 
         const AlphaState alphaState = GetAlphaState(globals->imageHandle);
 
         switch (formatRecord->imageMode)
         {
         case plugInModeGrayScale:
-            ReadHeifImageGrayEightBit(globals->image, alphaState, nclxProfile.get(), formatRecord);
+            ReadHeifImageGrayEightBit(globals->image, alphaState, imageNclxProfile.get(), formatRecord);
             break;
         case plugInModeGray16:
-            ReadHeifImageGraySixteenBit(globals->image, alphaState, nclxProfile.get(), formatRecord);
+            ReadHeifImageGraySixteenBit(globals->image, alphaState, imageNclxProfile.get(), formatRecord);
             break;
         case plugInModeRGBColor:
-            ReadHeifImageRGBEightBit(globals->image, alphaState, nclxProfile.get(), formatRecord);
+            ReadHeifImageRGBEightBit(globals->image, alphaState, imageNclxProfile.get(), formatRecord);
             break;
         case plugInModeRGB48:
-            ReadHeifImageRGBSixteenBit(globals->image, alphaState, nclxProfile.get(), formatRecord);
+            ReadHeifImageRGBSixteenBit(globals->image, alphaState, imageNclxProfile.get(), formatRecord);
             break;
         default:
             throw OSErrException(formatCannotRead);
@@ -381,7 +403,26 @@ OSErr DoReadContinue(FormatRecordPtr formatRecord, Globals* globals)
 
             if (formatRecord->canUseICCProfiles)
             {
-                ReadIccProfileMetadata(formatRecord, globals->imageHandle);
+                const heif_color_profile_type imageHandleProfileType = heif_image_handle_get_color_profile_type(globals->imageHandle);
+
+                if (imageHandleProfileType == heif_color_profile_type_prof ||
+                    imageHandleProfileType == heif_color_profile_type_rICC)
+                {
+                    ReadIccProfileMetadata(formatRecord, globals->imageHandle);
+                }
+                else
+                {
+                    if (imageNclxProfile)
+                    {
+                        SetIccProfileFromNclx(formatRecord, imageNclxProfile.get());
+                    }
+                    else if (imageHandleProfileType == heif_color_profile_type_nclx)
+                    {
+                        ScopedHeifNclxProfile imageHandleNclxProfile = GetNclxColorProfile(globals->imageHandle);
+
+                        SetIccProfileFromNclx(formatRecord, imageHandleNclxProfile.get());
+                    }
+                }
             }
         }
     }

@@ -1,0 +1,9 @@
+{
+  "name": "avif-format",
+  "version": "1.0.0",
+  "description": "An AV1 Image (AVIF) file format plug-in",
+  "homepage": "https://github.com/0xC0000054/avif-format",
+  "dependencies": [
+    "lcms"
+  ]
+}

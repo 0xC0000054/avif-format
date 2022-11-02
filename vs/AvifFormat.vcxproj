@@ -128,7 +128,26 @@
     <TargetExt>.8bi</TargetExt>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
-    <VcpkgEnabled>false</VcpkgEnabled>
+    <VcpkgEnabled>true</VcpkgEnabled>
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -312,6 +331,7 @@
     <ClInclude Include="..\src\common\AlphaState.h" />
     <ClInclude Include="..\src\common\AvifFormat.h" />
     <ClInclude Include="..\src\common\AvifFormatTerminology.h" />
+    <ClInclude Include="..\src\common\ColorProfileGeneration.h" />
     <ClInclude Include="..\src\common\Common.h" />
     <ClInclude Include="..\src\common\ExifParser.h" />
     <ClInclude Include="..\src\common\FileIO.h" />
@@ -337,6 +357,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\common\AvifFormat.cpp" />
+    <ClCompile Include="..\src\common\ColorProfileGeneration.cpp" />
     <ClCompile Include="..\src\common\Common.cpp" />
     <ClCompile Include="..\src\common\Estimate.cpp" />
     <ClCompile Include="..\src\common\ExifParser.cpp" />
