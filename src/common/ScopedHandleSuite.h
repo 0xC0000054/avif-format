@@ -33,6 +33,9 @@ public:
     {
     }
 
+    ScopedHandleSuiteLock(const ScopedHandleSuiteLock&) = delete;
+    ScopedHandleSuiteLock& operator=(const ScopedHandleSuiteLock&) = delete;
+
     ~ScopedHandleSuiteLock()
     {
         Unlock();
@@ -80,6 +83,9 @@ public:
             throw std::bad_alloc();
         }
     }
+
+    ScopedHandleSuiteHandle(const ScopedHandleSuiteHandle&) = delete;
+    ScopedHandleSuiteHandle& operator=(const ScopedHandleSuiteHandle&) = delete;
 
     ~ScopedHandleSuiteHandle()
     {
