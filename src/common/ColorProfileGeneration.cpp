@@ -290,8 +290,8 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
     heif_matrix_coefficients matrixCoefficients = heif_matrix_coefficients_ITU_R_BT_601_6;
     bool fullRange = true;
     // Default to the Rec. 709 white point values, D65.
-    float whitepointX = 0.3127;
-    float whitepointY = 0.3290;
+    cmsFloat64Number whitepointX = 0.3127;
+    cmsFloat64Number whitepointY = 0.3290;
 
     if (nclx != nullptr)
     {
