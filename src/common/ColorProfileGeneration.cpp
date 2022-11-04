@@ -272,29 +272,48 @@ namespace
 
 void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_nclx* nclx)
 {
-    if (nclx == nullptr)
-    {
-        return;
-    }
+    // (As of ISO/IEC 23000-22:2019 Amendment 2)
+    // MIAF Section 7.3.6.4 "Colour information property":
+    //
+    // If a coded image has no associated colour property, the default property is defined as having
+    // colour_type equal to 'nclx' with properties as follows:
+    // –   colour_primaries equal to 1,
+    // –   transfer_characteristics equal to 13,
+    // –   matrix_coefficients equal to 5 or 6 (which are functionally identical), and
+    // –   full_range_flag equal to 1.
+    // Only if the colour information property of the image matches these default values, the colour
+    // property may be omitted; all other images shall have an explicitly declared colour space via
+    // association with a property of this type.
+    //
+    // See here for the discussion: https://github.com/AOMediaCodec/av1-avif/issues/77#issuecomment-676526097
 
-    heif_color_primaries primaries = nclx->color_primaries;
-    heif_transfer_characteristics transferCharacteristics = nclx->transfer_characteristics;
-    heif_matrix_coefficients matrixCoefficients = nclx->matrix_coefficients;
-    const bool fullRange = nclx->full_range_flag != 0;
+    heif_color_primaries primaries = heif_color_primaries_ITU_R_BT_709_5;
+    heif_transfer_characteristics transferCharacteristics = heif_transfer_characteristic_IEC_61966_2_1;
+    heif_matrix_coefficients matrixCoefficients = heif_matrix_coefficients_ITU_R_BT_601_6;
+    bool fullRange = true;
+    // Default to the Rec. 709 white point values, D65.
+    float whitepointX = 0.3127;
+    float whitepointY = 0.3290;
 
-    if (primaries == heif_color_primaries_unspecified)
+    if (nclx != nullptr)
     {
-        primaries = heif_color_primaries_ITU_R_BT_709_5;
-    }
+        if (nclx->color_primaries != heif_color_primaries_unspecified)
+        {
+            primaries = nclx->color_primaries;
+            whitepointX = nclx->color_primary_white_x;
+            whitepointY = nclx->color_primary_white_y;
+        }
 
-    if (transferCharacteristics == heif_transfer_characteristic_unspecified)
-    {
-        transferCharacteristics = heif_transfer_characteristic_IEC_61966_2_1;
-    }
+        if (nclx->transfer_characteristics != heif_transfer_characteristic_unspecified)
+        {
+            transferCharacteristics = nclx->transfer_characteristics;
+        }
 
-    if (matrixCoefficients == heif_matrix_coefficients_unspecified)
-    {
-        matrixCoefficients = heif_matrix_coefficients_ITU_R_BT_601_6;
+        if (nclx->matrix_coefficients != heif_matrix_coefficients_unspecified)
+        {
+            matrixCoefficients = nclx->matrix_coefficients;
+        }
+        fullRange = nclx->full_range_flag != 0;
     }
 
     // The 32-bits-per-channel image modes always operate in linear color.
@@ -347,8 +366,8 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
             {
                 ScopedLcmsProfile profile = BuildGrayProfile(
                     context.get(),
-                    nclx->color_primary_white_x,
-                    nclx->color_primary_white_y,
+                    whitepointX,
+                    whitepointY,
                     toneCurve.get(),
                     description);
 
