@@ -258,7 +258,6 @@ namespace
         heif_matrix_coefficients matrixCoefficients,
         bool fullRange)
     {
-#if LCMS_VERSION >= 2140
         cmsVideoSignalType cicp{};
         cicp.ColourPrimaries = static_cast<cmsUInt8Number>(primaries);
         cicp.TransferCharacteristics = static_cast<cmsUInt8Number>(transferCharacteristics);
@@ -266,7 +265,6 @@ namespace
         cicp.VideoFullRangeFlag = static_cast<cmsUInt8Number>(fullRange);
 
         cmsWriteTag(profile, cmsSigcicpTag, &cicp);
-#endif // LCMS_VERSION >= 2140
     }
 }
 

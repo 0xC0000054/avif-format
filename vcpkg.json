@@ -5,5 +5,6 @@
   "homepage": "https://github.com/0xC0000054/avif-format",
   "dependencies": [
     "lcms"
-  ]
+  ],
+  "builtin-baseline": "e3a3942a9eb0cb47c12898e5fd819f258441b6f6"
 }
