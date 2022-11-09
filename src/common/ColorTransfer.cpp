@@ -46,7 +46,9 @@ namespace
             return 0.0f;
         }
 
-        const float x = powf(normalizedLinearValue, m1);
+        // We have to adjust for the difference in the maximum luminance level between
+        // sRGB and PQ, otherwise the image is too bright.
+        const float x = powf(normalizedLinearValue * (srgbMaxLuminanceLevel / pqMaxLuminanceLevel), m1);
         const float pq = powf((c1 + c2 * x) / (1.0f + c3 * x), m2);
 
         return pq;
