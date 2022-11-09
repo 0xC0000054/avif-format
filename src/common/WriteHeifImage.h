@@ -23,6 +23,7 @@
 
 #include "AvifFormat.h"
 #include "AlphaState.h"
+#include "ColorTransfer.h"
 #include "ScopedHeif.h"
 
 ScopedHeifImage CreateHeifImageGrayEightBit(
@@ -37,6 +38,12 @@ ScopedHeifImage CreateHeifImageGraySixteenBit(
     const VPoint& imageSize,
     const SaveUIOptions& saveOptions);
 
+ScopedHeifImage CreateHeifImageGrayThirtyTwoBit(
+    FormatRecordPtr formatRecord,
+    AlphaState alphaState,
+    const VPoint& imageSize,
+    const SaveUIOptions& saveOptions);
+
 ScopedHeifImage CreateHeifImageRGBEightBit(
     FormatRecordPtr formatRecord,
     AlphaState alphaState,
@@ -44,6 +51,12 @@ ScopedHeifImage CreateHeifImageRGBEightBit(
     const SaveUIOptions& saveOptions);
 
 ScopedHeifImage CreateHeifImageRGBSixteenBit(
+    FormatRecordPtr formatRecord,
+    AlphaState alphaState,
+    const VPoint& imageSize,
+    const SaveUIOptions& saveOptions);
+
+ScopedHeifImage CreateHeifImageRGBThirtyTwoBit(
     FormatRecordPtr formatRecord,
     AlphaState alphaState,
     const VPoint& imageSize,

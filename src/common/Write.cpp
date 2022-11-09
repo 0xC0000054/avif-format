@@ -93,7 +93,9 @@ namespace
 
         ScopedHeifEncoder encoder = GetAOMEncoder(context);
 
-        if (formatRecord->depth == 8 && saveOptions.lossless)
+        const bool bitDepthSupportsLossless = formatRecord->depth == 8 || formatRecord->depth == 32;
+
+        if (saveOptions.lossless && bitDepthSupportsLossless)
         {
             heif_encoder_set_lossy_quality(encoder.get(), 100);
             heif_encoder_set_lossless(encoder.get(), true);
@@ -119,7 +121,7 @@ namespace
                 throw OSErrException(formatBadParameters);
             }
 
-            if (HasAlphaChannel(formatRecord) && formatRecord->depth == 8 && saveOptions.losslessAlpha)
+            if (HasAlphaChannel(formatRecord) && saveOptions.losslessAlpha && bitDepthSupportsLossless)
             {
                 heif_encoder_set_parameter_integer(encoder.get(), "alpha-quality", 100);
                 heif_encoder_set_parameter_boolean(encoder.get(), "lossless-alpha", true);
@@ -280,6 +282,9 @@ OSErr DoWriteStart(FormatRecordPtr formatRecord, SaveUIOptions& options)
             case 16:
                 image = CreateHeifImageGraySixteenBit(formatRecord, alphaState, imageSize, options);
                 break;
+            case 32:
+                image = CreateHeifImageGrayThirtyTwoBit(formatRecord, alphaState, imageSize, options);
+                break;
             default:
                 throw OSErrException(formatBadParameters);
             }
@@ -293,6 +298,9 @@ OSErr DoWriteStart(FormatRecordPtr formatRecord, SaveUIOptions& options)
                 break;
             case 16:
                 image = CreateHeifImageRGBSixteenBit(formatRecord, alphaState, imageSize, options);
+                break;
+            case 32:
+                image = CreateHeifImageRGBThirtyTwoBit(formatRecord, alphaState, imageSize, options);
                 break;
             default:
                 throw OSErrException(formatBadParameters);

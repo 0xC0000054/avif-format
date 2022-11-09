@@ -465,9 +465,11 @@ bool HostImageModeSupported(const FormatRecordPtr formatRecord)
     {
     case plugInModeGrayScale:
     case plugInModeGray16:
+    case plugInModeGray32:
     case plugInModeRGBColor:
     case plugInModeRGB48:
-        return (formatRecord->depth == 8 || formatRecord->depth == 16);
+    case plugInModeRGB96:
+        return (formatRecord->depth == 8 || formatRecord->depth == 16 || formatRecord->depth == 32);
     default:
         return false;
     }

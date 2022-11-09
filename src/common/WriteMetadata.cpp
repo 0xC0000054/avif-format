@@ -108,14 +108,34 @@ namespace
 
 void AddColorProfileToImage(const FormatRecordPtr formatRecord, heif_image* image, const SaveUIOptions& saveOptions)
 {
-    if (saveOptions.keepColorProfile && HasColorProfileMetadata(formatRecord))
-    {
-        SetIccColorProfile(formatRecord, image);
-    }
+    heif_color_primaries primaries;
+    heif_transfer_characteristics transferCharacteristics;
+    heif_matrix_coefficients matrixCoefficients;
 
-    const heif_color_primaries primaries = heif_color_primaries_ITU_R_BT_709_5;
-    const heif_transfer_characteristics transferCharacteristics = heif_transfer_characteristic_IEC_61966_2_1;
-    heif_matrix_coefficients matrixCoefficients = heif_matrix_coefficients_ITU_R_BT_601_6;
+    if (formatRecord->depth == 32)
+    {
+        switch (saveOptions.thirtyTwoBitTranferFunction)
+        {
+        case ColorTransferFunction::PQ:
+            primaries = heif_color_primaries_ITU_R_BT_2020_2_and_2100_0;
+            transferCharacteristics = heif_transfer_characteristic_ITU_R_BT_2100_0_PQ;
+            matrixCoefficients = heif_matrix_coefficients_ITU_R_BT_2020_2_non_constant_luminance;
+            break;
+        default:
+            throw std::runtime_error("Unsupported color transfer function.");
+        }
+    }
+    else
+    {
+        if (saveOptions.keepColorProfile && HasColorProfileMetadata(formatRecord))
+        {
+            SetIccColorProfile(formatRecord, image);
+        }
+
+        primaries = heif_color_primaries_ITU_R_BT_709_5;
+        transferCharacteristics = heif_transfer_characteristic_IEC_61966_2_1;
+        matrixCoefficients = heif_matrix_coefficients_ITU_R_BT_601_6;
+    }
 
     if (saveOptions.lossless && !IsMonochromeImage(formatRecord))
     {

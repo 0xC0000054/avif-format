@@ -22,6 +22,7 @@
 #define AVIFFORMAT_H
 
 #include "Common.h"
+#include "ColorTransfer.h"
 #include "Utilities.h"
 
 enum class ChromaSubsampling
@@ -51,6 +52,7 @@ struct SaveUIOptions
     ChromaSubsampling chromaSubsampling;
     CompressionSpeed compressionSpeed;
     ImageBitDepth imageBitDepth;
+    ColorTransferFunction thirtyTwoBitTranferFunction;
     bool lossless;
     bool losslessAlpha;
     bool keepColorProfile;

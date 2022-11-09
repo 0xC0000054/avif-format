@@ -187,12 +187,12 @@ namespace
 
         SaveDialog(const FormatRecordPtr formatRecord, const SaveUIOptions& saveOptions) :
             hostImageDepth(formatRecord->depth),
-            hasColorProfile(HasColorProfileMetadata(formatRecord)),
+            hasColorProfile(formatRecord->depth != 32 && HasColorProfileMetadata(formatRecord)),
             hasExif(HasExifMetadata(formatRecord)),
             hasXmp(HasXmpMetadata(formatRecord)),
             hasAlphaChannel(HasAlphaChannel(formatRecord)),
             monochrome(IsMonochromeImage(formatRecord)),
-            losslessCheckboxEnabled(formatRecord->depth == 8),
+            losslessCheckboxEnabled(formatRecord->depth == 8 || formatRecord->depth == 32),
             losslessAlphaChecked(false)
         {
             options.quality = saveOptions.quality;
@@ -200,6 +200,7 @@ namespace
             options.chromaSubsampling = monochrome ? ChromaSubsampling::Yuv420 : saveOptions.chromaSubsampling;
             options.compressionSpeed = saveOptions.compressionSpeed;
             options.imageBitDepth = formatRecord->depth == 8 ? ImageBitDepth::Eight : saveOptions.imageBitDepth;
+            options.thirtyTwoBitTranferFunction = saveOptions.thirtyTwoBitTranferFunction;
             options.lossless = saveOptions.lossless && losslessCheckboxEnabled;
             options.losslessAlpha = saveOptions.losslessAlpha && losslessCheckboxEnabled;
             options.keepColorProfile = saveOptions.keepColorProfile && hasColorProfile;
@@ -272,6 +273,7 @@ namespace
             HWND keepXmpCheckbox = GetDlgItem(hDlg, IDC_KEEP_XMP_CHECK);
             HWND premultipliedAlphaCheckbox = GetDlgItem(hDlg, IDC_PREMULTIPLIED_ALPHA_CHECK);
             HWND pixelDepthCombo = GetDlgItem(hDlg, IDC_IMAGE_DEPTH_COMBO);
+            HWND infoLabel = GetDlgItem(hDlg, IDC_INFOLABEL);
 
             SendMessage(qualitySlider, TBM_SETRANGEMIN, FALSE, 0);
             SendMessage(qualitySlider, TBM_SETRANGEMAX, FALSE, 100);
@@ -285,7 +287,7 @@ namespace
             SendMessage(qualityEditUpDown, UDM_SETRANGE, 0, MAKELPARAM(100, 0));
 
             // The AVIF format only supports 10-bit and 12-bit data, so saving a 16-bit image may be lossy.
-            if (hostImageDepth == 8)
+            if (hostImageDepth == 8 || hostImageDepth == 32)
             {
                 Button_SetCheck(losslessCheckbox, options.lossless);
                 EnableWindow(losslessCheckbox, true);
@@ -299,6 +301,12 @@ namespace
                 EnableWindow(losslessCheckbox, false);
                 Button_SetCheck(losslessAlphaCheckbox, false);
                 EnableWindow(losslessAlphaCheckbox, false);
+            }
+
+            // The info label only applies to 32-bit mode images.
+            if (hostImageDepth != 32)
+            {
+                ShowWindow(infoLabel, SW_HIDE);
             }
 
             // Swap the tab order of the Chroma Subsampling combo box and the Default compression speed radio button.
@@ -411,17 +419,27 @@ namespace
                 EnableWindow(premultipliedAlphaCheckbox, false);
             }
 
-            SendMessage(pixelDepthCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("8-bit")));
-            SendMessage(pixelDepthCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("10-bit")));
-            SendMessage(pixelDepthCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("12-bit")));
-
-            if (hostImageDepth == 8)
+            if (hostImageDepth == 32)
             {
-                ComboBox_SetCurSel(pixelDepthCombo, 0);
+                SendMessage(pixelDepthCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("10-bit")));
+                SendMessage(pixelDepthCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("12-bit")));
+
+                ComboBox_SetCurSel(pixelDepthCombo, options.imageBitDepth == ImageBitDepth::Ten ? 0 : 1);
             }
             else
             {
-                ComboBox_SetCurSel(pixelDepthCombo, options.imageBitDepth == ImageBitDepth::Ten ? 1 : 2);
+                SendMessage(pixelDepthCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("8-bit")));
+                SendMessage(pixelDepthCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("10-bit")));
+                SendMessage(pixelDepthCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("12-bit")));
+
+                if (hostImageDepth == 8)
+                {
+                    ComboBox_SetCurSel(pixelDepthCombo, 0);
+                }
+                else
+                {
+                    ComboBox_SetCurSel(pixelDepthCombo, options.imageBitDepth == ImageBitDepth::Ten ? 1 : 2);
+                }
             }
         }
 
@@ -538,65 +556,72 @@ namespace
                     }
                     else if (item == IDC_IMAGE_DEPTH_COMBO)
                     {
-                        switch (value)
+                        if (hostImageDepth == 32)
                         {
-                        case 0:
-                            options.imageBitDepth = ImageBitDepth::Eight;
-                            break;
-                        case 1:
-                            options.imageBitDepth = ImageBitDepth::Ten;
-                            break;
-                        case 2:
-                            options.imageBitDepth = ImageBitDepth::Twelve;
-                            break;
-                        default:
-                            options.imageBitDepth = hostImageDepth == 8 ? ImageBitDepth::Eight : ImageBitDepth::Twelve;
-                            break;
+                            options.imageBitDepth = value == 0 ? ImageBitDepth::Ten : ImageBitDepth::Twelve;
                         }
-
-                        if (hostImageDepth == 8)
+                        else
                         {
-                            // Lossless mode is only supported when the host image depth and output
-                            // image depth are both 8-bits-per-channel.
-
-                            if (options.imageBitDepth != ImageBitDepth::Eight)
+                            switch (value)
                             {
-                                if (losslessCheckboxEnabled)
+                            case 0:
+                                options.imageBitDepth = ImageBitDepth::Eight;
+                                break;
+                            case 1:
+                                options.imageBitDepth = ImageBitDepth::Ten;
+                                break;
+                            case 2:
+                                options.imageBitDepth = ImageBitDepth::Twelve;
+                                break;
+                            default:
+                                options.imageBitDepth = hostImageDepth == 8 ? ImageBitDepth::Eight : ImageBitDepth::Twelve;
+                                break;
+                            }
+
+                            if (hostImageDepth == 8)
+                            {
+                                // Lossless mode is only supported when the host image depth and output
+                                // image depth are both 8-bits-per-channel.
+
+                                if (options.imageBitDepth != ImageBitDepth::Eight)
                                 {
-                                    losslessCheckboxEnabled = false;
-                                    HWND losslessCheck = GetDlgItem(hDlg, IDC_LOSSLESS_CHECK);
-
-                                    if (Button_GetCheck(losslessCheck) == BST_CHECKED)
+                                    if (losslessCheckboxEnabled)
                                     {
-                                        Button_SetCheck(losslessCheck, BST_UNCHECKED);
-                                        options.lossless = false;
-                                        EnableLossyCompressionSettings(hDlg, true);
-                                    }
+                                        losslessCheckboxEnabled = false;
+                                        HWND losslessCheck = GetDlgItem(hDlg, IDC_LOSSLESS_CHECK);
 
-                                    EnableWindow(losslessCheck, false);
-                                    if (hasAlphaChannel)
-                                    {
-                                        HWND losslessAlphaCheck = GetDlgItem(hDlg, IDC_LOSSLESS_ALPHA_CHECK);
+                                        if (Button_GetCheck(losslessCheck) == BST_CHECKED)
+                                        {
+                                            Button_SetCheck(losslessCheck, BST_UNCHECKED);
+                                            options.lossless = false;
+                                            EnableLossyCompressionSettings(hDlg, true);
+                                        }
 
-                                        losslessAlphaChecked = Button_GetCheck(losslessAlphaCheck) == BST_CHECKED;
-                                        Button_SetCheck(losslessAlphaCheck, BST_UNCHECKED);
-                                        EnableWindow(losslessAlphaCheck, false);
+                                        EnableWindow(losslessCheck, false);
+                                        if (hasAlphaChannel)
+                                        {
+                                            HWND losslessAlphaCheck = GetDlgItem(hDlg, IDC_LOSSLESS_ALPHA_CHECK);
+
+                                            losslessAlphaChecked = Button_GetCheck(losslessAlphaCheck) == BST_CHECKED;
+                                            Button_SetCheck(losslessAlphaCheck, BST_UNCHECKED);
+                                            EnableWindow(losslessAlphaCheck, false);
+                                        }
                                     }
                                 }
-                            }
-                            else
-                            {
-                                if (!losslessCheckboxEnabled)
+                                else
                                 {
-                                    losslessCheckboxEnabled = true;
-
-                                    EnableWindow(GetDlgItem(hDlg, IDC_LOSSLESS_CHECK), true);
-                                    if (hasAlphaChannel)
+                                    if (!losslessCheckboxEnabled)
                                     {
-                                        HWND losslessAlphaCheck = GetDlgItem(hDlg, IDC_LOSSLESS_ALPHA_CHECK);
+                                        losslessCheckboxEnabled = true;
 
-                                        Button_SetCheck(losslessAlphaCheck, losslessAlphaChecked ? BST_CHECKED : BST_UNCHECKED);
-                                        EnableWindow(losslessAlphaCheck, true);
+                                        EnableWindow(GetDlgItem(hDlg, IDC_LOSSLESS_CHECK), true);
+                                        if (hasAlphaChannel)
+                                        {
+                                            HWND losslessAlphaCheck = GetDlgItem(hDlg, IDC_LOSSLESS_ALPHA_CHECK);
+
+                                            Button_SetCheck(losslessAlphaCheck, losslessAlphaChecked ? BST_CHECKED : BST_UNCHECKED);
+                                            EnableWindow(losslessAlphaCheck, true);
+                                        }
                                     }
                                 }
                             }
@@ -686,6 +711,7 @@ bool DoSaveUI(const FormatRecordPtr formatRecord, SaveUIOptions& options)
         options.compressionSpeed = dialogOptions.compressionSpeed;
         options.lossless = dialogOptions.lossless;
         options.imageBitDepth = dialogOptions.imageBitDepth;
+        options.thirtyTwoBitTranferFunction = dialogOptions.thirtyTwoBitTranferFunction;
         options.keepColorProfile = dialogOptions.keepColorProfile;
         options.keepExif = dialogOptions.keepExif;
         options.keepXmp = dialogOptions.keepXmp;

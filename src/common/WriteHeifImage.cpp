@@ -23,6 +23,7 @@
 #include "OSErrException.h"
 #include "PremultipliedAlpha.h"
 #include "Utilities.h"
+#include <algorithm>
 #include <vector>
 
 namespace
@@ -497,6 +498,109 @@ ScopedHeifImage CreateHeifImageGraySixteenBit(FormatRecordPtr formatRecord, Alph
     return image;
 }
 
+ScopedHeifImage CreateHeifImageGrayThirtyTwoBit(
+    FormatRecordPtr formatRecord,
+    AlphaState alphaState,
+    const VPoint& imageSize,
+    const SaveUIOptions& saveOptions)
+{
+    const bool hasAlpha = alphaState != AlphaState::None;
+
+    ScopedHeifImage image = CreateHeifImage(imageSize.h, imageSize.v, heif_colorspace_monochrome, heif_chroma_monochrome);
+
+    const int heifImageBitDepth = GetHeifImageBitDepth(saveOptions.imageBitDepth);
+
+    LibHeifException::ThrowIfError(heif_image_add_plane(image.get(), heif_channel_Y, imageSize.h, imageSize.v, heifImageBitDepth));
+
+    int yPlaneStride;
+    uint8_t* yPlaneScan0 = heif_image_get_plane(image.get(), heif_channel_Y, &yPlaneStride);
+
+    int alphaPlaneStride = 0;
+    uint8_t* alphaPlaneScan0 = nullptr;
+
+    if (hasAlpha)
+    {
+        LibHeifException::ThrowIfError(heif_image_add_plane(image.get(), heif_channel_Alpha, imageSize.h, imageSize.v, heifImageBitDepth));
+
+        alphaPlaneScan0 = heif_image_get_plane(image.get(), heif_channel_Alpha, &alphaPlaneStride);
+    }
+
+    const int32 left = 0;
+    const int32 right = imageSize.h;
+
+    const float heifImageMaxValue = static_cast<float>((1 << heifImageBitDepth) - 1);
+    const ColorTransferFunction transferFunction = saveOptions.thirtyTwoBitTranferFunction;
+
+    for (int32 y = 0; y < imageSize.v; y++)
+    {
+        if (formatRecord->abortProc())
+        {
+            throw OSErrException(userCanceledErr);
+        }
+
+        const int32 top = y;
+        const int32 bottom = std::min(top + 1, imageSize.v);
+
+        SetRect(formatRecord, top, left, bottom, right);
+
+        OSErrException::ThrowIfError(formatRecord->advanceState());
+
+        const float* src = static_cast<const float*>(formatRecord->data);
+        uint16_t* yPlane = reinterpret_cast<uint16*>(yPlaneScan0 + ((static_cast<int64_t>(y) * yPlaneStride)));
+
+        if (hasAlpha)
+        {
+            uint16_t* alphaPlane = reinterpret_cast<uint16*>(alphaPlaneScan0 + ((static_cast<int64_t>(y) * alphaPlaneStride)));
+
+            for (int32 x = 0; x < imageSize.h; x++)
+            {
+                float gray = src[0];
+                float alpha = std::clamp(src[1], 0.0f, 1.0f);
+
+                if (alphaState == AlphaState::Premultiplied)
+                {
+                    if (alpha < 1.0f)
+                    {
+                        if (alpha == 0)
+                        {
+                            gray = 0;
+                        }
+                        else
+                        {
+                            gray = PremultiplyColor(std::clamp(gray, 0.0f, 1.0f), alpha, 1.0f);
+                        }
+                    }
+                }
+
+                const float transferCurveGray = LinearToTransferFunction(gray, transferFunction);
+
+                yPlane[0] = static_cast<uint16_t>(std::clamp(transferCurveGray * heifImageMaxValue, 0.0f, heifImageMaxValue));
+                alphaPlane[0] = static_cast<uint16_t>(std::clamp(alpha * heifImageMaxValue, 0.0f, heifImageMaxValue));
+
+                src += 2;
+                yPlane++;
+                alphaPlane++;
+            }
+        }
+        else
+        {
+            for (int32 x = 0; x < imageSize.h; x++)
+            {
+                const float gray = std::clamp(src[0], 0.0f, 1.0f);
+
+                const float transferCurveGray = LinearToTransferFunction(gray, transferFunction);
+
+                yPlane[0] = static_cast<uint16_t>(std::clamp(transferCurveGray * heifImageMaxValue, 0.0f, heifImageMaxValue));
+
+                src++;
+                yPlane++;
+            }
+        }
+    }
+
+    return image;
+}
+
 ScopedHeifImage CreateHeifImageRGBEightBit(
     FormatRecordPtr formatRecord,
     AlphaState alphaState,
@@ -827,6 +931,108 @@ ScopedHeifImage CreateHeifImageRGBSixteenBit(
                     src += 3;
                     yPlane += 3;
                 }
+            }
+        }
+    }
+
+    return image;
+}
+
+ScopedHeifImage CreateHeifImageRGBThirtyTwoBit(
+    FormatRecordPtr formatRecord,
+    AlphaState alphaState,
+    const VPoint& imageSize,
+    const SaveUIOptions& saveOptions)
+{
+    const bool hasAlpha = alphaState != AlphaState::None;
+
+    const heif_chroma chroma = GetRGBImageChroma(saveOptions.imageBitDepth, hasAlpha);
+
+    ScopedHeifImage image = CreateHeifImage(imageSize.h, imageSize.v, heif_colorspace_RGB, chroma);
+
+    const int heifImageBitDepth = GetHeifImageBitDepth(saveOptions.imageBitDepth);
+
+    LibHeifException::ThrowIfError(heif_image_add_plane(image.get(), heif_channel_interleaved, imageSize.h, imageSize.v, heifImageBitDepth));
+
+    int heifImageStride;
+    uint8_t* heifImageData = heif_image_get_plane(image.get(), heif_channel_interleaved, &heifImageStride);
+
+    const int32 left = 0;
+    const int32 right = imageSize.h;
+
+    const float heifImageMaxValue = static_cast<float>((1 << heifImageBitDepth) - 1);
+    const ColorTransferFunction transferFunction = saveOptions.thirtyTwoBitTranferFunction;
+
+    for (int32 y = 0; y < imageSize.v; y++)
+    {
+        if (formatRecord->abortProc())
+        {
+            throw OSErrException(userCanceledErr);
+        }
+
+        const int32 top = y;
+        const int32 bottom = std::min(top + 1, imageSize.v);
+
+        SetRect(formatRecord, top, left, bottom, right);
+
+        OSErrException::ThrowIfError(formatRecord->advanceState());
+
+        const float* src = static_cast<const float*>(formatRecord->data);
+        uint16_t* yPlane = reinterpret_cast<uint16_t*>(heifImageData + ((static_cast<int64_t>(y) * heifImageStride)));
+
+        for (int32 x = 0; x < imageSize.h; x++)
+        {
+            float r = src[0];
+            float g = src[1];
+            float b = src[2];
+
+            if (hasAlpha)
+            {
+                const float a = std::clamp(src[3], 0.0f, 1.0f);
+
+                if (alphaState == AlphaState::Premultiplied)
+                {
+                    if (a < 1.0f)
+                    {
+                        if (a == 0)
+                        {
+                            r = 0;
+                            g = 0;
+                            b = 0;
+                        }
+                        else
+                        {
+                            r = PremultiplyColor(std::clamp(r, 0.0f, 1.0f), a, 1.0f);
+                            g = PremultiplyColor(std::clamp(g, 0.0f, 1.0f), a, 1.0f);
+                            b = PremultiplyColor(std::clamp(b, 0.0f, 1.0f), a, 1.0f);
+                        }
+                    }
+                }
+
+                const float tranferCurveR = LinearToTransferFunction(r, transferFunction);
+                const float tranferCurveG = LinearToTransferFunction(g, transferFunction);
+                const float tranferCurveB = LinearToTransferFunction(b, transferFunction);
+
+                yPlane[0] = static_cast<uint16_t>(std::clamp(tranferCurveR * heifImageMaxValue, 0.0f, heifImageMaxValue));
+                yPlane[1] = static_cast<uint16_t>(std::clamp(tranferCurveG * heifImageMaxValue, 0.0f, heifImageMaxValue));
+                yPlane[2] = static_cast<uint16_t>(std::clamp(tranferCurveB * heifImageMaxValue, 0.0f, heifImageMaxValue));
+                yPlane[3] = static_cast<uint16_t>(std::clamp(a * heifImageMaxValue, 0.0f, heifImageMaxValue));
+
+                src += 4;
+                yPlane += 4;
+            }
+            else
+            {
+                const float tranferCurveR = LinearToTransferFunction(r, transferFunction);
+                const float tranferCurveG = LinearToTransferFunction(g, transferFunction);
+                const float tranferCurveB = LinearToTransferFunction(b, transferFunction);
+
+                yPlane[0] = static_cast<uint16_t>(std::clamp(tranferCurveR * heifImageMaxValue, 0.0f, heifImageMaxValue));
+                yPlane[1] = static_cast<uint16_t>(std::clamp(tranferCurveG * heifImageMaxValue, 0.0f, heifImageMaxValue));
+                yPlane[2] = static_cast<uint16_t>(std::clamp(tranferCurveB * heifImageMaxValue, 0.0f, heifImageMaxValue));
+
+                src += 3;
+                yPlane += 3;
             }
         }
     }

@@ -32,7 +32,7 @@ namespace
 
         unsigned64 imageDataSize = width * height * static_cast<unsigned64>(formatRecord->planes);
 
-        if (formatRecord->depth == 16)
+        if (formatRecord->depth == 16 || formatRecord->depth == 32)
         {
             imageDataSize *= 2; // 2 bytes per pixel.
         }

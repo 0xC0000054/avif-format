@@ -83,6 +83,7 @@ namespace
         globals->saveOptions.quality = 85;
         globals->saveOptions.chromaSubsampling = ChromaSubsampling::Yuv422;
         globals->saveOptions.compressionSpeed = CompressionSpeed::Default;
+        globals->saveOptions.thirtyTwoBitTranferFunction = ColorTransferFunction::PQ;
         globals->saveOptions.lossless = false;
         globals->saveOptions.losslessAlpha = true;
         globals->saveOptions.imageBitDepth = ImageBitDepth::Twelve; // The save UI will default to 8-bit if the image is 8-bit.
