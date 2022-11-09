@@ -77,7 +77,9 @@ namespace
     {
         globals->context = nullptr;
         globals->imageHandle = nullptr;
+        globals->imageHandleNclxProfile = nullptr;
         globals->image = nullptr;
+        globals->imageHandleProfileType = heif_color_profile_type_not_present;
         globals->saveOptions.quality = 85;
         globals->saveOptions.chromaSubsampling = ChromaSubsampling::Yuv422;
         globals->saveOptions.compressionSpeed = CompressionSpeed::Default;

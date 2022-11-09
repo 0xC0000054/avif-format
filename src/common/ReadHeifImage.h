@@ -48,4 +48,16 @@ void ReadHeifImageRGBSixteenBit(
     const heif_color_profile_nclx* nclxProfile,
     FormatRecordPtr formatRecord);
 
+void ReadHeifImageGrayThirtyTwoBit(
+    const heif_image* image,
+    AlphaState alphaState,
+    const heif_color_profile_nclx* nclxProfile,
+    FormatRecordPtr formatRecord);
+
+void ReadHeifImageRGBThirtyTwoBit(
+    const heif_image* image,
+    AlphaState alphaState,
+    const heif_color_profile_nclx* nclxProfile,
+    FormatRecordPtr formatRecord);
+
 #endif // !READHEIFIMAGE_H

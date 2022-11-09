@@ -45,6 +45,7 @@
  */
 
 #include "YUVDecode.h"
+#include "ColorTransfer.h"
 #include "PremultipliedAlpha.h"
 #include <algorithm>
 #include <array>
@@ -185,6 +186,76 @@ void DecodeY16RowToGrayAlpha16(
 
         dstPtr[0] = static_cast<uint16_t>(0.5f + (Y * rgbMaxChannel));
         dstPtr[1] = static_cast<uint16_t>(0.5f + (A * rgbMaxChannel));
+
+        dstPtr += 2;
+    }
+}
+
+void DecodeY16RowToGray32(
+    const uint16_t* yPlane,
+    float* grayRow,
+    int32 rowWidth,
+    const YUVLookupTables& tables,
+    ColorTransferFunction transferFunction)
+{
+    float* dstPtr = grayRow;
+
+    const uint16_t yuvMaxChannel = static_cast<uint16_t>(tables.yuvMaxChannel);
+
+    for (int32 x = 0; x < rowWidth; ++x)
+    {
+        // Unpack Y into unorm
+        const uint16_t unormY = std::min(yPlane[x], yuvMaxChannel);
+
+        // Convert unorm to float
+        const float Y = tables.unormFloatTableY[unormY];
+
+        dstPtr[0] = TransferFunctionToLinear(Y, transferFunction);
+
+        dstPtr++;
+    }
+}
+
+void DecodeY16RowToGrayAlpha32(
+    const uint16_t* yPlane,
+    const uint16_t* alphaPlane,
+    bool alphaPremultiplied,
+    float* grayaRow,
+    int32 rowWidth,
+    const YUVLookupTables& tables,
+    ColorTransferFunction transferFunction)
+{
+    float* dstPtr = grayaRow;
+
+    const uint16_t yuvMaxChannel = static_cast<uint16_t>(tables.yuvMaxChannel);
+
+    for (int32 x = 0; x < rowWidth; ++x)
+    {
+        // Unpack Y into unorm
+        uint16_t unormY = std::min(yPlane[x], yuvMaxChannel);
+        const uint16_t unormA = std::min(alphaPlane[x], yuvMaxChannel);
+
+        if (alphaPremultiplied)
+        {
+            if (unormA < tables.yuvMaxChannel)
+            {
+                if (unormA == 0)
+                {
+                    unormY = 0;
+                }
+                else
+                {
+                    unormY = UnpremultiplyColor(unormY, unormA, yuvMaxChannel);
+                }
+            }
+        }
+
+        // Convert unorm to float
+        const float Y = tables.unormFloatTableY[unormY];
+        const float A = tables.unormFloatTableAlpha[unormA];
+
+        dstPtr[0] = TransferFunctionToLinear(Y, transferFunction);
+        dstPtr[1] = A;
 
         dstPtr += 2;
     }
@@ -425,6 +496,126 @@ void DecodeYUV16RowToRGBA16(
         dstPtr[1] = static_cast<uint16_t>(0.5f + (G * rgbMaxChannel));
         dstPtr[2] = static_cast<uint16_t>(0.5f + (B * rgbMaxChannel));
         dstPtr[3] = static_cast<uint16_t>(0.5f + (A * rgbMaxChannel));
+
+        dstPtr += 4;
+    }
+}
+
+void DecodeYUV16RowToRGB32(
+    const uint16_t* yPlane,
+    const uint16_t* uPlane,
+    const uint16_t* vPlane,
+    float* rgbRow,
+    int32 rowWidth,
+    int32 xChromaShift,
+    const YUVCoefficiants& yuvCoefficiants,
+    const YUVLookupTables& tables,
+    ColorTransferFunction transferFunction)
+{
+    const float kr = yuvCoefficiants.kr;
+    const float kg = yuvCoefficiants.kg;
+    const float kb = yuvCoefficiants.kb;
+
+    const uint16_t yuvMaxChannel = static_cast<uint16_t>(tables.yuvMaxChannel);
+
+    float* dstPtr = rgbRow;
+
+    for (int32 x = 0; x < rowWidth; ++x)
+    {
+        // Unpack YUV into unorm
+        const int32_t uvI = x >> xChromaShift;
+        const uint16_t unormY = std::min(yPlane[x], yuvMaxChannel);
+        const uint16_t unormU = std::min(uPlane[uvI], yuvMaxChannel);
+        const uint16_t unormV = std::min(vPlane[uvI], yuvMaxChannel);
+
+        // Convert unorm to float
+        const float Y = tables.unormFloatTableY[unormY];
+        const float Cb = tables.unormFloatTableUV[unormU];
+        const float Cr = tables.unormFloatTableUV[unormV];
+
+        float R = Y + (2 * (1 - kr)) * Cr;
+        float B = Y + (2 * (1 - kb)) * Cb;
+        float G = Y - ((2 * ((kr * (1 - kr) * Cr) + (kb * (1 - kb) * Cb))) / kg);
+
+        R = std::clamp(R, 0.0f, 1.0f);
+        G = std::clamp(G, 0.0f, 1.0f);
+        B = std::clamp(B, 0.0f, 1.0f);
+
+        dstPtr[0] = TransferFunctionToLinear(R, transferFunction);
+        dstPtr[1] = TransferFunctionToLinear(G, transferFunction);
+        dstPtr[2] = TransferFunctionToLinear(B, transferFunction);
+
+        dstPtr += 3;
+    }
+}
+
+void DecodeYUV16RowToRGBA32(
+    const uint16_t* yPlane,
+    const uint16_t* uPlane,
+    const uint16_t* vPlane,
+    const uint16_t* alphaPlane,
+    bool alphaPremultiplied,
+    float* rgbaRow,
+    int32 rowWidth,
+    int32 xChromaShift,
+    const YUVCoefficiants& yuvCoefficiants,
+    const YUVLookupTables& tables,
+    ColorTransferFunction transferFunction)
+{
+    const float kr = yuvCoefficiants.kr;
+    const float kg = yuvCoefficiants.kg;
+    const float kb = yuvCoefficiants.kb;
+
+    const uint16_t yuvMaxChannel = static_cast<uint16_t>(tables.yuvMaxChannel);
+
+    float* dstPtr = rgbaRow;
+
+    for (int32 x = 0; x < rowWidth; ++x)
+    {
+        // Unpack YUV into unorm
+        const int32_t uvI = x >> xChromaShift;
+        const uint16_t unormY = std::min(yPlane[x], yuvMaxChannel);
+        const uint16_t unormU = std::min(uPlane[uvI], yuvMaxChannel);
+        const uint16_t unormV = std::min(vPlane[uvI], yuvMaxChannel);
+        const uint16_t unormA = std::min(alphaPlane[x], yuvMaxChannel);
+
+        // Convert unorm to float
+        const float Y = tables.unormFloatTableY[unormY];
+        const float Cb = tables.unormFloatTableUV[unormU];
+        const float Cr = tables.unormFloatTableUV[unormV];
+
+        float R = Y + (2 * (1 - kr)) * Cr;
+        float B = Y + (2 * (1 - kb)) * Cb;
+        float G = Y - ((2 * ((kr * (1 - kr) * Cr) + (kb * (1 - kb) * Cb))) / kg);
+
+        R = std::clamp(R, 0.0f, 1.0f);
+        G = std::clamp(G, 0.0f, 1.0f);
+        B = std::clamp(B, 0.0f, 1.0f);
+        const float A = tables.unormFloatTableAlpha[unormA];
+
+        if (alphaPremultiplied)
+        {
+            if (unormA < tables.yuvMaxChannel)
+            {
+                if (unormA == 0)
+                {
+                    R = 0;
+                    G = 0;
+                    B = 0;
+                }
+                else
+                {
+                    R = UnpremultiplyColor(R, A, 1.0f);
+                    G = UnpremultiplyColor(G, A, 1.0f);
+                    B = UnpremultiplyColor(B, A, 1.0f);
+                }
+            }
+        }
+
+        dstPtr[0] = TransferFunctionToLinear(R, transferFunction);
+        dstPtr[1] = TransferFunctionToLinear(G, transferFunction);
+        dstPtr[2] = TransferFunctionToLinear(B, transferFunction);
+        dstPtr[3] = A;
 
         dstPtr += 4;
     }

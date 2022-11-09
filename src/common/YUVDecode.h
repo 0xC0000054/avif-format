@@ -21,6 +21,7 @@
 #ifndef YUVDECODE_H
 #define YUVDECODE_H
 
+#include "ColorTransfer.h"
 #include "YUVCoefficiants.h"
 #include "YUVLookupTables.h"
 
@@ -46,11 +47,27 @@ void DecodeY16RowToGray16(
 
 void DecodeY16RowToGrayAlpha16(
     const uint16_t* yPlane,
-	const uint16_t* alphaPlane,
+    const uint16_t* alphaPlane,
     bool alphaPremultiplied,
     uint16_t* grayaRow,
     int32 rowWidth,
     const YUVLookupTables& tables);
+
+void DecodeY16RowToGray32(
+    const uint16_t* yPlane,
+    float* grayRow,
+    int32 rowWidth,
+    const YUVLookupTables& tables,
+    ColorTransferFunction transferFunction);
+
+void DecodeY16RowToGrayAlpha32(
+    const uint16_t* yPlane,
+    const uint16_t* alphaPlane,
+    bool alphaPremultiplied,
+    float* grayaRow,
+    int32 rowWidth,
+    const YUVLookupTables& tables,
+    ColorTransferFunction transferFunction);
 
 void DecodeYUV8RowToRGB8(
     const uint8_t* yPlane,
@@ -95,5 +112,29 @@ void DecodeYUV16RowToRGBA16(
     int32 xChromaShift,
     const YUVCoefficiants& yuvCoefficiants,
     const YUVLookupTables& tables);
+
+void DecodeYUV16RowToRGB32(
+    const uint16_t* yPlane,
+    const uint16_t* uPlane,
+    const uint16_t* vPlane,
+    float* rgbRow,
+    int32 rowWidth,
+    int32 xChromaShift,
+    const YUVCoefficiants& yuvCoefficiants,
+    const YUVLookupTables& tables,
+    ColorTransferFunction transferFunction);
+
+void DecodeYUV16RowToRGBA32(
+    const uint16_t* yPlane,
+    const uint16_t* uPlane,
+    const uint16_t* vPlane,
+    const uint16_t* alphaPlane,
+    bool alphaPremultiplied,
+    float* rgbaRow,
+    int32 rowWidth,
+    int32 xChromaShift,
+    const YUVCoefficiants& yuvCoefficiants,
+    const YUVLookupTables& tables,
+    ColorTransferFunction transferFunction);
 
 #endif // !YUVDECODE_H

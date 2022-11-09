@@ -332,6 +332,7 @@
     <ClInclude Include="..\src\common\AvifFormat.h" />
     <ClInclude Include="..\src\common\AvifFormatTerminology.h" />
     <ClInclude Include="..\src\common\ColorProfileGeneration.h" />
+    <ClInclude Include="..\src\common\ColorTransfer.h" />
     <ClInclude Include="..\src\common\Common.h" />
     <ClInclude Include="..\src\common\ExifParser.h" />
     <ClInclude Include="..\src\common\FileIO.h" />
@@ -358,6 +359,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\common\AvifFormat.cpp" />
     <ClCompile Include="..\src\common\ColorProfileGeneration.cpp" />
+    <ClCompile Include="..\src\common\ColorTransfer.cpp" />
     <ClCompile Include="..\src\common\Common.cpp" />
     <ClCompile Include="..\src\common\Estimate.cpp" />
     <ClCompile Include="..\src\common\ExifParser.cpp" />

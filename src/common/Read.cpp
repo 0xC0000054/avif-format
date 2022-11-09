@@ -169,6 +169,18 @@ namespace
 
         return alphaState;
     }
+
+    bool IsHDRImage(const heif_color_profile_nclx* nclx)
+    {
+        bool result = false;
+
+        if (nclx != nullptr)
+        {
+            result = nclx->transfer_characteristics == heif_transfer_characteristic_ITU_R_BT_2100_0_PQ;
+        }
+
+        return result;
+    }
 }
 
 OSErr DoReadPrepare(FormatRecordPtr formatRecord)
@@ -245,6 +257,15 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
             formatRecord->imageSize.v = static_cast<int16>(height);
         }
 
+        const heif_color_profile_type imageHandleProfileType = heif_image_handle_get_color_profile_type(primaryImage.get());
+
+        ScopedHeifNclxProfile imageHandleNclxProfile;
+
+        if (imageHandleProfileType == heif_color_profile_type_nclx)
+        {
+            imageHandleNclxProfile = GetNclxColorProfile(primaryImage.get());
+        }
+
         ScopedHeifImage image = DecodeImage(primaryImage.get(), heif_colorspace_undefined, heif_chroma_undefined);
 
         const heif_colorspace colorSpace = heif_image_get_colorspace(image.get());
@@ -265,8 +286,16 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
                 break;
             case 10:
             case 12:
-                formatRecord->imageMode = plugInModeGray16;
-                formatRecord->depth = 16;
+                if (IsHDRImage(imageHandleNclxProfile.get()))
+                {
+                    formatRecord->imageMode = plugInModeGrayScale;
+                    formatRecord->depth = 32;
+                }
+                else
+                {
+                    formatRecord->imageMode = plugInModeGray16;
+                    formatRecord->depth = 16;
+                }
                 break;
             default:
                 throw OSErrException(formatCannotRead);
@@ -288,8 +317,16 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
                 break;
             case 10:
             case 12:
-                formatRecord->imageMode = plugInModeRGB48;
-                formatRecord->depth = 16;
+                if (IsHDRImage(imageHandleNclxProfile.get()))
+                {
+                    formatRecord->imageMode = plugInModeRGBColor;
+                    formatRecord->depth = 32;
+                }
+                else
+                {
+                    formatRecord->imageMode = plugInModeRGB48;
+                    formatRecord->depth = 16;
+                }
                 break;
             default:
                 throw OSErrException(formatCannotRead);
@@ -311,8 +348,16 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
                 break;
             case 10:
             case 12:
-                formatRecord->imageMode = plugInModeRGB48;
-                formatRecord->depth = 16;
+                if (IsHDRImage(imageHandleNclxProfile.get()))
+                {
+                    formatRecord->imageMode = plugInModeRGBColor;
+                    formatRecord->depth = 32;
+                }
+                else
+                {
+                    formatRecord->imageMode = plugInModeRGB48;
+                    formatRecord->depth = 16;
+                }
                 break;
             default:
                 throw OSErrException(formatCannotRead);
@@ -334,7 +379,9 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
         // The image data and meta-data will be set in DoReadContinue.
         globals->context = context.release();
         globals->imageHandle = primaryImage.release();
+        globals->imageHandleNclxProfile = imageHandleNclxProfile.release();
         globals->image = image.release();
+        globals->imageHandleProfileType = imageHandleProfileType;
     }
     catch (const std::bad_alloc&)
     {
@@ -368,26 +415,56 @@ OSErr DoReadContinue(FormatRecordPtr formatRecord, Globals* globals)
 
     try
     {
-        ScopedHeifNclxProfile imageNclxProfile = GetNclxColorProfile(globals->image);
+        ScopedHeifNclxProfile imageNclxProfile;
+
+        const heif_color_profile_nclx* nclxProfile = globals->imageHandleNclxProfile;
+
+        if (nclxProfile == nullptr)
+        {
+            // If the image handle does not have color information from a NCLX 'colr' box
+            // try to get the color information from the image bitstream.
+            imageNclxProfile = GetNclxColorProfile(globals->image);
+            if (imageNclxProfile)
+            {
+                nclxProfile = imageNclxProfile.get();
+            }
+        }
 
         const AlphaState alphaState = GetAlphaState(globals->imageHandle);
 
-        switch (formatRecord->imageMode)
+        if (IsMonochromeImage(formatRecord))
         {
-        case plugInModeGrayScale:
-            ReadHeifImageGrayEightBit(globals->image, alphaState, imageNclxProfile.get(), formatRecord);
-            break;
-        case plugInModeGray16:
-            ReadHeifImageGraySixteenBit(globals->image, alphaState, imageNclxProfile.get(), formatRecord);
-            break;
-        case plugInModeRGBColor:
-            ReadHeifImageRGBEightBit(globals->image, alphaState, imageNclxProfile.get(), formatRecord);
-            break;
-        case plugInModeRGB48:
-            ReadHeifImageRGBSixteenBit(globals->image, alphaState, imageNclxProfile.get(), formatRecord);
-            break;
-        default:
-            throw OSErrException(formatCannotRead);
+            switch (formatRecord->depth)
+            {
+            case 8:
+                ReadHeifImageGrayEightBit(globals->image, alphaState, nclxProfile, formatRecord);
+                break;
+            case 16:
+                ReadHeifImageGraySixteenBit(globals->image, alphaState, nclxProfile, formatRecord);
+                break;
+            case 32:
+                ReadHeifImageGrayThirtyTwoBit(globals->image, alphaState, nclxProfile, formatRecord);
+                break;
+            default:
+                throw std::runtime_error("Unsupported host bit depth");
+            }
+        }
+        else
+        {
+            switch (formatRecord->depth)
+            {
+            case 8:
+                ReadHeifImageRGBEightBit(globals->image, alphaState, nclxProfile, formatRecord);
+                break;
+            case 16:
+                ReadHeifImageRGBSixteenBit(globals->image, alphaState, nclxProfile, formatRecord);
+                break;
+            case 32:
+                ReadHeifImageRGBThirtyTwoBit(globals->image, alphaState, nclxProfile, formatRecord);
+                break;
+            default:
+                throw std::runtime_error("Unsupported host bit depth");
+            }
         }
 
         SetRect(formatRecord, 0, 0, 0, 0);
@@ -403,7 +480,7 @@ OSErr DoReadContinue(FormatRecordPtr formatRecord, Globals* globals)
 
             if (formatRecord->canUseICCProfiles)
             {
-                const heif_color_profile_type imageHandleProfileType = heif_image_handle_get_color_profile_type(globals->imageHandle);
+                const heif_color_profile_type imageHandleProfileType = globals->imageHandleProfileType;
 
                 if (imageHandleProfileType == heif_color_profile_type_prof ||
                     imageHandleProfileType == heif_color_profile_type_rICC)
@@ -412,15 +489,9 @@ OSErr DoReadContinue(FormatRecordPtr formatRecord, Globals* globals)
                 }
                 else
                 {
-                    if (imageNclxProfile)
+                    if (nclxProfile != nullptr)
                     {
-                        SetIccProfileFromNclx(formatRecord, imageNclxProfile.get());
-                    }
-                    else if (imageHandleProfileType == heif_color_profile_type_nclx)
-                    {
-                        ScopedHeifNclxProfile imageHandleNclxProfile = GetNclxColorProfile(globals->imageHandle);
-
-                        SetIccProfileFromNclx(formatRecord, imageHandleNclxProfile.get());
+                        SetIccProfileFromNclx(formatRecord, nclxProfile);
                     }
                 }
             }
@@ -464,6 +535,12 @@ OSErr DoReadFinish(Globals* globals)
     {
         heif_image_handle_release(globals->imageHandle);
         globals->imageHandle = nullptr;
+    }
+
+    if (globals->imageHandleNclxProfile != nullptr)
+    {
+        heif_nclx_color_profile_free(globals->imageHandleNclxProfile);
+        globals->imageHandleNclxProfile = nullptr;
     }
 
     if (globals->context != nullptr)

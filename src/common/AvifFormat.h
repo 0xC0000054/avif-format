@@ -63,7 +63,9 @@ struct Globals
 {
     heif_context* context;
     heif_image_handle* imageHandle;
+    heif_color_profile_nclx* imageHandleNclxProfile;
     heif_image* image;
+    heif_color_profile_type imageHandleProfileType;
 
     SaveUIOptions saveOptions;
     bool libheifInitialized;

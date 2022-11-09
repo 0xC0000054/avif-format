@@ -19,10 +19,12 @@
  */
 
 #include "ReadHeifImage.h"
+#include "ColorTransfer.h"
 #include "PremultipliedAlpha.h"
 #include "ScopedBufferSuite.h"
 #include "Utilities.h"
 #include "YUVDecode.h"
+#include <vector>
 
 namespace
 {
@@ -283,6 +285,125 @@ namespace
                 OSErrException::ThrowIfError(formatRecord->advanceState());
             }
         }
+    }
+
+    void ReadHeifImageYUVThirtyTwoBit(
+        const heif_image* image,
+        AlphaState alphaState,
+        const heif_color_profile_nclx* nclxProfile,
+        FormatRecordPtr formatRecord,
+        ColorTransferFunction transferFunction)
+    {
+        const heif_chroma chroma = heif_image_get_chroma_format(image);
+
+        const int lumaBitsPerPixel = heif_image_get_bits_per_pixel_range(image, heif_channel_Y);
+
+        if (heif_image_get_bits_per_pixel_range(image, heif_channel_Cb) != lumaBitsPerPixel ||
+            heif_image_get_bits_per_pixel_range(image, heif_channel_Cr) != lumaBitsPerPixel)
+        {
+            throw std::runtime_error("The chroma channel bit depth does not match the main image.");
+        }
+
+        const VPoint imageSize = GetImageSize(formatRecord);
+        const bool hasAlpha = alphaState != AlphaState::None;
+
+        SetupFormatRecord(formatRecord, imageSize);
+
+        int yPlaneStride;
+        const uint8_t* yPlaneScan0 = heif_image_get_plane_readonly(image, heif_channel_Y, &yPlaneStride);
+
+        int cbPlaneStride;
+        const uint8_t* cbPlaneScan0 = heif_image_get_plane_readonly(image, heif_channel_Cb, &cbPlaneStride);
+
+        int crPlaneStride;
+        const uint8_t* crPlaneScan0 = heif_image_get_plane_readonly(image, heif_channel_Cr, &crPlaneStride);
+
+        ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, formatRecord->rowBytes);
+
+        formatRecord->data = buffer.Lock();
+
+        const int32 left = 0;
+        const int32 right = imageSize.h;
+
+        YUVCoefficiants yuvCoefficiants{};
+
+        GetYUVCoefficiants(nclxProfile, yuvCoefficiants);
+
+        const YUVLookupTables tables(nclxProfile, lumaBitsPerPixel, false, hasAlpha);
+
+        int32 xChromaShift, yChromaShift;
+
+        GetChromaShift(chroma, xChromaShift, yChromaShift);
+
+        if (hasAlpha)
+        {
+            if (heif_image_get_bits_per_pixel_range(image, heif_channel_Alpha) != lumaBitsPerPixel)
+            {
+                throw std::runtime_error("The alpha channel bit depth does not match the main image channels.");
+            }
+
+            int alphaStride;
+            const uint8_t* alphaScan0 = heif_image_get_plane_readonly(image, heif_channel_Alpha, &alphaStride);
+            const bool alphaPremultiplied = alphaState == AlphaState::Premultiplied;
+
+            for (int32 y = 0; y < imageSize.v; y++)
+            {
+                const int32 uvJ = y >> yChromaShift;
+                const uint16_t* srcY = reinterpret_cast<const uint16_t*>(yPlaneScan0 + (static_cast<int64>(y) * yPlaneStride));
+                const uint16_t* srcCb = reinterpret_cast<const uint16_t*>(cbPlaneScan0 + (static_cast<int64>(uvJ) * cbPlaneStride));
+                const uint16_t* srcCr = reinterpret_cast<const uint16_t*>(crPlaneScan0 + (static_cast<int64>(uvJ) * crPlaneStride));
+
+                const uint16_t* srcAlpha = reinterpret_cast<const uint16_t*>(alphaScan0 + (static_cast<int64>(y) * alphaStride));
+                float* dst = static_cast<float*>(formatRecord->data);
+
+                DecodeYUV16RowToRGBA32(srcY, srcCb, srcCr, srcAlpha, alphaPremultiplied,
+                    dst, imageSize.h, xChromaShift, yuvCoefficiants, tables, transferFunction);
+
+                const int32 top = y;
+                const int32 bottom = y + 1;
+
+                SetRect(formatRecord, top, left, bottom, right);
+
+                OSErrException::ThrowIfError(formatRecord->advanceState());
+            }
+        }
+        else
+        {
+            for (int32 y = 0; y < imageSize.v; y++)
+            {
+                const int32 uvJ = y >> yChromaShift;
+                const uint16_t* srcY = reinterpret_cast<const uint16_t*>(yPlaneScan0 + (static_cast<int64>(y) * yPlaneStride));
+                const uint16_t* srcCb = reinterpret_cast<const uint16_t*>(cbPlaneScan0 + (static_cast<int64>(uvJ) * cbPlaneStride));
+                const uint16_t* srcCr = reinterpret_cast<const uint16_t*>(crPlaneScan0 + (static_cast<int64>(uvJ) * crPlaneStride));
+
+                float* dst = static_cast<float*>(formatRecord->data);
+
+                DecodeYUV16RowToRGB32(srcY, srcCb, srcCr, dst, imageSize.h, xChromaShift,
+                    yuvCoefficiants, tables, transferFunction);
+
+                const int32 top = y;
+                const int32 bottom = y + 1;
+
+                SetRect(formatRecord, top, left, bottom, right);
+
+                OSErrException::ThrowIfError(formatRecord->advanceState());
+            }
+        }
+    }
+
+    ::std::vector<float> BuildUnormToFloatLookupTable(int bitDepth)
+    {
+        const size_t count = static_cast<size_t>(1) << bitDepth;
+        const float maxValue = static_cast<float>(count - 1);
+
+        ::std::vector<float> table(count);
+
+        for (size_t i = 0; i < count; i++)
+        {
+            table[i] = static_cast<float>(i) / maxValue;
+        }
+
+        return table;
     }
 }
 
@@ -714,6 +835,263 @@ void ReadHeifImageRGBSixteenBit(
                 dst[0] = *srcR;
                 dst[1] = *srcG;
                 dst[2] = *srcB;
+
+                srcR++;
+                srcG++;
+                srcB++;
+                dst += 3;
+            }
+
+            const int32 top = y;
+            const int32 bottom = y + 1;
+
+            SetRect(formatRecord, top, left, bottom, right);
+
+            OSErrException::ThrowIfError(formatRecord->advanceState());
+        }
+    }
+}
+
+void ReadHeifImageGrayThirtyTwoBit(
+    const heif_image* image,
+    AlphaState alphaState,
+    const heif_color_profile_nclx* nclxProfile,
+    FormatRecordPtr formatRecord)
+{
+    if (nclxProfile == nullptr)
+    {
+        throw std::runtime_error("The nclxProfile is null.");
+    }
+
+    const VPoint imageSize = GetImageSize(formatRecord);
+    const bool hasAlpha = alphaState != AlphaState::None;
+
+    SetupFormatRecord(formatRecord, imageSize);
+
+    const int lumaBitsPerPixel = heif_image_get_bits_per_pixel_range(image, heif_channel_Y);
+
+    int grayStride;
+    const uint8_t* grayScan0 = heif_image_get_plane_readonly(image, heif_channel_Y, &grayStride);
+
+    ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, formatRecord->rowBytes);
+
+    formatRecord->data = buffer.Lock();
+
+    const int32 left = 0;
+    const int32 right = imageSize.h;
+
+    const YUVLookupTables tables(nclxProfile, lumaBitsPerPixel, true, hasAlpha);
+    ColorTransferFunction transferFunction = ColorTransferFunction::PQ;
+
+    if (nclxProfile->transfer_characteristics != heif_transfer_characteristic_ITU_R_BT_2100_0_PQ)
+    {
+        throw std::runtime_error("Unsupported NCLX transfer characteristic.");
+    }
+
+    if (hasAlpha)
+    {
+        if (heif_image_get_bits_per_pixel_range(image, heif_channel_Alpha) != lumaBitsPerPixel)
+        {
+            throw std::runtime_error("The alpha channel bit depth does not match the main image channels.");
+        }
+
+        int alphaStride;
+        const uint8_t* alphaScan0 = heif_image_get_plane_readonly(image, heif_channel_Alpha, &alphaStride);
+        const bool alphaPremultiplied = alphaState == AlphaState::Premultiplied;
+
+        for (int32 y = 0; y < imageSize.v; y++)
+        {
+            const uint16_t* srcGray = reinterpret_cast<const uint16_t*>(grayScan0 + (static_cast<int64>(y) * grayStride));
+            const uint16_t* srcAlpha = reinterpret_cast<const uint16_t*>(alphaScan0 + (static_cast<int64>(y) * alphaStride));
+            float* dst = static_cast<float*>(formatRecord->data);
+
+            DecodeY16RowToGrayAlpha32(srcGray, srcAlpha, alphaPremultiplied, dst, imageSize.h, tables, transferFunction);
+
+            const int32 top = y;
+            const int32 bottom = y + 1;
+
+            SetRect(formatRecord, top, left, bottom, right);
+
+            OSErrException::ThrowIfError(formatRecord->advanceState());
+        }
+    }
+    else
+    {
+        for (int32 y = 0; y < imageSize.v; y++)
+        {
+            const uint16_t* srcGray = reinterpret_cast<const uint16_t*>(grayScan0 + (static_cast<int64>(y) * grayStride));
+            float* dst = static_cast<float*>(formatRecord->data);
+
+            DecodeY16RowToGray32(srcGray, dst, imageSize.h, tables, transferFunction);
+
+            const int32 top = y;
+            const int32 bottom = y + 1;
+
+            SetRect(formatRecord, top, left, bottom, right);
+
+            OSErrException::ThrowIfError(formatRecord->advanceState());
+        }
+    }
+}
+
+void ReadHeifImageRGBThirtyTwoBit(
+    const heif_image* image,
+    AlphaState alphaState,
+    const heif_color_profile_nclx* nclxProfile,
+    FormatRecordPtr formatRecord)
+{
+    if (nclxProfile == nullptr)
+    {
+        throw std::runtime_error("The nclxProfile is null.");
+    }
+
+    ColorTransferFunction transferFunction = ColorTransferFunction::PQ;
+
+    if (nclxProfile->transfer_characteristics != heif_transfer_characteristic_ITU_R_BT_2100_0_PQ)
+    {
+        throw std::runtime_error("Unsupported NCLX transfer characteristic.");
+    }
+
+    const heif_colorspace colorspace = heif_image_get_colorspace(image);
+
+    // The image color space can be either YCbCr or RGB.
+    if (colorspace == heif_colorspace_YCbCr)
+    {
+        ReadHeifImageYUVThirtyTwoBit(image, alphaState, nclxProfile, formatRecord, transferFunction);
+        return;
+    }
+    else if (colorspace != heif_colorspace_RGB)
+    {
+        throw std::runtime_error("Unsupported image color space, expected RGB.");
+    }
+
+    const VPoint imageSize = GetImageSize(formatRecord);
+    const bool hasAlpha = alphaState != AlphaState::None;
+
+    const int redBitsPerPixel = heif_image_get_bits_per_pixel_range(image, heif_channel_R);
+
+    if (heif_image_get_bits_per_pixel_range(image, heif_channel_G) != redBitsPerPixel ||
+        heif_image_get_bits_per_pixel_range(image, heif_channel_B) != redBitsPerPixel)
+    {
+        throw std::runtime_error("The color channel bit depths do not match.");
+    }
+
+    SetupFormatRecord(formatRecord, imageSize);
+
+    int rPlaneStride;
+    const uint8_t* rPlaneScan0 = heif_image_get_plane_readonly(image, heif_channel_R, &rPlaneStride);
+
+    int gPlaneStride;
+    const uint8_t* gPlaneScan0 = heif_image_get_plane_readonly(image, heif_channel_G, &gPlaneStride);
+
+    int bPlaneStride;
+    const uint8_t* bPlaneScan0 = heif_image_get_plane_readonly(image, heif_channel_B, &bPlaneStride);
+
+    ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, formatRecord->rowBytes);
+
+    formatRecord->data = buffer.Lock();
+
+    const int32 left = 0;
+    const int32 right = imageSize.h;
+
+    const ::std::vector<float> unormToFloatTable = BuildUnormToFloatLookupTable(redBitsPerPixel);
+
+    if (hasAlpha)
+    {
+        if (heif_image_get_bits_per_pixel_range(image, heif_channel_Alpha) != redBitsPerPixel)
+        {
+            throw std::runtime_error("The alpha channel bit depth does not match the main image channels.");
+        }
+
+        int alphaStride;
+        const uint8_t* alphaScan0 = heif_image_get_plane_readonly(image, heif_channel_Alpha, &alphaStride);
+        const bool alphaPremultiplied = alphaState == AlphaState::Premultiplied;
+
+        const uint16_t rgbMaxValue = (1 << redBitsPerPixel) - 1;
+
+        for (int32 y = 0; y < imageSize.v; y++)
+        {
+            const uint16_t* srcR = reinterpret_cast<const uint16_t*>(rPlaneScan0 + (static_cast<int64>(y) * rPlaneStride));
+            const uint16_t* srcG = reinterpret_cast<const uint16_t*>(gPlaneScan0 + (static_cast<int64>(y) * gPlaneStride));
+            const uint16_t* srcB = reinterpret_cast<const uint16_t*>(bPlaneScan0 + (static_cast<int64>(y) * bPlaneStride));
+            const uint16_t* srcAlpha = reinterpret_cast<const uint16_t*>(alphaScan0 + (static_cast<int64>(y) * alphaStride));
+
+            float* dst = static_cast<float*>(formatRecord->data);
+
+            for (int32 x = 0; x < imageSize.h; x++)
+            {
+                uint16_t unormR = *srcR;
+                uint16_t unormG = *srcG;
+                uint16_t unormB = *srcB;
+                const uint16_t unormA = *srcAlpha;
+
+                if (alphaPremultiplied)
+                {
+                    if (unormA < rgbMaxValue)
+                    {
+                        if (unormA == 0)
+                        {
+                            unormR = 0;
+                            unormG = 0;
+                            unormB = 0;
+                        }
+                        else
+                        {
+                            unormR = UnpremultiplyColor(unormR, unormA, rgbMaxValue);
+                            unormG = UnpremultiplyColor(unormG, unormA, rgbMaxValue);
+                            unormB = UnpremultiplyColor(unormB, unormA, rgbMaxValue);
+                        }
+                    }
+                }
+
+                const float r = unormToFloatTable[unormR];
+                const float g = unormToFloatTable[unormG];
+                const float b = unormToFloatTable[unormB];
+                const float a = unormToFloatTable[unormA];
+
+                dst[0] = TransferFunctionToLinear(r, transferFunction);
+                dst[1] = TransferFunctionToLinear(g, transferFunction);
+                dst[2] = TransferFunctionToLinear(b, transferFunction);
+                dst[3] = a;
+
+                srcR++;
+                srcG++;
+                srcB++;
+                srcAlpha++;
+                dst += 4;
+            }
+
+            const int32 top = y;
+            const int32 bottom = y + 1;
+
+            SetRect(formatRecord, top, left, bottom, right);
+
+            OSErrException::ThrowIfError(formatRecord->advanceState());
+        }
+    }
+    else
+    {
+        for (int32 y = 0; y < imageSize.v; y++)
+        {
+            const uint16_t* srcR = reinterpret_cast<const uint16_t*>(rPlaneScan0 + (static_cast<int64>(y) * rPlaneStride));
+            const uint16_t* srcG = reinterpret_cast<const uint16_t*>(gPlaneScan0 + (static_cast<int64>(y) * gPlaneStride));
+            const uint16_t* srcB = reinterpret_cast<const uint16_t*>(bPlaneScan0 + (static_cast<int64>(y) * bPlaneStride));
+
+            float* dst = static_cast<float*>(formatRecord->data);
+
+            for (int32 x = 0; x < imageSize.h; x++)
+            {
+                const uint16_t unormR = *srcR;
+                const uint16_t unormG = *srcG;
+                const uint16_t unormB = *srcB;
+
+                const float r = unormToFloatTable[unormR];
+                const float g = unormToFloatTable[unormG];
+                const float b = unormToFloatTable[unormB];
+
+                dst[0] = TransferFunctionToLinear(r, transferFunction);
+                dst[1] = TransferFunctionToLinear(g, transferFunction);
+                dst[2] = TransferFunctionToLinear(b, transferFunction);
 
                 srcR++;
                 srcG++;

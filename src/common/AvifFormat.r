@@ -95,7 +95,7 @@ resource 'PiPL' (ResourceID, plugInName " PiPL", purgeable)
             noLABColor
         },
 
-        EnableInfo { "in (PSHOP_ImageMode, RGBMode, RGB48Mode, GrayScaleMode, Gray16Mode)" },
+        EnableInfo { "in (PSHOP_ImageMode, RGBMode, RGB48Mode, GrayScaleMode, Gray16Mode, RGB96Mode, Gray32Mode)" },
 
         PlugInMaxSize { 1073741824, 1073741824 },
 

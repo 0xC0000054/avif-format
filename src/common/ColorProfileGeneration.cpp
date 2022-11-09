@@ -345,7 +345,10 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
                 toneCurve.reset(cmsBuildParametricToneCurve(context.get(), 4, Parameters));
                 description = L"Grayscale (sRGB TRC)";
             }
-            else if (transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_709_5)
+            else if (transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_709_5 ||
+                     transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_601_6 ||
+                     transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_2020_2_10bit ||
+                     transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_2020_2_12bit)
             {
                 cmsFloat64Number Parameters[5]
                 {
@@ -357,7 +360,26 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
                 };
 
                 toneCurve.reset(cmsBuildParametricToneCurve(context.get(), 4, Parameters));
-                description = L"Grayscale (Rec. 709 TRC)";
+
+                switch (primaries)
+                {
+                case heif_color_primaries_ITU_R_BT_2020_2_and_2100_0:
+                    description = L"Grayscale (BT. 2020)";
+                    break;
+                case heif_color_primaries_ITU_R_BT_709_5:
+                case heif_color_primaries_ITU_R_BT_470_6_System_M:
+                case heif_color_primaries_ITU_R_BT_470_6_System_B_G:
+                case heif_color_primaries_ITU_R_BT_601_6:
+                case heif_color_primaries_SMPTE_240M:
+                case heif_color_primaries_generic_film:
+                case heif_color_primaries_SMPTE_ST_428_1:
+                case heif_color_primaries_SMPTE_RP_431_2:
+                case heif_color_primaries_SMPTE_EG_432_1:
+                case heif_color_primaries_EBU_Tech_3213_E:
+                default:
+                    description = L"Grayscale (Rec. 709 TRC)";
+                    break;
+                }
             }
 
             if (toneCurve && description != nullptr)
@@ -425,6 +447,51 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
 
                     toneCurve.reset(cmsBuildParametricToneCurve(context.get(), 4, Parameters));
                     description = L"Rec. 709";
+                }
+
+                if (toneCurve && description != nullptr)
+                {
+                    profile = BuildRGBProfile(
+                        context.get(),
+                        &whitepoint,
+                        &rgbPrimaries,
+                        toneCurve.get(),
+                        description);
+                }
+            }
+            else if (primaries == heif_color_primaries_ITU_R_BT_2020_2_and_2100_0)
+            {
+                const cmsCIExyY whitepoint = { 0.3127, 0.3290, 1.0f }; // D65
+                const cmsCIExyYTRIPLE rgbPrimaries =
+                {
+                    { 0.708, 0.292, 1.0 },
+                    { 0.170, 0.797, 1.0 },
+                    { 0.131, 0.046, 1.0 }
+                };
+
+                ScopedLcmsToneCurve toneCurve;
+                const wchar_t* description = nullptr;
+
+                if (linear)
+                {
+                    toneCurve.reset(cmsBuildGamma(context.get(), 1.0));
+                    description = L"BT. 2020 (Linear RGB Profile)";
+                }
+                else if (transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_2020_2_10bit ||
+                         transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_2020_2_12bit)
+                {
+                    // BT. 2020 uses the same transfer curve as Rec. 709.
+                    cmsFloat64Number Parameters[5]
+                    {
+                        1.0 / 0.45,
+                        1.0 / 1.099296826809442,
+                        1.0 - 1 / 1.099296826809442,
+                        1.0 / 4.5,
+                        4.5 * 0.018053968510807,
+                    };
+
+                    toneCurve.reset(cmsBuildParametricToneCurve(context.get(), 4, Parameters));
+                    description = L"BT. 2020";
                 }
 
                 if (toneCurve && description != nullptr)

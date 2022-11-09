@@ -421,9 +421,11 @@ bool HasAlphaChannel(const FormatRecordPtr formatRecord)
     {
     case plugInModeGrayScale:
     case plugInModeGray16:
+    case plugInModeGray32:
         return formatRecord->planes == 2;
     case plugInModeRGBColor:
     case plugInModeRGB48:
+    case plugInModeRGB96:
         return formatRecord->planes == 4;
     default:
         return false;
@@ -436,6 +438,7 @@ bool IsMonochromeImage(const FormatRecordPtr formatRecord)
     {
     case plugInModeGrayScale:
     case plugInModeGray16:
+    case plugInModeGray32:
         return true;
     default:
         return false;
