@@ -4,7 +4,11 @@ An AV1 Image (AVIF) file format plug-in for Adobe® Photoshop®.
 
 Single images can be loaded and saved using 8, 10 or 12 bits-per-channel, image sequences and animations are not supported.
 
-Lossless RGB compression is supported when saving 8-bits-per-channel images, the plug-in considers all bit-depth conversions to be lossy.
+HDR files that use the Rec. 2100 PQ transfer function can be loaded and edited as 32-bits-per-channel documents.
+The Rec. 2100 HLG and SMPTE 428-1 transfer functions are not supported, these images will be loaded as SDR 16-bits-per-channel documents.   
+32-bits-per-channel documents can be saved as 10-bit or 12-bit Rec. 2100 PQ HDR AVIF files.
+
+Lossless RGB compression is supported when saving 8-bits-per-channel and 32-bits-per-channel images.
 Photoshop edits 10-bit and 12-bit data as 16-bit which then has to be remapped to the 10-bit or 12-bit range when saving, and converting
 8-bit data to 10-bit or 12-bit will cause a loss of precision.
 
