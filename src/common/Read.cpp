@@ -357,6 +357,12 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
         err = readErr;
     }
 
+    if (err != noErr && globals->libheifInitialized)
+    {
+        heif_deinit();
+        globals->libheifInitialized = false;
+    }
+
     return err;
 }
 
