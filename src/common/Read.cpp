@@ -495,10 +495,7 @@ OSErr DoReadContinue(FormatRecordPtr formatRecord, Globals* globals)
                 }
                 else
                 {
-                    if (nclxProfile != nullptr)
-                    {
-                        SetIccProfileFromNclx(formatRecord, nclxProfile);
-                    }
+                    SetIccProfileFromNclx(formatRecord, nclxProfile);
                 }
             }
         }
