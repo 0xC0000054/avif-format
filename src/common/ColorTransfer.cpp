@@ -31,7 +31,7 @@ namespace
     // https://en.wikipedia.org/wiki/Perceptual_quantizer
     constexpr float pqMaxLuminanceLevel = 10000;
 
-    inline float LinearToPQ(float normalizedLinearValue)
+    inline float LinearToPQ(float value)
     {
         // These constant values are taken from the Perceptual quantizer article on Wikipedia
         // https://en.wikipedia.org/wiki/Perceptual_quantizer
@@ -41,14 +41,14 @@ namespace
         constexpr float c2 = 2413.0f / 4096.0f * 32.0f;
         constexpr float c3 = 2392.0f / 4096.0f * 32.0f;
 
-        if (normalizedLinearValue < 0.0f)
+        if (value < 0.0f)
         {
             return 0.0f;
         }
 
         // We have to adjust for the difference in the maximum luminance level between
         // sRGB and PQ, otherwise the image is too bright.
-        const float x = powf(normalizedLinearValue * (srgbMaxLuminanceLevel / pqMaxLuminanceLevel), m1);
+        const float x = powf(value * (srgbMaxLuminanceLevel / pqMaxLuminanceLevel), m1);
         const float pq = powf((c1 + c2 * x) / (1.0f + c3 * x), m2);
 
         return pq;
