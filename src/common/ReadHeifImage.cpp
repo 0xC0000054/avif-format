@@ -881,12 +881,7 @@ void ReadHeifImageGrayThirtyTwoBit(
     const int32 right = imageSize.h;
 
     const YUVLookupTables tables(nclxProfile, lumaBitsPerPixel, true, hasAlpha);
-    ColorTransferFunction transferFunction = ColorTransferFunction::PQ;
-
-    if (nclxProfile->transfer_characteristics != heif_transfer_characteristic_ITU_R_BT_2100_0_PQ)
-    {
-        throw std::runtime_error("Unsupported NCLX transfer characteristic.");
-    }
+    const ColorTransferFunction transferFunction = GetTransferFunctionFromNclx(nclxProfile->transfer_characteristics);
 
     if (hasAlpha)
     {
@@ -945,12 +940,7 @@ void ReadHeifImageRGBThirtyTwoBit(
         throw std::runtime_error("The nclxProfile is null.");
     }
 
-    ColorTransferFunction transferFunction = ColorTransferFunction::PQ;
-
-    if (nclxProfile->transfer_characteristics != heif_transfer_characteristic_ITU_R_BT_2100_0_PQ)
-    {
-        throw std::runtime_error("Unsupported NCLX transfer characteristic.");
-    }
+    const ColorTransferFunction transferFunction = GetTransferFunctionFromNclx(nclxProfile->transfer_characteristics);
 
     const heif_colorspace colorspace = heif_image_get_colorspace(image);
 

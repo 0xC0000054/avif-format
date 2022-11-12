@@ -78,6 +78,22 @@ namespace
     }
 }
 
+ColorTransferFunction GetTransferFunctionFromNclx(heif_transfer_characteristics transferCharacteristics)
+{
+    ColorTransferFunction transferFunction;
+
+    switch (transferCharacteristics)
+    {
+    case heif_transfer_characteristic_ITU_R_BT_2100_0_PQ:
+        transferFunction = ColorTransferFunction::PQ;
+        break;
+    default:
+        throw std::runtime_error("Unsupported NCLX transfer characteristic.");
+    }
+
+    return transferFunction;
+}
+
 float TransferFunctionToLinear(float value, ColorTransferFunction transferFunction)
 {
     switch (transferFunction)

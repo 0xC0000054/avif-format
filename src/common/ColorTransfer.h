@@ -23,11 +23,14 @@
 
 #include <algorithm>
 #include <math.h>
+#include <libheif/heif.h>
 
 enum class ColorTransferFunction
 {
     PQ
 };
+
+ColorTransferFunction GetTransferFunctionFromNclx(heif_transfer_characteristics transferCharacteristics);
 
 float TransferFunctionToLinear(float value, ColorTransferFunction transferFunction);
 
