@@ -529,7 +529,7 @@ ScopedHeifImage CreateHeifImageGrayThirtyTwoBit(
     const int32 right = imageSize.h;
 
     const float heifImageMaxValue = static_cast<float>((1 << heifImageBitDepth) - 1);
-    const ColorTransferFunction transferFunction = saveOptions.thirtyTwoBitTranferFunction;
+    const ColorTransferFunction transferFunction = saveOptions.hdrTransferFunction;
 
     for (int32 y = 0; y < imageSize.v; y++)
     {
@@ -961,7 +961,7 @@ ScopedHeifImage CreateHeifImageRGBThirtyTwoBit(
     const int32 right = imageSize.h;
 
     const float heifImageMaxValue = static_cast<float>((1 << heifImageBitDepth) - 1);
-    const ColorTransferFunction transferFunction = saveOptions.thirtyTwoBitTranferFunction;
+    const ColorTransferFunction transferFunction = saveOptions.hdrTransferFunction;
 
     for (int32 y = 0; y < imageSize.v; y++)
     {

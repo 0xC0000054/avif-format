@@ -200,7 +200,7 @@ namespace
             options.chromaSubsampling = monochrome ? ChromaSubsampling::Yuv420 : saveOptions.chromaSubsampling;
             options.compressionSpeed = saveOptions.compressionSpeed;
             options.imageBitDepth = formatRecord->depth == 8 ? ImageBitDepth::Eight : saveOptions.imageBitDepth;
-            options.thirtyTwoBitTranferFunction = saveOptions.thirtyTwoBitTranferFunction;
+            options.hdrTransferFunction = saveOptions.hdrTransferFunction;
             options.lossless = saveOptions.lossless && losslessCheckboxEnabled;
             options.losslessAlpha = saveOptions.losslessAlpha && losslessCheckboxEnabled;
             options.keepColorProfile = saveOptions.keepColorProfile && hasColorProfile;
@@ -711,7 +711,7 @@ bool DoSaveUI(const FormatRecordPtr formatRecord, SaveUIOptions& options)
         options.compressionSpeed = dialogOptions.compressionSpeed;
         options.lossless = dialogOptions.lossless;
         options.imageBitDepth = dialogOptions.imageBitDepth;
-        options.thirtyTwoBitTranferFunction = dialogOptions.thirtyTwoBitTranferFunction;
+        options.hdrTransferFunction = dialogOptions.hdrTransferFunction;
         options.keepColorProfile = dialogOptions.keepColorProfile;
         options.keepExif = dialogOptions.keepExif;
         options.keepXmp = dialogOptions.keepXmp;

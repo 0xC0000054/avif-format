@@ -114,7 +114,7 @@ void AddColorProfileToImage(const FormatRecordPtr formatRecord, heif_image* imag
 
     if (formatRecord->depth == 32)
     {
-        switch (saveOptions.thirtyTwoBitTranferFunction)
+        switch (saveOptions.hdrTransferFunction)
         {
         case ColorTransferFunction::PQ:
             primaries = heif_color_primaries_ITU_R_BT_2020_2_and_2100_0;

@@ -52,7 +52,7 @@ struct SaveUIOptions
     ChromaSubsampling chromaSubsampling;
     CompressionSpeed compressionSpeed;
     ImageBitDepth imageBitDepth;
-    ColorTransferFunction thirtyTwoBitTranferFunction;
+    ColorTransferFunction hdrTransferFunction;
     bool lossless;
     bool losslessAlpha;
     bool keepColorProfile;
