@@ -364,7 +364,7 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
                 switch (primaries)
                 {
                 case heif_color_primaries_ITU_R_BT_2020_2_and_2100_0:
-                    description = L"Grayscale (BT. 2020)";
+                    description = L"Grayscale (Rec. 2020)";
                     break;
                 case heif_color_primaries_ITU_R_BT_709_5:
                 case heif_color_primaries_ITU_R_BT_470_6_System_M:
@@ -475,7 +475,7 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
                 if (linear)
                 {
                     toneCurve.reset(cmsBuildGamma(context.get(), 1.0));
-                    description = L"BT. 2020 (Linear RGB Profile)";
+                    description = L"Rec. 2020 (Linear RGB Profile)";
                 }
                 else if (transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_2020_2_10bit ||
                          transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_2020_2_12bit)
@@ -491,7 +491,7 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
                     };
 
                     toneCurve.reset(cmsBuildParametricToneCurve(context.get(), 4, Parameters));
-                    description = L"BT. 2020";
+                    description = L"Rec. 2020";
                 }
 
                 if (toneCurve && description != nullptr)
