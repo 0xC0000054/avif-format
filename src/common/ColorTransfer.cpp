@@ -76,6 +76,28 @@ namespace
         // PQ and sRGB, otherwise the image is too dark.
         return normalizedLinear * (pqMaxLuminanceLevel / srgbMaxLuminanceLevel);
     }
+
+    inline float LinearToSMPTE428(float value)
+    {
+        if (value < 0.0f)
+        {
+            return 0.0f;
+        }
+
+        return powf(value * 48.0f / 52.37f, 1.0f / 2.6f);
+    }
+
+    inline float SMPTE428ToLinear(float value)
+    {
+        if (value < 0.0f)
+        {
+            return 0.0f;
+        }
+
+        // The following code is equivalent to (powf(value, 2.6f) * 52.37f) / 48.0f
+        // but it removes the need to perform division at runtime.
+        return powf(value, 2.6f) * (52.37f / 48.0f);
+    }
 }
 
 ColorTransferFunction GetTransferFunctionFromNclx(heif_transfer_characteristics transferCharacteristics)
@@ -86,6 +108,9 @@ ColorTransferFunction GetTransferFunctionFromNclx(heif_transfer_characteristics 
     {
     case heif_transfer_characteristic_ITU_R_BT_2100_0_PQ:
         transferFunction = ColorTransferFunction::PQ;
+        break;
+    case heif_transfer_characteristic_SMPTE_ST_428_1:
+        transferFunction = ColorTransferFunction::SMPTE428;
         break;
     default:
         throw std::runtime_error("Unsupported NCLX transfer characteristic.");
@@ -100,6 +125,8 @@ float TransferFunctionToLinear(float value, ColorTransferFunction transferFuncti
     {
     case ColorTransferFunction::PQ:
         return PQToLinear(value);
+    case ColorTransferFunction::SMPTE428:
+        return SMPTE428ToLinear(value);
     default:
         throw std::runtime_error("Unsupported color transfer function.");
     }
@@ -111,6 +138,8 @@ float LinearToTransferFunction(float value, ColorTransferFunction transferFuncti
     {
     case ColorTransferFunction::PQ:
         return LinearToPQ(value);
+    case ColorTransferFunction::SMPTE428:
+        return LinearToSMPTE428(value);
     default:
         throw std::runtime_error("Unsupported color transfer function.");
     }

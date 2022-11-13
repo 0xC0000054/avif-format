@@ -176,7 +176,13 @@ namespace
 
         if (nclx != nullptr)
         {
-            result = nclx->transfer_characteristics == heif_transfer_characteristic_ITU_R_BT_2100_0_PQ;
+            switch (nclx->transfer_characteristics)
+            {
+            case heif_transfer_characteristic_ITU_R_BT_2100_0_PQ:
+            case heif_transfer_characteristic_SMPTE_ST_428_1:
+                result = true;
+                break;
+            }
         }
 
         return result;

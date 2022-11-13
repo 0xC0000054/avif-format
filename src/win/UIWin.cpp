@@ -193,7 +193,8 @@ namespace
             hasAlphaChannel(HasAlphaChannel(formatRecord)),
             monochrome(IsMonochromeImage(formatRecord)),
             losslessCheckboxEnabled(formatRecord->depth == 8 || formatRecord->depth == 32),
-            losslessAlphaChecked(false)
+            losslessAlphaChecked(false),
+            imageDepthComboEnabled(true)
         {
             options.quality = saveOptions.quality;
             // YUV 4:2:0 is used for monochrome images because AOM does not have a YUV 4:0:0 mode.
@@ -273,7 +274,9 @@ namespace
             HWND keepXmpCheckbox = GetDlgItem(hDlg, IDC_KEEP_XMP_CHECK);
             HWND premultipliedAlphaCheckbox = GetDlgItem(hDlg, IDC_PREMULTIPLIED_ALPHA_CHECK);
             HWND pixelDepthCombo = GetDlgItem(hDlg, IDC_IMAGE_DEPTH_COMBO);
-            HWND infoLabel = GetDlgItem(hDlg, IDC_INFOLABEL);
+            HWND hdrTransferCharacteristicsLabel = GetDlgItem(hDlg, IDC_HDR_TRANSFER_CHARACTERISTICS_LABEL);
+            HWND hdrTransferCharacteristicsCombo = GetDlgItem(hDlg, IDC_HDR_TRANSFER_CHARACTERISTICS_COMBO);
+            HWND hdrInfoLabel = GetDlgItem(hDlg, IDC_HDRINFOLABEL);
 
             SendMessage(qualitySlider, TBM_SETRANGEMIN, FALSE, 0);
             SendMessage(qualitySlider, TBM_SETRANGEMAX, FALSE, 100);
@@ -303,10 +306,30 @@ namespace
                 EnableWindow(losslessAlphaCheckbox, false);
             }
 
-            // The info label only applies to 32-bit mode images.
-            if (hostImageDepth != 32)
+            if (hostImageDepth == 32)
             {
-                ShowWindow(infoLabel, SW_HIDE);
+                SendMessage(hdrTransferCharacteristicsCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("Rec. 2100 PQ")));
+                SendMessage(hdrTransferCharacteristicsCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("SMPTE 428-1")));
+
+                int selectedIndex;
+                switch (options.hdrTransferFunction)
+                {
+                case ColorTransferFunction::SMPTE428:
+                    selectedIndex = 1;
+                    break;
+                case ColorTransferFunction::PQ:
+                default:
+                    selectedIndex = 0;
+                    break;
+                }
+
+                ComboBox_SetCurSel(hdrTransferCharacteristicsCombo, selectedIndex);
+            }
+            else
+            {
+                EnableWindow(hdrTransferCharacteristicsLabel, FALSE);
+                EnableWindow(hdrTransferCharacteristicsCombo, FALSE);
+                EnableWindow(hdrInfoLabel, FALSE);
             }
 
             // Swap the tab order of the Chroma Subsampling combo box and the Default compression speed radio button.
@@ -424,7 +447,18 @@ namespace
                 SendMessage(pixelDepthCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("10-bit")));
                 SendMessage(pixelDepthCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("12-bit")));
 
-                ComboBox_SetCurSel(pixelDepthCombo, options.imageBitDepth == ImageBitDepth::Ten ? 0 : 1);
+                if (options.hdrTransferFunction == ColorTransferFunction::SMPTE428)
+                {
+                    // SMPTE 428 only supports 12-bit.
+                    options.imageBitDepth = ImageBitDepth::Twelve;
+                    ComboBox_SetCurSel(pixelDepthCombo, 1);
+                    EnableWindow(pixelDepthCombo, false);
+                    imageDepthComboEnabled = false;
+                }
+                else
+                {
+                    ComboBox_SetCurSel(pixelDepthCombo, options.imageBitDepth == ImageBitDepth::Ten ? 0 : 1);
+                }
             }
             else
             {
@@ -627,6 +661,38 @@ namespace
                             }
                         }
                     }
+                    else if (item == IDC_HDR_TRANSFER_CHARACTERISTICS_COMBO)
+                    {
+                        if (value == 1)
+                        {
+                            if (imageDepthComboEnabled)
+                            {
+                                imageDepthComboEnabled = false;
+
+                                // SMPTE 428 requires 12-bit.
+                                options.imageBitDepth = ImageBitDepth::Twelve;
+
+                                HWND imageDepthCombo = GetDlgItem(hDlg, IDC_IMAGE_DEPTH_COMBO);
+
+                                ComboBox_SetCurSel(imageDepthCombo, 1);
+                                EnableWindow(imageDepthCombo, false);
+                            }
+
+                            options.hdrTransferFunction = ColorTransferFunction::SMPTE428;
+                        }
+                        else
+                        {
+                            if (!imageDepthComboEnabled)
+                            {
+                                imageDepthComboEnabled = true;
+
+                                // The Rec. 2100 modes support both 10-bit and 12-bit.
+                                EnableWindow(GetDlgItem(hDlg, IDC_IMAGE_DEPTH_COMBO), true);
+                            }
+
+                            options.hdrTransferFunction = ColorTransferFunction::PQ;
+                        }
+                    }
                 }
                 else if (item == IDC_QUALITY_EDIT && cmd == EN_CHANGE)
                 {
@@ -677,6 +743,7 @@ namespace
         const bool monochrome;
         bool losslessCheckboxEnabled; // Used to track state when changing the save bit-depth.
         bool losslessAlphaChecked;
+        bool imageDepthComboEnabled;
     };
 }
 

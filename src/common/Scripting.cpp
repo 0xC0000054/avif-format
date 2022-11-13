@@ -106,6 +106,31 @@ namespace
             return imageBitDepthTwelve;
         }
     }
+
+    ColorTransferFunction HDRTransferFunctionFromDescriptor(DescriptorEnumID value)
+    {
+        switch (value)
+        {
+        case hdrTransferFunctionSMPTE428:
+            return ColorTransferFunction::SMPTE428;
+        case hdrTransferFunctionPQ:
+        default:
+            return ColorTransferFunction::PQ;
+        }
+    }
+
+    DescriptorEnumID HDRTransferFunctionToDescriptor(ColorTransferFunction value)
+    {
+        switch (value)
+        {
+        case ColorTransferFunction::SMPTE428:
+            return hdrTransferFunctionSMPTE428;
+        case ColorTransferFunction::PQ:
+        default:
+            return hdrTransferFunctionPQ;
+        }
+    }
+
 }
 
 OSErr ReadScriptParamsOnWrite(FormatRecordPtr formatRecord, SaveUIOptions& options, Boolean* showDialog)
@@ -208,6 +233,12 @@ OSErr ReadScriptParamsOnWrite(FormatRecordPtr formatRecord, SaveUIOptions& optio
                         options.imageBitDepth = ImageBitDepthFromDescriptor(enumValue);
                     }
                     break;
+                case keyHDRTransferFunction:
+                    if (readProcs->getEnumeratedProc(token, &enumValue) == noErr)
+                    {
+                        options.hdrTransferFunction = HDRTransferFunctionFromDescriptor(enumValue);
+                    }
+                    break;
                 }
             }
 
@@ -293,7 +324,21 @@ OSErr WriteScriptParamsOnWrite(FormatRecordPtr formatRecord, const SaveUIOptions
                 writeProcs->putBooleanProc(token, keyPremultipliedAlpha, options.premultipliedAlpha);
             }
 
-            enumValue = ImageBitDepthToDescriptor(options.imageBitDepth);
+            ImageBitDepth imageBitDepth = options.imageBitDepth;
+
+            if (options.hdrTransferFunction != ColorTransferFunction::PQ)
+            {
+                if (options.hdrTransferFunction == ColorTransferFunction::SMPTE428)
+                {
+                    // SMPTE 428 requires 12-bit.
+                    imageBitDepth = ImageBitDepth::Twelve;
+                }
+
+                enumValue = HDRTransferFunctionToDescriptor(options.hdrTransferFunction);
+                writeProcs->putEnumeratedProc(token, keyHDRTransferFunction, typeHDRTransferFunction, enumValue);
+            }
+
+            enumValue = ImageBitDepthToDescriptor(imageBitDepth);
             writeProcs->putEnumeratedProc(token, keyImageBitDepth, typeImageBitDepth, enumValue);
 
             error = writeProcs->closeWriteDescriptorProc(token, &formatRecord->descriptorParameters->descriptor);

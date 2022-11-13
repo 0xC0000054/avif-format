@@ -199,6 +199,12 @@ resource 'aete' (ResourceID, plugInName " dictionary", purgeable)
                 typeImageBitDepth,
                 "",
                 flagsEnumeratedParameter,
+
+                "HDR transfer function",
+                keyHDRTransferFunction,
+                typeHDRTransferFunction,
+                "",
+                flagsEnumeratedParameter,
             },
             {}, /* elements (not supported) */
             /* class descriptions */
@@ -247,6 +253,20 @@ resource 'aete' (ResourceID, plugInName " dictionary", purgeable)
                 "12-bit",
                 imageBitDepthTwelve,
                 ""
+            },
+            typeHDRTransferFunction,
+            {
+                "PQ",
+                hdrTransferFunctionPQ,
+                "Rec. 2100 PQ",
+                /* Reserved for future use
+                "HLG",
+                hdrTransferFunctionHLG,
+                "Rec. 2100 HLG",
+                */
+                "SMPTE-428",
+                hdrTransferFunctionSMPTE428,
+                "SMPTE 428-1",
             }
         }
     }

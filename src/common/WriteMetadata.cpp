@@ -114,11 +114,16 @@ void AddColorProfileToImage(const FormatRecordPtr formatRecord, heif_image* imag
 
     if (formatRecord->depth == 32)
     {
+        primaries = heif_color_primaries_ITU_R_BT_2020_2_and_2100_0;
+
         switch (saveOptions.hdrTransferFunction)
         {
         case ColorTransferFunction::PQ:
-            primaries = heif_color_primaries_ITU_R_BT_2020_2_and_2100_0;
             transferCharacteristics = heif_transfer_characteristic_ITU_R_BT_2100_0_PQ;
+            matrixCoefficients = heif_matrix_coefficients_ITU_R_BT_2020_2_non_constant_luminance;
+            break;
+        case ColorTransferFunction::SMPTE428:
+            transferCharacteristics = heif_transfer_characteristic_SMPTE_ST_428_1;
             matrixCoefficients = heif_matrix_coefficients_ITU_R_BT_2020_2_non_constant_luminance;
             break;
         default:

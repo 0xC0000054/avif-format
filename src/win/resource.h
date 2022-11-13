@@ -35,17 +35,20 @@
 #define IDC_PREMULTIPLIED_ALPHA_CHECK   1022
 #define IDC_ALPHAOPTIONS                1023
 #define IDC_LOSSLESS_ALPHA_CHECK        1024
-#define IDC_INFOLABEL                   1025
+#define IDC_HDRINFOLABEL                1025
 #define IDC_CHROMA_SUBSAMPLING_LABEL    1026
 #define IDC_IMAGE_DEPTH_LABEL           1027
+#define IDC_HDR_OPTIONS                 1028
+#define IDC_HDR_TRANSFER_CHARACTERISTICS_LABEL 1029
+#define IDC_HDR_TRANSFER_CHARACTERISTICS_COMBO 1030
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1028
+#define _APS_NEXT_CONTROL_VALUE         1031
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

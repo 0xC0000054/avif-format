@@ -47,6 +47,7 @@
 #define keyLosslessAlpha 'losA'
 #define keyPremultipliedAlpha 'pmAl'
 #define keyImageBitDepth 'av1B'
+#define keyHDRTransferFunction 'hTrf'
 
 #define typeCompressionSpeed 'coSp'
 
@@ -65,5 +66,10 @@
 #define imageBitDepthEight 'iBd0'
 #define imageBitDepthTen 'iBd1'
 #define imageBitDepthTwelve 'iBd2'
+
+#define typeHDRTransferFunction 'hdRt'
+#define hdrTransferFunctionPQ 'trF0'
+//#define hdrTransferFunctionHLG 'trF1'
+#define hdrTransferFunctionSMPTE428 'trF2'
 
 #endif
