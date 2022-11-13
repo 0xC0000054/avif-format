@@ -110,9 +110,7 @@ void ReadExifMetadata(const FormatRecordPtr formatRecord, const heif_image_handl
 
                 ScopedHandleSuiteLock lock = complexProperty.Lock();
 
-                Ptr ptr = lock.Data();
-
-                memcpy(ptr, exifBlock + headerStartOffset, exifDataLength);
+                memcpy(lock.Data(), exifBlock + headerStartOffset, exifDataLength);
 
                 lock.Unlock();
 
@@ -161,9 +159,7 @@ void ReadXmpMetadata(const FormatRecordPtr formatRecord, const heif_image_handle
 
             ScopedHandleSuiteLock lock = complexProperty.Lock();
 
-            Ptr ptr = lock.Data();
-
-            LibHeifException::ThrowIfError(heif_image_handle_get_metadata(handle, xmpId, ptr));
+            LibHeifException::ThrowIfError(heif_image_handle_get_metadata(handle, xmpId, lock.Data()));
 
             lock.Unlock();
 
