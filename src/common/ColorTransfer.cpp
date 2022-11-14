@@ -140,6 +140,8 @@ float LinearToTransferFunction(float value, ColorTransferFunction transferFuncti
         return LinearToPQ(value);
     case ColorTransferFunction::SMPTE428:
         return LinearToSMPTE428(value);
+    case ColorTransferFunction::Clip:
+        return value;
     default:
         throw std::runtime_error("Unsupported color transfer function.");
     }

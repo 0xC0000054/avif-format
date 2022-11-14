@@ -112,7 +112,7 @@ void AddColorProfileToImage(const FormatRecordPtr formatRecord, heif_image* imag
     heif_transfer_characteristics transferCharacteristics;
     heif_matrix_coefficients matrixCoefficients;
 
-    if (formatRecord->depth == 32)
+    if (formatRecord->depth == 32 && saveOptions.hdrTransferFunction != ColorTransferFunction::Clip)
     {
         primaries = heif_color_primaries_ITU_R_BT_2020_2_and_2100_0;
 

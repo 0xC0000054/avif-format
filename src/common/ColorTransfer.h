@@ -28,7 +28,8 @@
 enum class ColorTransferFunction
 {
     PQ,
-    SMPTE428
+    SMPTE428,
+    Clip
 };
 
 ColorTransferFunction GetTransferFunctionFromNclx(heif_transfer_characteristics transferCharacteristics);

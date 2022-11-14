@@ -187,14 +187,16 @@ namespace
 
         SaveDialog(const FormatRecordPtr formatRecord, const SaveUIOptions& saveOptions) :
             hostImageDepth(formatRecord->depth),
-            hasColorProfile(formatRecord->depth != 32 && HasColorProfileMetadata(formatRecord)),
+            hasColorProfile(HasColorProfileMetadata(formatRecord)),
             hasExif(HasExifMetadata(formatRecord)),
             hasXmp(HasXmpMetadata(formatRecord)),
             hasAlphaChannel(HasAlphaChannel(formatRecord)),
             monochrome(IsMonochromeImage(formatRecord)),
             losslessCheckboxEnabled(formatRecord->depth == 8 || formatRecord->depth == 32),
             losslessAlphaChecked(false),
-            imageDepthComboEnabled(true)
+            imageDepthComboEnabled(true),
+            colorProfileCheckboxEnabled(hasColorProfile && (formatRecord->depth != 32 || saveOptions.hdrTransferFunction == ColorTransferFunction::Clip)),
+            colorProfileChecked(false)
         {
             options.quality = saveOptions.quality;
             // YUV 4:2:0 is used for monochrome images because AOM does not have a YUV 4:0:0 mode.
@@ -204,7 +206,7 @@ namespace
             options.hdrTransferFunction = saveOptions.hdrTransferFunction;
             options.lossless = saveOptions.lossless && losslessCheckboxEnabled;
             options.losslessAlpha = saveOptions.losslessAlpha && losslessCheckboxEnabled;
-            options.keepColorProfile = saveOptions.keepColorProfile && hasColorProfile;
+            options.keepColorProfile = saveOptions.keepColorProfile && hasColorProfile && colorProfileCheckboxEnabled;
             options.keepExif = saveOptions.keepExif && hasExif;
             options.keepXmp = saveOptions.keepXmp && hasXmp;
             options.premultipliedAlpha = saveOptions.premultipliedAlpha && hasAlphaChannel;
@@ -306,16 +308,27 @@ namespace
                 EnableWindow(losslessAlphaCheckbox, false);
             }
 
+            constexpr int resourceBufferLength = 256;
+            TCHAR resourceBuffer[resourceBufferLength]{};
+
             if (hostImageDepth == 32)
             {
-                SendMessage(hdrTransferCharacteristicsCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("Rec. 2100 PQ")));
-                SendMessage(hdrTransferCharacteristicsCombo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(TEXT("SMPTE 428-1")));
+                SendMessage(hdrTransferCharacteristicsCombo, CB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(TEXT("Rec. 2100 PQ")));
+                SendMessage(hdrTransferCharacteristicsCombo, CB_INSERTSTRING, 1, reinterpret_cast<LPARAM>(TEXT("SMPTE 428-1")));
+
+                if (LoadString(hInstance, IDS_HDR_TRANSFER_CHARACTERISTICS_CLIP, resourceBuffer, resourceBufferLength) > 0)
+                {
+                    SendMessage(hdrTransferCharacteristicsCombo, CB_INSERTSTRING, 2, reinterpret_cast<LPARAM>(resourceBuffer));
+                }
 
                 int selectedIndex;
                 switch (options.hdrTransferFunction)
                 {
                 case ColorTransferFunction::SMPTE428:
                     selectedIndex = 1;
+                    break;
+                case ColorTransferFunction::Clip:
+                    selectedIndex = 2;
                     break;
                 case ColorTransferFunction::PQ:
                 default:
@@ -334,9 +347,6 @@ namespace
 
             // Swap the tab order of the Chroma Subsampling combo box and the Default compression speed radio button.
             SetWindowPos(chromaSubsamplingCombo, GetDlgItem(hDlg, IDC_COMPRESSION_SPEED_DEFAULT_RADIO), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-
-            constexpr int resourceBufferLength = 256;
-            TCHAR resourceBuffer[resourceBufferLength]{};
 
             if (monochrome)
             {
@@ -398,7 +408,7 @@ namespace
 
             CheckRadioButton(hDlg, IDC_COMPRESSION_SPEED_FASTEST_RADIO, IDC_COMPRESSION_SPEED_SLOWEST_RADIO, selectedCompressionSpeed);
 
-            if (hasColorProfile)
+            if (colorProfileCheckboxEnabled)
             {
                 Button_SetCheck(keepColorProfileCheckbox, options.keepColorProfile);
                 EnableWindow(keepColorProfileCheckbox, true);
@@ -663,6 +673,35 @@ namespace
                     }
                     else if (item == IDC_HDR_TRANSFER_CHARACTERISTICS_COMBO)
                     {
+                        if (colorProfileCheckboxEnabled)
+                        {
+                            if (value != 2)
+                            {
+                                colorProfileCheckboxEnabled = false;
+                                options.keepColorProfile = false;
+
+                                HWND colorProfileCheck = GetDlgItem(hDlg, IDC_KEEP_COLOR_PROFILE_CHECK);
+
+                                colorProfileChecked = Button_GetCheck(colorProfileCheck) == BST_CHECKED;
+
+                                Button_SetCheck(colorProfileCheck, BST_UNCHECKED);
+                                EnableWindow(colorProfileCheck, false);
+                            }
+                        }
+                        else
+                        {
+                            if (value == 2)
+                            {
+                                colorProfileCheckboxEnabled = true;
+                                options.keepColorProfile = colorProfileChecked;
+
+                                HWND colorProfileCheck = GetDlgItem(hDlg, IDC_KEEP_COLOR_PROFILE_CHECK);
+
+                                Button_SetCheck(colorProfileCheck, colorProfileChecked ? BST_CHECKED : BST_UNCHECKED);
+                                EnableWindow(colorProfileCheck, true);
+                            }
+                        }
+
                         if (value == 1)
                         {
                             if (imageDepthComboEnabled)
@@ -686,11 +725,20 @@ namespace
                             {
                                 imageDepthComboEnabled = true;
 
-                                // The Rec. 2100 modes support both 10-bit and 12-bit.
+                                // The Rec. 2100 and Clip modes support both 10-bit and 12-bit.
                                 EnableWindow(GetDlgItem(hDlg, IDC_IMAGE_DEPTH_COMBO), true);
                             }
 
-                            options.hdrTransferFunction = ColorTransferFunction::PQ;
+                            switch (value)
+                            {
+                            case 2:
+                                options.hdrTransferFunction = ColorTransferFunction::Clip;
+                                break;
+                            case 0:
+                            default:
+                                options.hdrTransferFunction = ColorTransferFunction::PQ;
+                                break;
+                            }
                         }
                     }
                 }
@@ -744,6 +792,8 @@ namespace
         bool losslessCheckboxEnabled; // Used to track state when changing the save bit-depth.
         bool losslessAlphaChecked;
         bool imageDepthComboEnabled;
+        bool colorProfileCheckboxEnabled;
+        bool colorProfileChecked;
     };
 }
 

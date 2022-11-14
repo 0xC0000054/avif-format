@@ -71,5 +71,6 @@
 #define hdrTransferFunctionPQ 'trF0'
 //#define hdrTransferFunctionHLG 'trF1'
 #define hdrTransferFunctionSMPTE428 'trF2'
+#define hdrTransferFunctionClip 'trF3'
 
 #endif

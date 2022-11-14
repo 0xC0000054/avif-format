@@ -113,6 +113,8 @@ namespace
         {
         case hdrTransferFunctionSMPTE428:
             return ColorTransferFunction::SMPTE428;
+        case hdrTransferFunctionClip:
+            return ColorTransferFunction::Clip;
         case hdrTransferFunctionPQ:
         default:
             return ColorTransferFunction::PQ;
@@ -125,6 +127,8 @@ namespace
         {
         case ColorTransferFunction::SMPTE428:
             return hdrTransferFunctionSMPTE428;
+        case ColorTransferFunction::Clip:
+            return hdrTransferFunctionClip;
         case ColorTransferFunction::PQ:
         default:
             return hdrTransferFunctionPQ;

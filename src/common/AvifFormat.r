@@ -267,6 +267,9 @@ resource 'aete' (ResourceID, plugInName " dictionary", purgeable)
                 "SMPTE-428",
                 hdrTransferFunctionSMPTE428,
                 "SMPTE 428-1",
+                "Clip",
+                hdrTransferFunctionClip,
+                "None, clip",
             }
         }
     }

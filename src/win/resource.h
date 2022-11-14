@@ -8,6 +8,7 @@
 #define IDS_CHROMA_SUBSAMPLING_422      106
 #define IDS_CHROMA_SUBSAMPLING_444      107
 #define IDS_CHROMA_SUBSAMPLING_400      108
+#define IDS_HDR_TRANSFER_CHARACTERISTICS_CLIP 109
 #define IDC_QUALITY                     1000
 #define IDC_QUALITY_SLIDER              1000
 #define ABOUTFORMAT                     1001
@@ -43,7 +44,7 @@
 #define IDC_HDR_TRANSFER_CHARACTERISTICS_COMBO 1030
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
