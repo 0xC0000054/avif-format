@@ -29,7 +29,7 @@ namespace
     constexpr float srgbMaxLuminanceLevel = 80.0f;
     // PQ (SMPTE ST 2084) has a maximum luminance level of 10000 nits
     // https://en.wikipedia.org/wiki/Perceptual_quantizer
-    constexpr float pqMaxLuminanceLevel = 10000;
+    constexpr float pqMaxLuminanceLevel = 10000.0f;
 
     inline float LinearToPQ(float value)
     {
