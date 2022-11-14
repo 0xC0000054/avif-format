@@ -67,9 +67,9 @@ namespace
         }
     }
 
-    bool GetExifDataWithHeader(const FormatRecordPtr formatRecord, ScopedBufferSuiteBuffer& buffer)
+    ScopedBufferSuiteBuffer GetExifDataWithHeader(const FormatRecordPtr formatRecord)
     {
-        bool result = false;
+        ScopedBufferSuiteBuffer buffer;
 
         ScopedHandleSuiteHandle exif = GetExifMetadata(formatRecord);
 
@@ -89,7 +89,7 @@ namespace
                     ScopedHandleSuiteLock lock = exif.Lock();
                     void* exifDataPtr = lock.Data();
 
-                    buffer.Reset(static_cast<int32>(exifSizeWithHeader));
+                    buffer = ScopedBufferSuiteBuffer(formatRecord->bufferProcs, static_cast<int32>(exifSizeWithHeader));
 
                     uint8* destinationBuffer = static_cast<uint8*>(buffer.Lock());
 
@@ -97,12 +97,11 @@ namespace
                     *tiffHeaderOffset = 0;
 
                     memcpy(destinationBuffer + sizeof(uint32_t), exifDataPtr, static_cast<size_t>(exifSize));
-                    result = true;
                 }
             }
         }
 
-        return result;
+        return buffer;
     }
 }
 
@@ -152,17 +151,14 @@ void AddColorProfileToImage(const FormatRecordPtr formatRecord, heif_image* imag
 
 void AddExifMetadata(const FormatRecordPtr formatRecord, heif_context* context, heif_image_handle* imageHandle)
 {
-    ScopedBufferSuiteBuffer exif(formatRecord->bufferProcs);
+    ScopedBufferSuiteBuffer exif = GetExifDataWithHeader(formatRecord);
 
-    if (GetExifDataWithHeader(formatRecord, exif))
+    if (exif)
     {
         const int32 bufferSize = exif.GetSize();
         void* ptr = exif.Lock();
 
-        if (ptr != nullptr)
-        {
-            LibHeifException::ThrowIfError(heif_context_add_exif_metadata(context, imageHandle, ptr, bufferSize));
-        }
+        LibHeifException::ThrowIfError(heif_context_add_exif_metadata(context, imageHandle, ptr, bufferSize));
     }
 }
 

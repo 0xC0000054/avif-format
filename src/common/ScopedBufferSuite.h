@@ -28,8 +28,8 @@
 class ScopedBufferSuiteBuffer
 {
 public:
-    explicit ScopedBufferSuiteBuffer(BufferProcs* bufferProcs)
-        : bufferID(), bufferProcs(bufferProcs), bufferIDValid(false),
+    explicit ScopedBufferSuiteBuffer()
+        : bufferID(), bufferProcs(nullptr), bufferIDValid(false),
           bufferDataPtr(nullptr), size(0)
     {
     }
@@ -95,15 +95,6 @@ public:
         }
 
         return bufferDataPtr;
-    }
-
-    void Reset(int32 newBufferSize)
-    {
-        Reset();
-
-        OSErrException::ThrowIfError(bufferProcs->allocateProc(newBufferSize, &bufferID));
-        bufferIDValid = true;
-        size = newBufferSize;
     }
 
     bool operator==(std::nullptr_t) const noexcept
