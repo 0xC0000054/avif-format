@@ -93,9 +93,7 @@ namespace
 
         ScopedHeifEncoder encoder = GetAOMEncoder(context);
 
-        const bool bitDepthSupportsLossless = formatRecord->depth == 8 || formatRecord->depth == 32;
-
-        if (saveOptions.lossless && bitDepthSupportsLossless)
+        if (saveOptions.lossless)
         {
             heif_encoder_set_lossy_quality(encoder.get(), 100);
             heif_encoder_set_lossless(encoder.get(), true);
@@ -121,7 +119,7 @@ namespace
                 throw OSErrException(formatBadParameters);
             }
 
-            if (HasAlphaChannel(formatRecord) && saveOptions.losslessAlpha && bitDepthSupportsLossless)
+            if (HasAlphaChannel(formatRecord) && saveOptions.losslessAlpha)
             {
                 heif_encoder_set_parameter_integer(encoder.get(), "alpha-quality", 100);
                 heif_encoder_set_parameter_boolean(encoder.get(), "lossless-alpha", true);

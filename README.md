@@ -11,10 +11,6 @@ The Rec. 2100 HLG transfer function is not supported, these images will be loade
 Rec. 2100 PQ using either 10-bits-per-channel or 12-bits-per-channel.   
 SMPTE 428-1 using 12-bits-per-channel.
 
-Lossless RGB compression is supported when saving 8-bits-per-channel and 32-bits-per-channel images.
-Photoshop edits 10-bit and 12-bit data as 16-bit which then has to be remapped to the 10-bit or 12-bit range when saving, and converting
-8-bit data to 10-bit or 12-bit will cause a loss of precision.
-
 This plug-in uses [libheif](https://github.com/strukturag/libheif) with the [AOM](https://aomedia.googlesource.com/aom/) decoder and encoder.
 
 The latest version can be downloaded from the [Releases](https://github.com/0xC0000054/avif-format/releases) tab.

@@ -192,8 +192,6 @@ namespace
             hasXmp(HasXmpMetadata(formatRecord)),
             hasAlphaChannel(HasAlphaChannel(formatRecord)),
             monochrome(IsMonochromeImage(formatRecord)),
-            losslessCheckboxEnabled(formatRecord->depth == 8 || formatRecord->depth == 32),
-            losslessAlphaChecked(false),
             imageDepthComboEnabled(true),
             colorProfileCheckboxEnabled(hasColorProfile && (formatRecord->depth != 32 || saveOptions.hdrTransferFunction == ColorTransferFunction::Clip)),
             colorProfileChecked(false)
@@ -204,8 +202,8 @@ namespace
             options.compressionSpeed = saveOptions.compressionSpeed;
             options.imageBitDepth = formatRecord->depth == 8 ? ImageBitDepth::Eight : saveOptions.imageBitDepth;
             options.hdrTransferFunction = saveOptions.hdrTransferFunction;
-            options.lossless = saveOptions.lossless && losslessCheckboxEnabled;
-            options.losslessAlpha = saveOptions.losslessAlpha && losslessCheckboxEnabled;
+            options.lossless = saveOptions.lossless;
+            options.losslessAlpha = saveOptions.losslessAlpha;
             options.keepColorProfile = saveOptions.keepColorProfile && hasColorProfile && colorProfileCheckboxEnabled;
             options.keepExif = saveOptions.keepExif && hasExif;
             options.keepXmp = saveOptions.keepXmp && hasXmp;
@@ -291,22 +289,10 @@ namespace
             SendMessage(qualityEditUpDown, UDM_SETBUDDY, reinterpret_cast<WPARAM>(qualityEditBox), 0);
             SendMessage(qualityEditUpDown, UDM_SETRANGE, 0, MAKELPARAM(100, 0));
 
-            // The AVIF format only supports 10-bit and 12-bit data, so saving a 16-bit image may be lossy.
-            if (hostImageDepth == 8 || hostImageDepth == 32)
-            {
-                Button_SetCheck(losslessCheckbox, options.lossless);
-                EnableWindow(losslessCheckbox, true);
-                EnableLossyCompressionSettings(hDlg, !options.lossless);
-                Button_SetCheck(losslessAlphaCheckbox, hasAlphaChannel && options.losslessAlpha);
-                EnableWindow(losslessAlphaCheckbox, hasAlphaChannel);
-            }
-            else
-            {
-                Button_SetCheck(losslessCheckbox, false);
-                EnableWindow(losslessCheckbox, false);
-                Button_SetCheck(losslessAlphaCheckbox, false);
-                EnableWindow(losslessAlphaCheckbox, false);
-            }
+            Button_SetCheck(losslessCheckbox, options.lossless);
+            EnableLossyCompressionSettings(hDlg, !options.lossless);
+            Button_SetCheck(losslessAlphaCheckbox, hasAlphaChannel && options.losslessAlpha);
+            EnableWindow(losslessAlphaCheckbox, hasAlphaChannel);
 
             constexpr int resourceBufferLength = 256;
             TCHAR resourceBuffer[resourceBufferLength]{};
@@ -621,54 +607,6 @@ namespace
                                 options.imageBitDepth = hostImageDepth == 8 ? ImageBitDepth::Eight : ImageBitDepth::Twelve;
                                 break;
                             }
-
-                            if (hostImageDepth == 8)
-                            {
-                                // Lossless mode is only supported when the host image depth and output
-                                // image depth are both 8-bits-per-channel.
-
-                                if (options.imageBitDepth != ImageBitDepth::Eight)
-                                {
-                                    if (losslessCheckboxEnabled)
-                                    {
-                                        losslessCheckboxEnabled = false;
-                                        HWND losslessCheck = GetDlgItem(hDlg, IDC_LOSSLESS_CHECK);
-
-                                        if (Button_GetCheck(losslessCheck) == BST_CHECKED)
-                                        {
-                                            Button_SetCheck(losslessCheck, BST_UNCHECKED);
-                                            options.lossless = false;
-                                            EnableLossyCompressionSettings(hDlg, true);
-                                        }
-
-                                        EnableWindow(losslessCheck, false);
-                                        if (hasAlphaChannel)
-                                        {
-                                            HWND losslessAlphaCheck = GetDlgItem(hDlg, IDC_LOSSLESS_ALPHA_CHECK);
-
-                                            losslessAlphaChecked = Button_GetCheck(losslessAlphaCheck) == BST_CHECKED;
-                                            Button_SetCheck(losslessAlphaCheck, BST_UNCHECKED);
-                                            EnableWindow(losslessAlphaCheck, false);
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    if (!losslessCheckboxEnabled)
-                                    {
-                                        losslessCheckboxEnabled = true;
-
-                                        EnableWindow(GetDlgItem(hDlg, IDC_LOSSLESS_CHECK), true);
-                                        if (hasAlphaChannel)
-                                        {
-                                            HWND losslessAlphaCheck = GetDlgItem(hDlg, IDC_LOSSLESS_ALPHA_CHECK);
-
-                                            Button_SetCheck(losslessAlphaCheck, losslessAlphaChecked ? BST_CHECKED : BST_UNCHECKED);
-                                            EnableWindow(losslessAlphaCheck, true);
-                                        }
-                                    }
-                                }
-                            }
                         }
                     }
                     else if (item == IDC_HDR_TRANSFER_CHARACTERISTICS_COMBO)
@@ -789,8 +727,6 @@ namespace
         const bool hasXmp;
         const bool hasAlphaChannel;
         const bool monochrome;
-        bool losslessCheckboxEnabled; // Used to track state when changing the save bit-depth.
-        bool losslessAlphaChecked;
         bool imageDepthComboEnabled;
         bool colorProfileCheckboxEnabled;
         bool colorProfileChecked;
