@@ -318,7 +318,7 @@ OSErr WriteScriptParamsOnWrite(FormatRecordPtr formatRecord, const SaveUIOptions
                 writeProcs->putBooleanProc(token, keyKeepXMP, options.keepXmp);
             }
 
-            if (options.losslessAlpha)
+            if (!options.losslessAlpha)
             {
                 writeProcs->putBooleanProc(token, keyLosslessAlpha, options.losslessAlpha);
             }
