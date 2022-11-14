@@ -763,6 +763,7 @@ bool DoSaveUI(const FormatRecordPtr formatRecord, SaveUIOptions& options)
         options.chromaSubsampling = dialogOptions.chromaSubsampling;
         options.compressionSpeed = dialogOptions.compressionSpeed;
         options.lossless = dialogOptions.lossless;
+        options.losslessAlpha = dialogOptions.losslessAlpha;
         options.imageBitDepth = dialogOptions.imageBitDepth;
         options.hdrTransferFunction = dialogOptions.hdrTransferFunction;
         options.keepColorProfile = dialogOptions.keepColorProfile;
