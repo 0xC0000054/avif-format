@@ -42,16 +42,11 @@ public:
         return subCode;
     }
 
-    static bool IsOutOfMemoryError(const heif_error& e)
-    {
-        return e.code == heif_error_Memory_allocation_error && e.subcode == heif_suberror_Unspecified;
-    }
-
     static void ThrowIfError(const heif_error& e)
     {
         if (e.code != heif_error_Ok)
         {
-            if (IsOutOfMemoryError(e))
+            if (e.code == heif_error_Memory_allocation_error && e.subcode == heif_suberror_Unspecified)
             {
                 throw std::bad_alloc();
             }
