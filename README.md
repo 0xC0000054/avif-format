@@ -4,10 +4,10 @@ An AV1 Image (AVIF) file format plug-in for Adobe® Photoshop®.
 
 Single images can be loaded and saved using 8, 10 or 12 bits-per-channel, image sequences and animations are not supported.
 
-HDR files that use the Rec. 2100 PQ and SMPTE 428-1 transfer functions can be loaded and edited as 32-bits-per-channel documents.
-The Rec. 2100 HLG transfer function is not supported, these images will be loaded as SDR 16-bits-per-channel documents.
+HDR files that use the Rec. 2100 PQ and SMPTE 428-1 transfer characteristics can be loaded and edited as 32-bits-per-channel documents.   
+The Rec. 2100 HLG transfer characteristic is not supported, these images will be loaded as SDR 16-bits-per-channel documents.
    
-32-bits-per-channel documents can be saved as HDR AVIF files using the following transfer functions and bit-depths:   
+32-bits-per-channel documents can be saved as HDR AVIF files using the following transfer characteristics and bit-depths:   
 * Rec. 2100 PQ using either 10-bits-per-channel or 12-bits-per-channel.   
 * SMPTE 428-1 using 12-bits-per-channel.
 
