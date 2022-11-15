@@ -273,7 +273,7 @@ OSErr DoWriteStart(FormatRecordPtr formatRecord, SaveUIOptions& options)
 
         ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, formatRecord->rowBytes);
 
-        formatRecord->data = buffer.Lock();
+        formatRecord->data = buffer.lock();
 
         ScopedHeifImage image;
 

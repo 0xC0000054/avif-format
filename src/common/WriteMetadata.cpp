@@ -57,7 +57,7 @@ namespace
         {
             ScopedHandleSuiteLock lock(formatRecord->handleProcs, formatRecord->iCCprofileData);
 
-            Ptr data = lock.Data();
+            Ptr data = lock.data();
 
             LibHeifException::ThrowIfError(heif_image_set_raw_color_profile(
                 image,
@@ -75,7 +75,7 @@ namespace
 
         if (exif != nullptr)
         {
-            const int32 exifSize = exif.GetSize();
+            const int32 exifSize = exif.size();
 
             if (exifSize > 0)
             {
@@ -86,12 +86,12 @@ namespace
 
                 if (exifSizeWithHeader <= std::numeric_limits<int32>::max())
                 {
-                    ScopedHandleSuiteLock lock = exif.Lock();
-                    void* exifDataPtr = lock.Data();
+                    ScopedHandleSuiteLock lock = exif.lock();
+                    void* exifDataPtr = lock.data();
 
                     buffer = ScopedBufferSuiteBuffer(formatRecord->bufferProcs, static_cast<int32>(exifSizeWithHeader));
 
-                    uint8* destinationBuffer = static_cast<uint8*>(buffer.Lock());
+                    uint8* destinationBuffer = static_cast<uint8*>(buffer.lock());
 
                     uint32_t* tiffHeaderOffset = reinterpret_cast<uint32_t*>(destinationBuffer);
                     *tiffHeaderOffset = 0;
@@ -155,8 +155,8 @@ void AddExifMetadata(const FormatRecordPtr formatRecord, heif_context* context, 
 
     if (exif)
     {
-        const int32 bufferSize = exif.GetSize();
-        void* ptr = exif.Lock();
+        const int32 bufferSize = exif.size();
+        void* ptr = exif.lock();
 
         LibHeifException::ThrowIfError(heif_context_add_exif_metadata(context, imageHandle, ptr, bufferSize));
     }
@@ -168,12 +168,12 @@ void AddXmpMetadata(const FormatRecordPtr formatRecord, heif_context* context, h
 
     if (xmp != nullptr)
     {
-        const int32 xmpSize = xmp.GetSize();
+        const int32 xmpSize = xmp.size();
 
         if (xmpSize > 0)
         {
-            ScopedHandleSuiteLock lock = xmp.Lock();
-            void* ptr = lock.Data();
+            ScopedHandleSuiteLock lock = xmp.lock();
+            void* ptr = lock.data();
 
             LibHeifException::ThrowIfError(heif_context_add_XMP_metadata(context, imageHandle, ptr, xmpSize));
         }

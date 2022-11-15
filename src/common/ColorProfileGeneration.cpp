@@ -238,14 +238,14 @@ namespace
         {
             ScopedHandleSuiteHandle handle(formatRecord->handleProcs, static_cast<int32>(profileSize));
 
-            ScopedHandleSuiteLock lock = handle.Lock();
+            ScopedHandleSuiteLock lock = handle.lock();
 
-            if (cmsSaveProfileToMem(profile, lock.Data(), &profileSize))
+            if (cmsSaveProfileToMem(profile, lock.data(), &profileSize))
             {
-                lock.Unlock();
+                lock.unlock();
 
                 // Ownership of the handle is transfered to the host through the iCCprofileData field.
-                formatRecord->iCCprofileData = handle.Release();
+                formatRecord->iCCprofileData = handle.release();
                 formatRecord->iCCprofileSize = static_cast<int32>(profileSize);
             }
         }

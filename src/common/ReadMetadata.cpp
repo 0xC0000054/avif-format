@@ -89,7 +89,7 @@ void ReadExifMetadata(const FormatRecordPtr formatRecord, const heif_image_handl
         if (size > exifHeaderSize && size <= static_cast<size_t>(std::numeric_limits<int32>::max()))
         {
             ScopedBufferSuiteBuffer exifBuffer(formatRecord->bufferProcs, static_cast<int32>(size));
-            uint8* exifBlock = static_cast<uint8*>(exifBuffer.Lock());
+            uint8* exifBlock = static_cast<uint8*>(exifBuffer.lock());
 
             LibHeifException::ThrowIfError(heif_image_handle_get_metadata(handle, exifId, exifBlock));
 
@@ -108,18 +108,18 @@ void ReadExifMetadata(const FormatRecordPtr formatRecord, const heif_image_handl
 
                 ScopedHandleSuiteHandle complexProperty(formatRecord->handleProcs, static_cast<int32>(exifDataLength));
 
-                ScopedHandleSuiteLock lock = complexProperty.Lock();
+                ScopedHandleSuiteLock lock = complexProperty.lock();
 
-                memcpy(lock.Data(), exifBlock + headerStartOffset, exifDataLength);
+                memcpy(lock.data(), exifBlock + headerStartOffset, exifDataLength);
 
-                lock.Unlock();
+                lock.unlock();
 
                 OSErrException::ThrowIfError(formatRecord->propertyProcs->setPropertyProc(
                     kPhotoshopSignature,
                     propEXIFData,
                     0,
                     0,
-                    complexProperty.Get()));
+                    complexProperty.get()));
             }
         }
     }
@@ -133,14 +133,14 @@ void ReadIccProfileMetadata(const FormatRecordPtr formatRecord, const heif_image
     {
         ScopedHandleSuiteHandle iccProfile(formatRecord->handleProcs, static_cast<int32>(iccProfileLength));
 
-        ScopedHandleSuiteLock lock = iccProfile.Lock();
+        ScopedHandleSuiteLock lock = iccProfile.lock();
 
-        LibHeifException::ThrowIfError(heif_image_handle_get_raw_color_profile(handle, lock.Data()));
+        LibHeifException::ThrowIfError(heif_image_handle_get_raw_color_profile(handle, lock.data()));
 
-        lock.Unlock();
+        lock.unlock();
 
         // Ownership of the handle is transfered to the host through the iCCprofileData field.
-        formatRecord->iCCprofileData = iccProfile.Release();
+        formatRecord->iCCprofileData = iccProfile.release();
         formatRecord->iCCprofileSize = static_cast<int32>(iccProfileLength);
     }
 }
@@ -157,18 +157,18 @@ void ReadXmpMetadata(const FormatRecordPtr formatRecord, const heif_image_handle
         {
             ScopedHandleSuiteHandle complexProperty(formatRecord->handleProcs, static_cast<int32>(xmpDataLength));
 
-            ScopedHandleSuiteLock lock = complexProperty.Lock();
+            ScopedHandleSuiteLock lock = complexProperty.lock();
 
-            LibHeifException::ThrowIfError(heif_image_handle_get_metadata(handle, xmpId, lock.Data()));
+            LibHeifException::ThrowIfError(heif_image_handle_get_metadata(handle, xmpId, lock.data()));
 
-            lock.Unlock();
+            lock.unlock();
 
             OSErrException::ThrowIfError(formatRecord->propertyProcs->setPropertyProc(
                 kPhotoshopSignature,
                 propXMP,
                 0,
                 0,
-                complexProperty.Get()));
+                complexProperty.get()));
         }
     }
 }

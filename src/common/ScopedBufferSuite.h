@@ -30,13 +30,13 @@ class ScopedBufferSuiteBuffer
 public:
     explicit ScopedBufferSuiteBuffer()
         : bufferID(), bufferProcs(nullptr), bufferIDValid(false),
-          bufferDataPtr(nullptr), size(0)
+          bufferDataPtr(nullptr), allocatedSize(0)
     {
     }
 
     explicit ScopedBufferSuiteBuffer(BufferProcs* bufferProcs, int32 bufferSize)
         : bufferID(), bufferProcs(bufferProcs), bufferIDValid(false),
-          bufferDataPtr(nullptr), size(bufferSize)
+          bufferDataPtr(nullptr), allocatedSize(bufferSize)
     {
         OSErrException::ThrowIfError(bufferProcs->allocateProc(bufferSize, &bufferID));
         bufferIDValid = true;
@@ -44,7 +44,7 @@ public:
 
     ScopedBufferSuiteBuffer(ScopedBufferSuiteBuffer&& other) noexcept
         : bufferID(other.bufferID), bufferProcs(other.bufferProcs), bufferIDValid(other.bufferIDValid),
-          bufferDataPtr(other.bufferDataPtr), size(other.size)
+          bufferDataPtr(other.bufferDataPtr), allocatedSize(other.allocatedSize)
     {
         other.bufferDataPtr = nullptr;
         other.bufferIDValid = false;
@@ -56,7 +56,7 @@ public:
         bufferProcs = other.bufferProcs;
         bufferIDValid = other.bufferIDValid;
         bufferDataPtr = other.bufferDataPtr;
-        size = other.size;
+        allocatedSize = other.allocatedSize;
 
         other.bufferDataPtr = nullptr;
         other.bufferIDValid = false;
@@ -69,15 +69,15 @@ public:
 
     ~ScopedBufferSuiteBuffer()
     {
-        Reset();
+        reset();
     }
 
-    int32 GetSize() const noexcept
+    int32 size() const noexcept
     {
-        return size;
+        return allocatedSize;
     }
 
-    void* Lock()
+    void* lock()
     {
         if (!bufferIDValid)
         {
@@ -114,12 +114,12 @@ public:
 
 private:
 
-    void Reset() noexcept
+    void reset() noexcept
     {
         if (bufferIDValid)
         {
             bufferIDValid = false;
-            size = 0;
+            allocatedSize = 0;
             if (bufferDataPtr != nullptr)
             {
                 bufferProcs->unlockProc(bufferID);
@@ -132,7 +132,7 @@ private:
     const BufferProcs* bufferProcs;
     BufferID bufferID;
     void* bufferDataPtr;
-    int32 size;
+    int32 allocatedSize;
     bool bufferIDValid;
 };
 

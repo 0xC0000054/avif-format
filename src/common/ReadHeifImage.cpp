@@ -112,7 +112,7 @@ namespace
 
         ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, formatRecord->rowBytes);
 
-        formatRecord->data = buffer.Lock();
+        formatRecord->data = buffer.lock();
 
         const int32 left = 0;
         const int32 right = imageSize.h;
@@ -216,7 +216,7 @@ namespace
 
         ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, formatRecord->rowBytes);
 
-        formatRecord->data = buffer.Lock();
+        formatRecord->data = buffer.lock();
 
         const int32 left = 0;
         const int32 right = imageSize.h;
@@ -320,7 +320,7 @@ namespace
 
         ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, formatRecord->rowBytes);
 
-        formatRecord->data = buffer.Lock();
+        formatRecord->data = buffer.lock();
 
         const int32 left = 0;
         const int32 right = imageSize.h;
@@ -425,7 +425,7 @@ void ReadHeifImageGrayEightBit(
 
     ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, formatRecord->rowBytes);
 
-    formatRecord->data = buffer.Lock();
+    formatRecord->data = buffer.lock();
 
     const int32 left = 0;
     const int32 right = imageSize.h;
@@ -497,7 +497,7 @@ void ReadHeifImageGraySixteenBit(
 
     ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, formatRecord->rowBytes);
 
-    formatRecord->data = buffer.Lock();
+    formatRecord->data = buffer.lock();
 
     const int32 left = 0;
     const int32 right = imageSize.h;
@@ -600,7 +600,7 @@ void ReadHeifImageRGBEightBit(
 
     ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, formatRecord->rowBytes);
 
-    formatRecord->data = buffer.Lock();
+    formatRecord->data = buffer.lock();
 
     const int32 left = 0;
     const int32 right = imageSize.h;
@@ -749,7 +749,7 @@ void ReadHeifImageRGBSixteenBit(
 
     ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, formatRecord->rowBytes);
 
-    formatRecord->data = buffer.Lock();
+    formatRecord->data = buffer.lock();
 
     const int32 left = 0;
     const int32 right = imageSize.h;
@@ -875,7 +875,7 @@ void ReadHeifImageGrayThirtyTwoBit(
 
     ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, formatRecord->rowBytes);
 
-    formatRecord->data = buffer.Lock();
+    formatRecord->data = buffer.lock();
 
     const int32 left = 0;
     const int32 right = imageSize.h;
@@ -979,7 +979,7 @@ void ReadHeifImageRGBThirtyTwoBit(
 
     ScopedBufferSuiteBuffer buffer(formatRecord->bufferProcs, formatRecord->rowBytes);
 
-    formatRecord->data = buffer.Lock();
+    formatRecord->data = buffer.lock();
 
     const int32 left = 0;
     const int32 right = imageSize.h;

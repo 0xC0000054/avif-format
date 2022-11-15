@@ -76,7 +76,7 @@ bool HasExifMetadata(const FormatRecordPtr formatRecord)
 
     if (exif != nullptr)
     {
-        result = exif.GetSize() > 0;
+        result = exif.size() > 0;
     }
 
     return result;
@@ -90,7 +90,7 @@ bool HasXmpMetadata(const FormatRecordPtr formatRecord)
 
     if (xmp != nullptr)
     {
-        result = xmp.GetSize() > 0;
+        result = xmp.size() > 0;
     }
 
     return result;
