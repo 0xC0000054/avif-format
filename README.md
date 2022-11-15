@@ -8,8 +8,10 @@ HDR files that use the Rec. 2100 PQ and SMPTE 428-1 transfer functions can be lo
 The Rec. 2100 HLG transfer function is not supported, these images will be loaded as SDR 16-bits-per-channel documents.
    
 32-bits-per-channel documents can be saved as HDR AVIF files using the following transfer functions and bit-depths:   
-Rec. 2100 PQ using either 10-bits-per-channel or 12-bits-per-channel.   
-SMPTE 428-1 using 12-bits-per-channel.
+* Rec. 2100 PQ using either 10-bits-per-channel or 12-bits-per-channel.   
+* SMPTE 428-1 using 12-bits-per-channel.
+
+32-bits-per-channel documents can also be saved as 10-bit or 12-bit SDR AVIF files using the `None, clip` transfer characteristic.
 
 This plug-in uses [libheif](https://github.com/strukturag/libheif) with the [AOM](https://aomedia.googlesource.com/aom/) decoder and encoder.
 
