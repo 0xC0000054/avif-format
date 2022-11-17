@@ -30,141 +30,8 @@
 #include "ScopedHeif.h"
 #include "Utilities.h"
 
-#ifdef _MSC_VER
-#pragma warning(disable: 5033) // Suppress the 'register' keyword warning.
-#endif // __MSC_VER
-
-#include "lcms2.h"
-
-#ifdef _MSC_VER
-#pragma warning(default: 5033)
-#endif // __MSC_VER
-
-#include <memory>
-
 namespace
 {
-    namespace detail
-    {
-        struct mlu_deleter { void operator()(cmsMLU* h) noexcept { if (h) cmsMLUfree(h); } };
-
-        struct tonecurve_deleter { void operator()(cmsToneCurve* h) noexcept { if (h) cmsFreeToneCurve(h); } };
-    }
-
-    using ScopedLcmsMLU = std::unique_ptr<cmsMLU, detail::mlu_deleter>;
-
-    using ScopedLcmsToneCurve = std::unique_ptr<cmsToneCurve, detail::tonecurve_deleter>;
-
-    struct ScopedLcmsContext
-    {
-        ScopedLcmsContext(cmsContext context) : context(context)
-        {
-        }
-
-        ~ScopedLcmsContext()
-        {
-            if (context != nullptr)
-            {
-                cmsDeleteContext(context);
-                context = nullptr;
-            }
-        }
-
-        ScopedLcmsContext(ScopedLcmsContext&& other) noexcept
-        {
-            context = other.context;
-            other.context = nullptr;
-        }
-
-        ScopedLcmsContext& operator=(ScopedLcmsContext&& other) noexcept
-        {
-            context = other.context;
-            other.context = nullptr;
-
-            return *this;
-        }
-
-        ScopedLcmsContext(const ScopedLcmsContext&) = delete;
-        ScopedLcmsContext& operator=(const ScopedLcmsContext&) = delete;
-
-        cmsContext get() const noexcept
-        {
-            return context;
-        }
-
-        explicit operator bool() const noexcept
-        {
-            return context != nullptr;
-        }
-
-    private:
-
-        cmsContext context;
-    };
-
-    struct ScopedLcmsProfile
-    {
-        ScopedLcmsProfile() : profile(nullptr)
-        {
-        }
-
-        ScopedLcmsProfile(cmsHPROFILE profile) : profile(profile)
-        {
-        }
-
-        ScopedLcmsProfile(ScopedLcmsProfile&& other) noexcept
-        {
-            profile = other.profile;
-            other.profile = nullptr;
-        }
-
-        ScopedLcmsProfile& operator=(ScopedLcmsProfile&& other) noexcept
-        {
-            profile = other.profile;
-            other.profile = nullptr;
-
-            return *this;
-        }
-
-        ScopedLcmsProfile(const ScopedLcmsProfile&) = delete;
-        ScopedLcmsProfile& operator=(const ScopedLcmsProfile&) = delete;
-
-        ~ScopedLcmsProfile()
-        {
-            reset();
-        }
-
-        cmsHPROFILE get() const noexcept
-        {
-            return profile;
-        }
-
-        void reset()
-        {
-            if (profile != nullptr)
-            {
-                cmsCloseProfile(profile);
-                profile = nullptr;
-            }
-        }
-
-        void reset(cmsHPROFILE newProfile)
-        {
-            reset();
-
-            profile = newProfile;
-        }
-
-        explicit operator bool() const noexcept
-        {
-            return profile != nullptr;
-        }
-
-    private:
-
-        cmsHPROFILE profile;
-    };
-
     bool SetProfileDescription(cmsContext context, cmsHPROFILE profile, const wchar_t* const description)
     {
         bool result = false;
@@ -266,6 +133,44 @@ namespace
 
         cmsWriteTag(profile, cmsSigcicpTag, &cicp);
     }
+}
+
+ScopedLcmsProfile CreateRec2020LinearRGBProfile(cmsContext context)
+{
+    ScopedLcmsProfile profile;
+
+    const cmsCIExyY whitepoint = { 0.3127, 0.3290, 1.0f }; // D65
+    const cmsCIExyYTRIPLE rgbPrimaries =
+    {
+        { 0.708, 0.292, 1.0 },
+        { 0.170, 0.797, 1.0 },
+        { 0.131, 0.046, 1.0 }
+    };
+
+    ScopedLcmsToneCurve toneCurve(cmsBuildGamma(context, 1.0));
+    const wchar_t* description = L"Rec. 2020 (Linear RGB Profile)";
+
+    if (toneCurve)
+    {
+        profile = BuildRGBProfile(
+            context,
+            &whitepoint,
+            &rgbPrimaries,
+            toneCurve.get(),
+            description);
+
+        if (profile)
+        {
+            SetCICPTag(
+                profile.get(),
+                heif_color_primaries_ITU_R_BT_2020_2_and_2100_0,
+                heif_transfer_characteristic_linear,
+                heif_matrix_coefficients_ITU_R_BT_2020_2_non_constant_luminance,
+                true);
+        }
+    }
+
+    return profile;
 }
 
 void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_nclx* nclx)

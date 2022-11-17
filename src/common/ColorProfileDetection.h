@@ -18,14 +18,11 @@
  * along with avif-format.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COLORPROFILEGENERATION_H
-#define COLORPROFILEGENERATION_H
+#ifndef COLORPROFILEDETECTION_H
+#define COLORPROFILEDETECTION_H
 
-#include "Common.h"
-#include "ScopedLcms.h"
+#include "lcms2.h"
 
-ScopedLcmsProfile CreateRec2020LinearRGBProfile(cmsContext context);
+bool IsRec2020ColorProfile(cmsHPROFILE profile);
 
-void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_nclx* nclx);
-
-#endif // !COLORPROFILEGENERATION_H
+#endif // !COLORPROFILEDETECTION_H

@@ -157,7 +157,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26812;5033</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -185,7 +185,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26812;5033</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -213,7 +213,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26812;5033</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -242,7 +242,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26812;5033</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -272,7 +272,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26812;5033</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -305,7 +305,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\src\win;..\src\common;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\photoshop;..\3rd-party\adobe_photoshop_sdk\pluginsdk\photoshopapi\pica_sp;..\3rd-party\adobe_photoshop_sdk\pluginsdk\samplecode\common\includes;..\3rd-party\libheif;..\3rd-party\libheif\build-$(PlatformTarget);..\3rd-party\aom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26812;5033</DisableSpecificWarnings>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -331,6 +331,8 @@
     <ClInclude Include="..\src\common\AlphaState.h" />
     <ClInclude Include="..\src\common\AvifFormat.h" />
     <ClInclude Include="..\src\common\AvifFormatTerminology.h" />
+    <ClInclude Include="..\src\common\ColorProfileConversion.h" />
+    <ClInclude Include="..\src\common\ColorProfileDetection.h" />
     <ClInclude Include="..\src\common\ColorProfileGeneration.h" />
     <ClInclude Include="..\src\common\ColorTransfer.h" />
     <ClInclude Include="..\src\common\Common.h" />
@@ -345,6 +347,7 @@
     <ClInclude Include="..\src\common\ScopedBufferSuite.h" />
     <ClInclude Include="..\src\common\ScopedHandleSuite.h" />
     <ClInclude Include="..\src\common\ScopedHeif.h" />
+    <ClInclude Include="..\src\common\ScopedLcms.h" />
     <ClInclude Include="..\src\common\Utilities.h" />
     <ClInclude Include="..\src\common\version.h" />
     <ClInclude Include="..\src\common\WriteHeifImage.h" />
@@ -358,6 +361,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\common\AvifFormat.cpp" />
+    <ClCompile Include="..\src\common\ColorProfileConversion.cpp" />
+    <ClCompile Include="..\src\common\ColorProfileDetection.cpp" />
     <ClCompile Include="..\src\common\ColorProfileGeneration.cpp" />
     <ClCompile Include="..\src\common\ColorTransfer.cpp" />
     <ClCompile Include="..\src\common\Common.cpp" />

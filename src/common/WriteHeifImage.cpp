@@ -19,6 +19,7 @@
  */
 
 #include "WriteHeifImage.h"
+#include "ColorProfileConversion.h"
 #include "LibHeifException.h"
 #include "OSErrException.h"
 #include "PremultipliedAlpha.h"
@@ -963,6 +964,8 @@ ScopedHeifImage CreateHeifImageRGBThirtyTwoBit(
     const float heifImageMaxValue = static_cast<float>((1 << heifImageBitDepth) - 1);
     const ColorTransferFunction transferFunction = saveOptions.hdrTransferFunction;
 
+    ColorProfileConversion converter(formatRecord, alphaState, transferFunction);
+
     for (int32 y = 0; y < imageSize.v; y++)
     {
         if (formatRecord->abortProc())
@@ -976,6 +979,11 @@ ScopedHeifImage CreateHeifImageRGBThirtyTwoBit(
         SetRect(formatRecord, top, left, bottom, right);
 
         OSErrException::ThrowIfError(formatRecord->advanceState());
+
+        converter.ConvertRow(
+            formatRecord->data,
+            static_cast<cmsUInt32Number>(imageSize.h),
+            static_cast<cmsUInt32Number>(formatRecord->rowBytes));
 
         const float* src = static_cast<const float*>(formatRecord->data);
         uint16_t* yPlane = reinterpret_cast<uint16_t*>(heifImageData + ((static_cast<int64_t>(y) * heifImageStride)));

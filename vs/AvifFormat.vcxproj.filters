@@ -96,6 +96,15 @@
     <ClInclude Include="..\src\common\ColorTransfer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\common\ScopedLcms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\ColorProfileConversion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\ColorProfileDetection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\common\AvifFormat.cpp">
@@ -170,10 +179,16 @@
     <ClCompile Include="..\src\common\WriteHeifImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\common\ColorTransfer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\common\ColorProfileGeneration.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\common\ColorTransfer.cpp">
+    <ClCompile Include="..\src\common\ColorProfileDetection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\common\ColorProfileConversion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

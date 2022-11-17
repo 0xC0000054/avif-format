@@ -18,14 +18,33 @@
  * along with avif-format.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COLORPROFILEGENERATION_H
-#define COLORPROFILEGENERATION_H
+#ifndef COLORPROFILECONVERSION_H
+#define COLORPROFILECONVERSION_H
 
 #include "Common.h"
+#include "AlphaState.h"
+#include "ColorTransfer.h"
 #include "ScopedLcms.h"
 
-ScopedLcmsProfile CreateRec2020LinearRGBProfile(cmsContext context);
+class ColorProfileConversion
+{
+public:
 
-void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_nclx* nclx);
+	ColorProfileConversion(
+		const FormatRecordPtr formatRecord,
+		AlphaState alphaState,
+		ColorTransferFunction transferFunction);
 
-#endif // !COLORPROFILEGENERATION_H
+	void ConvertRow(void* row, cmsUInt32Number pixelsPerLine, cmsUInt32Number bytesPerLine);
+
+private:
+
+	ScopedLcmsContext context;
+	ScopedLcmsProfile documentProfile;
+	ScopedLcmsProfile rec2020Profile;
+	ScopedLcmsTransform transform;
+};
+
+#endif // !COLORPROFILECONVERSION_H
+
+
