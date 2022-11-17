@@ -59,7 +59,7 @@ ColorProfileConversion::ColorProfileConversion(
 
             if (alphaState != AlphaState::None)
             {
-                format = alphaState == AlphaState::Premultiplied ? TYPE_RGBA_FLT_PREMUL : TYPE_RGBA_FLT;
+                format = TYPE_RGBA_FLT;
                 transformFlags |= cmsFLAGS_COPY_ALPHA;
             }
 
