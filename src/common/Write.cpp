@@ -234,6 +234,16 @@ OSErr DoWriteStart(FormatRecordPtr formatRecord, SaveUIOptions& options)
         options.imageBitDepth = ImageBitDepth::Twelve;
     }
 
+    if (formatRecord->depth == 32 &&
+        options.premultipliedAlpha &&
+        options.hdrTransferFunction != ColorTransferFunction::Clip)
+    {
+        // Disable premultiplied alpha for 32-bit HDR images.
+        // There is currently no clear guidance on how this should be supported
+        // between different applications.
+        options.premultipliedAlpha = false;
+    }
+
     bool libheifInitialized = false;
 
     try

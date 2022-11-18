@@ -194,7 +194,9 @@ namespace
             monochrome(IsMonochromeImage(formatRecord)),
             imageDepthComboEnabled(true),
             colorProfileCheckboxEnabled(hasColorProfile && (formatRecord->depth != 32 || saveOptions.hdrTransferFunction == ColorTransferFunction::Clip)),
-            colorProfileChecked(false)
+            colorProfileChecked(false),
+            premultipliedAlphaCheckboxEnabled(hasAlphaChannel && (formatRecord->depth != 32 || saveOptions.hdrTransferFunction == ColorTransferFunction::Clip)),
+            premultipliedAlphaChecked(false)
         {
             options.quality = saveOptions.quality;
             // YUV 4:2:0 is used for monochrome images because AOM does not have a YUV 4:0:0 mode.
@@ -207,7 +209,7 @@ namespace
             options.keepColorProfile = saveOptions.keepColorProfile && hasColorProfile && colorProfileCheckboxEnabled;
             options.keepExif = saveOptions.keepExif && hasExif;
             options.keepXmp = saveOptions.keepXmp && hasXmp;
-            options.premultipliedAlpha = saveOptions.premultipliedAlpha && hasAlphaChannel;
+            options.premultipliedAlpha = saveOptions.premultipliedAlpha && hasAlphaChannel && premultipliedAlphaCheckboxEnabled;
         }
 
         const SaveUIOptions& GetSaveOptions() const
@@ -427,7 +429,7 @@ namespace
                 EnableWindow(keepXmpCheckbox, false);
             }
 
-            if (hasAlphaChannel)
+            if (premultipliedAlphaCheckboxEnabled)
             {
                 Button_SetCheck(premultipliedAlphaCheckbox, options.premultipliedAlpha);
                 EnableWindow(premultipliedAlphaCheckbox, true);
@@ -611,9 +613,9 @@ namespace
                     }
                     else if (item == IDC_HDR_TRANSFER_CHARACTERISTICS_COMBO)
                     {
-                        if (colorProfileCheckboxEnabled)
+                        if (value != 2)
                         {
-                            if (value != 2)
+                            if (colorProfileCheckboxEnabled)
                             {
                                 colorProfileCheckboxEnabled = false;
                                 options.keepColorProfile = false;
@@ -625,10 +627,23 @@ namespace
                                 Button_SetCheck(colorProfileCheck, BST_UNCHECKED);
                                 EnableWindow(colorProfileCheck, false);
                             }
+
+                            if (premultipliedAlphaCheckboxEnabled)
+                            {
+                                premultipliedAlphaCheckboxEnabled = false;
+                                options.premultipliedAlpha = false;
+
+                                HWND premultipliedAlphaCheck = GetDlgItem(hDlg, IDC_PREMULTIPLIED_ALPHA_CHECK);
+
+                                premultipliedAlphaChecked = Button_GetCheck(premultipliedAlphaCheck) == BST_CHECKED;
+
+                                Button_SetCheck(premultipliedAlphaCheck, BST_UNCHECKED);
+                                EnableWindow(premultipliedAlphaCheck, false);
+                            }
                         }
                         else
                         {
-                            if (value == 2)
+                            if (!colorProfileCheckboxEnabled)
                             {
                                 colorProfileCheckboxEnabled = true;
                                 options.keepColorProfile = colorProfileChecked;
@@ -637,6 +652,17 @@ namespace
 
                                 Button_SetCheck(colorProfileCheck, colorProfileChecked ? BST_CHECKED : BST_UNCHECKED);
                                 EnableWindow(colorProfileCheck, true);
+                            }
+
+                            if (!premultipliedAlphaCheckboxEnabled)
+                            {
+                                premultipliedAlphaCheckboxEnabled = true;
+                                options.premultipliedAlpha = premultipliedAlphaChecked;
+
+                                HWND premultipliedAlphaCheck = GetDlgItem(hDlg, IDC_PREMULTIPLIED_ALPHA_CHECK);
+
+                                Button_SetCheck(premultipliedAlphaCheck,premultipliedAlphaChecked ? BST_CHECKED : BST_UNCHECKED);
+                                EnableWindow(premultipliedAlphaCheck, true);
                             }
                         }
 
@@ -730,6 +756,8 @@ namespace
         bool imageDepthComboEnabled;
         bool colorProfileCheckboxEnabled;
         bool colorProfileChecked;
+        bool premultipliedAlphaCheckboxEnabled;
+        bool premultipliedAlphaChecked;
     };
 }
 
