@@ -284,24 +284,23 @@ OSErr WriteScriptParamsOnWrite(FormatRecordPtr formatRecord, const SaveUIOptions
             if (options.lossless)
             {
                 writeProcs->putBooleanProc(token, keyLosslessCompression, options.lossless);
+
+                writeProcs->putIntegerProc(token, keyQuality, 100);
+
+                enumValue = ChromaSubsamplingToDescriptor(ChromaSubsampling::Yuv444);
+                writeProcs->putEnumeratedProc(token, keyChromaSubsampling, typeChromaSubsampling, enumValue);
             }
             else
             {
                 // Lossless compression overrides the quality and chroma sub-sampling settings.
                 writeProcs->putIntegerProc(token, keyQuality, options.quality);
 
-                if (options.chromaSubsampling != ChromaSubsampling::Yuv422)
-                {
-                    enumValue = ChromaSubsamplingToDescriptor(options.chromaSubsampling);
-                    writeProcs->putEnumeratedProc(token, keyChromaSubsampling, typeChromaSubsampling, enumValue);
-                }
+                enumValue = ChromaSubsamplingToDescriptor(options.chromaSubsampling);
+                writeProcs->putEnumeratedProc(token, keyChromaSubsampling, typeChromaSubsampling, enumValue);
             }
 
-            if (options.compressionSpeed != CompressionSpeed::Default)
-            {
-                enumValue = CompressionSpeedToDescriptor(options.compressionSpeed);
-                writeProcs->putEnumeratedProc(token, keyCompressionSpeed, typeCompressionSpeed, enumValue);
-            }
+            enumValue = CompressionSpeedToDescriptor(options.compressionSpeed);
+            writeProcs->putEnumeratedProc(token, keyCompressionSpeed, typeCompressionSpeed, enumValue);
 
             if (options.keepColorProfile)
             {
@@ -330,17 +329,14 @@ OSErr WriteScriptParamsOnWrite(FormatRecordPtr formatRecord, const SaveUIOptions
 
             ImageBitDepth imageBitDepth = options.imageBitDepth;
 
-            if (options.hdrTransferFunction != ColorTransferFunction::PQ)
+            if (options.hdrTransferFunction == ColorTransferFunction::SMPTE428)
             {
-                if (options.hdrTransferFunction == ColorTransferFunction::SMPTE428)
-                {
-                    // SMPTE 428 requires 12-bit.
-                    imageBitDepth = ImageBitDepth::Twelve;
-                }
-
-                enumValue = HDRTransferFunctionToDescriptor(options.hdrTransferFunction);
-                writeProcs->putEnumeratedProc(token, keyHDRTransferFunction, typeHDRTransferFunction, enumValue);
+                // SMPTE 428 requires 12-bit.
+                imageBitDepth = ImageBitDepth::Twelve;
             }
+
+            enumValue = HDRTransferFunctionToDescriptor(options.hdrTransferFunction);
+            writeProcs->putEnumeratedProc(token, keyHDRTransferFunction, typeHDRTransferFunction, enumValue);
 
             enumValue = ImageBitDepthToDescriptor(imageBitDepth);
             writeProcs->putEnumeratedProc(token, keyImageBitDepth, typeImageBitDepth, enumValue);
