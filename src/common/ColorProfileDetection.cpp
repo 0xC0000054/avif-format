@@ -149,7 +149,11 @@ namespace
         return fabs(a.x - b.x) < tolerance && fabs(a.y - b.y) < tolerance;
     }
 
-    bool ProfileHasRec2020ColorantsAndWhitepoint(cmsHPROFILE profile)
+    bool ProfileHasColorantsAndWhitepoint(
+        cmsHPROFILE profile,
+        const cmsCIExyY& requiredWhitepoint,
+        const cmsCIExyYTRIPLE& requiredColorants,
+        const cmsFloat64Number& tolerance)
     {
         bool result = false;
 
@@ -206,20 +210,12 @@ namespace
                 cmsXYZ2xyY(&xyColorants.Green, &colorants.Green);
                 cmsXYZ2xyY(&xyColorants.Blue, &colorants.Blue);
 
-                const cmsCIExyY whitepointD65 = { 0.3127, 0.3290, 1.0f }; // D65
-                const cmsCIExyYTRIPLE rec2020Primaries =
-                {
-                    { 0.708, 0.292, 1.0 },
-                    { 0.170, 0.797, 1.0 },
-                    { 0.131, 0.046, 1.0 }
-                };
+                const bool whitepointMatches = CompareXYValues(xyWhitePoint, requiredWhitepoint, tolerance);
+                const bool redMatches = CompareXYValues(xyColorants.Red, requiredColorants.Red, tolerance);
+                const bool greenMatches = CompareXYValues(xyColorants.Green, requiredColorants.Green, tolerance);
+                const bool blueMatches = CompareXYValues(xyColorants.Blue, requiredColorants.Blue, tolerance);
 
-                const bool whitepointIsD65 = CompareXYValues(xyWhitePoint, whitepointD65, 0.01);
-                const bool redIsRec2020 = CompareXYValues(xyColorants.Red, rec2020Primaries.Red, 0.01);
-                const bool greenIsRec2020 = CompareXYValues(xyColorants.Green, rec2020Primaries.Green, 0.01);
-                const bool blueIsRec2020 = CompareXYValues(xyColorants.Blue, rec2020Primaries.Blue, 0.01);
-
-                if (whitepointIsD65 && redIsRec2020 && greenIsRec2020 && blueIsRec2020)
+                if (whitepointMatches && redMatches && greenMatches && blueMatches)
                 {
                     result = true;
                 }
@@ -227,6 +223,32 @@ namespace
         }
 
         return result;
+    }
+
+    bool ProfileHasRec2020ColorantsAndWhitepoint(cmsHPROFILE profile)
+    {
+        const cmsCIExyY whitepointD65 = { 0.3127, 0.3290, 1.0f }; // D65
+        const cmsCIExyYTRIPLE rec2020Primaries =
+        {
+            { 0.708, 0.292, 1.0 },
+            { 0.170, 0.797, 1.0 },
+            { 0.131, 0.046, 1.0 }
+        };
+
+        return ProfileHasColorantsAndWhitepoint(profile, whitepointD65, rec2020Primaries, 0.01);
+    }
+
+    bool ProfileHasSRGBColorantsAndWhitepoint(cmsHPROFILE profile)
+    {
+        const cmsCIExyY whitepointD65 = { 0.3127, 0.3290, 1.0f }; // D65
+        const cmsCIExyYTRIPLE srgbPrimaries =
+        {
+            { 0.6400, 0.3300, 1.0 },
+            { 0.3000, 0.6000, 1.0 },
+            { 0.1500, 0.0600, 1.0 }
+        };
+
+        return ProfileHasColorantsAndWhitepoint(profile, whitepointD65, srgbPrimaries, 0.01);
     }
 
     constexpr std::pair<const wchar_t*, size_t> MakeDescriptionEntry(const wchar_t* text)
@@ -274,6 +296,36 @@ namespace
 
         return false;
     }
+
+    bool ProfileHasSRGBDescription(cmsHPROFILE profile)
+    {
+        constexpr cmsUInt32Number descriptionBufferSize = 256;
+        wchar_t descriptionBuffer[descriptionBufferSize]{};
+
+        const size_t charsWritten = cmsGetProfileInfo(
+            profile,
+            cmsInfoDescription,
+            "en",
+            "US",
+            descriptionBuffer,
+            descriptionBufferSize - 1) / sizeof(wchar_t);
+
+        if (charsWritten > 0)
+        {
+            constexpr const wchar_t* const srgbProfileName = L"sRGB";
+            constexpr size_t srgbProfileNameLength = std::char_traits<wchar_t>::length(srgbProfileName);
+
+            if (charsWritten >= srgbProfileNameLength)
+            {
+                if (std::wcsncmp(descriptionBuffer, srgbProfileName, srgbProfileNameLength) == 0)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 }
 
 bool IsRec2020ColorProfile(cmsHPROFILE profile)
@@ -292,6 +344,29 @@ bool IsRec2020ColorProfile(cmsHPROFILE profile)
         else
         {
             result = ProfileHasRec2020Description(profile) || ProfileHasRec2020ColorantsAndWhitepoint(profile);
+        }
+    }
+
+    return result;
+}
+
+bool IsSRGBColorProfile(cmsHPROFILE profile)
+{
+    bool result = false;
+
+    if (profile != nullptr)
+    {
+        // The CICP tag is checked first as it is the most accurate method.
+        if (cmsIsTag(profile, cmsSigcicpTag))
+        {
+            cmsVideoSignalType* tag = static_cast<cmsVideoSignalType*>(cmsReadTag(profile, cmsSigcicpTag));
+
+            result = tag->ColourPrimaries == static_cast<cmsUInt8Number>(heif_color_primaries_ITU_R_BT_709_5)
+                  && tag->TransferCharacteristics == static_cast<cmsUInt8Number>(heif_transfer_characteristic_IEC_61966_2_1);
+        }
+        else
+        {
+            result = ProfileHasSRGBDescription(profile) || ProfileHasSRGBColorantsAndWhitepoint(profile);
         }
     }
 

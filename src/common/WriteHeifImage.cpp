@@ -624,6 +624,8 @@ ScopedHeifImage CreateHeifImageRGBEightBit(
     const int32 left = 0;
     const int32 right = imageSize.h;
 
+    ColorProfileConversion converter(formatRecord, hasAlpha, 8, saveOptions.keepColorProfile);
+
     if (heifImageBitDepth > 8)
     {
         // The 8-bit data must be converted to 10-bit or 12-bit when writing it to the heif_image.
@@ -644,6 +646,11 @@ ScopedHeifImage CreateHeifImageRGBEightBit(
             SetRect(formatRecord, top, left, bottom, right);
 
             OSErrException::ThrowIfError(formatRecord->advanceState());
+
+            converter.ConvertRow(
+                formatRecord->data,
+                static_cast<cmsUInt32Number>(imageSize.h),
+                static_cast<cmsUInt32Number>(formatRecord->rowBytes));
 
             const uint8_t* src = static_cast<const uint8_t*>(formatRecord->data);
             uint16_t* yPlane = reinterpret_cast<uint16_t*>(heifImageData + ((static_cast<int64_t>(y) * heifImageStride)));
@@ -713,6 +720,11 @@ ScopedHeifImage CreateHeifImageRGBEightBit(
             SetRect(formatRecord, top, left, bottom, right);
 
             OSErrException::ThrowIfError(formatRecord->advanceState());
+
+            converter.ConvertRow(
+                formatRecord->data,
+                static_cast<cmsUInt32Number>(imageSize.h),
+                static_cast<cmsUInt32Number>(formatRecord->rowBytes));
 
             const uint8_t* src = static_cast<const uint8_t*>(formatRecord->data);
             uint8_t* yPlane = heifImageData + ((static_cast<int64_t>(y) * heifImageStride));
@@ -791,6 +803,8 @@ ScopedHeifImage CreateHeifImageRGBSixteenBit(
     const int32 left = 0;
     const int32 right = imageSize.h;
 
+    ColorProfileConversion converter(formatRecord, hasAlpha, 16, saveOptions.keepColorProfile);
+
     if (heifImageBitDepth == 8)
     {
         // The 16-bit data must be converted to 8-bit when writing it to the heif_image.
@@ -811,6 +825,11 @@ ScopedHeifImage CreateHeifImageRGBSixteenBit(
             SetRect(formatRecord, top, left, bottom, right);
 
             OSErrException::ThrowIfError(formatRecord->advanceState());
+
+            converter.ConvertRow(
+                formatRecord->data,
+                static_cast<cmsUInt32Number>(imageSize.h),
+                static_cast<cmsUInt32Number>(formatRecord->rowBytes));
 
             const uint16_t* src = static_cast<const uint16_t*>(formatRecord->data);
             uint8_t* yPlane = heifImageData + ((static_cast<int64>(y) * heifImageStride));
@@ -883,6 +902,11 @@ ScopedHeifImage CreateHeifImageRGBSixteenBit(
             SetRect(formatRecord, top, left, bottom, right);
 
             OSErrException::ThrowIfError(formatRecord->advanceState());
+
+            converter.ConvertRow(
+                formatRecord->data,
+                static_cast<cmsUInt32Number>(imageSize.h),
+                static_cast<cmsUInt32Number>(formatRecord->rowBytes));
 
             const uint16_t* src = static_cast<const uint16_t*>(formatRecord->data);
             uint16_t* yPlane = reinterpret_cast<uint16_t*>(heifImageData + ((static_cast<int64_t>(y) * heifImageStride)));
@@ -964,7 +988,7 @@ ScopedHeifImage CreateHeifImageRGBThirtyTwoBit(
     const float heifImageMaxValue = static_cast<float>((1 << heifImageBitDepth) - 1);
     const ColorTransferFunction transferFunction = saveOptions.hdrTransferFunction;
 
-    ColorProfileConversion converter(formatRecord, alphaState, transferFunction);
+    ColorProfileConversion converter(formatRecord, hasAlpha, transferFunction, saveOptions.keepColorProfile);
 
     for (int32 y = 0; y < imageSize.v; y++)
     {

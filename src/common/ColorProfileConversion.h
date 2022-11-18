@@ -25,24 +25,44 @@
 #include "AlphaState.h"
 #include "ColorTransfer.h"
 #include "ScopedLcms.h"
+#include <vector>
 
 class ColorProfileConversion
 {
 public:
 
-	ColorProfileConversion(
-		const FormatRecordPtr formatRecord,
-		AlphaState alphaState,
-		ColorTransferFunction transferFunction);
+    ColorProfileConversion(
+        const FormatRecordPtr formatRecord,
+        bool hasAlpha,
+        ColorTransferFunction transferFunction,
+        bool keepEmbeddedColorProfile);
 
-	void ConvertRow(void* row, cmsUInt32Number pixelsPerLine, cmsUInt32Number bytesPerLine);
+    ColorProfileConversion(
+        const FormatRecordPtr formatRecord,
+        bool hasAlpha,
+        int hostBitsPerChannel,
+        bool keepEmbeddedColorProfile);
+
+    void ConvertRow(void* row, cmsUInt32Number pixelsPerLine, cmsUInt32Number bytesPerLine);
 
 private:
 
-	ScopedLcmsContext context;
-	ScopedLcmsProfile documentProfile;
-	ScopedLcmsProfile rec2020Profile;
-	ScopedLcmsTransform transform;
+    void ConvertSixteenBitRowToLcms(uint16_t* row, cmsUInt32Number pixelCount);
+
+    void ConvertSixteenBitRowToHost(uint16_t* row, cmsUInt32Number pixelCount);
+
+    void InitializeForRec2020Conversion(bool hasAlpha);
+
+    void InitializeForSRGBConversion(bool hasAlpha, int hostBitsPerChannel);
+
+    ScopedLcmsContext context;
+    ScopedLcmsProfile documentProfile;
+    ScopedLcmsProfile outputImageProfile;
+    ScopedLcmsTransform transform;
+    const size_t numberOfChannels;
+    const bool isSixteenBitMode;
+    std::vector<uint16_t> hostToLcmsLookupTable;
+    std::vector<uint16_t> lcmsToHostLookupTable;
 };
 
 #endif // !COLORPROFILECONVERSION_H

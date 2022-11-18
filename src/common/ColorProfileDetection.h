@@ -25,4 +25,6 @@
 
 bool IsRec2020ColorProfile(cmsHPROFILE profile);
 
+bool IsSRGBColorProfile(cmsHPROFILE profile);
+
 #endif // !COLORPROFILEDETECTION_H
