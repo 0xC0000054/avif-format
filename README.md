@@ -13,6 +13,10 @@ The Rec. 2100 HLG transfer characteristic is not supported, these images will be
 
 32-bits-per-channel documents can also be saved as 10-bit or 12-bit SDR AVIF files using the `None, clip` transfer characteristic.
 
+The support for HDR images with an alpha channel (transparency) may differ between applications.
+While this plug-in can load and save HDR images that include transparency, it may not be handled correctly by other applications.
+It is also possible that this plug-in may not correctly handle HDR images that include transparency from other applications.
+
 This plug-in uses [libheif](https://github.com/strukturag/libheif) with the [AOM](https://aomedia.googlesource.com/aom/) decoder and encoder.
 
 The latest version can be downloaded from the [Releases](https://github.com/0xC0000054/avif-format/releases) tab.
