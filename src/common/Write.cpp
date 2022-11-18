@@ -228,7 +228,7 @@ OSErr DoWriteStart(FormatRecordPtr formatRecord, SaveUIOptions& options)
 
     ReadScriptParamsOnWrite(formatRecord, options, nullptr);
 
-    if (options.hdrTransferFunction == ColorTransferFunction::SMPTE428)
+    if (formatRecord->depth == 32 && options.hdrTransferFunction == ColorTransferFunction::SMPTE428)
     {
         // SMPTE 428 requires 12-bit.
         options.imageBitDepth = ImageBitDepth::Twelve;

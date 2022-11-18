@@ -329,7 +329,9 @@ OSErr WriteScriptParamsOnWrite(FormatRecordPtr formatRecord, const SaveUIOptions
 
             ImageBitDepth imageBitDepth = options.imageBitDepth;
 
-            if (options.hdrTransferFunction == ColorTransferFunction::SMPTE428)
+            if (formatRecord->depth == 32 &&
+                options.hdrTransferFunction == ColorTransferFunction::SMPTE428 &&
+                imageBitDepth != ImageBitDepth::Twelve)
             {
                 // SMPTE 428 requires 12-bit.
                 imageBitDepth = ImageBitDepth::Twelve;
