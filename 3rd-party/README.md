@@ -41,7 +41,7 @@ The generated AOM library should be located in `aom/build-<platform>/Release`, t
 
 Clone libheif from your preferred tag:
 
-`git clone -b v1.13.0 --depth 1 https://github.com/strukturag/libheif`
+`git clone -b v1.14.0 --depth 1 https://github.com/strukturag/libheif`
 
 Change into the `libheif` directory and create a build directory.
 
