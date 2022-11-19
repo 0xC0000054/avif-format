@@ -110,9 +110,6 @@
     <ClCompile Include="..\src\common\AvifFormat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\win\dllmain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\win\UIWin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

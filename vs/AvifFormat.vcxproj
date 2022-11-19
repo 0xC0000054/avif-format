@@ -384,7 +384,6 @@
     <ClCompile Include="..\src\common\YUVCoefficiants.cpp" />
     <ClCompile Include="..\src\common\YuvDecode.cpp" />
     <ClCompile Include="..\src\common\YuvLookupTables.cpp" />
-    <ClCompile Include="..\src\win\dllmain.cpp" />
     <ClCompile Include="..\src\win\FileIOWin.cpp" />
     <ClCompile Include="..\src\win\MemoryWin.cpp" />
     <ClCompile Include="..\src\win\UIWin.cpp" />
