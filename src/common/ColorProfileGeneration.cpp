@@ -298,7 +298,6 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
 
                 if (profile)
                 {
-                    SetCICPTag(profile.get(), primaries, transferCharacteristics, matrixCoefficients, fullRange);
                     SaveColorProfileToHandle(profile.get(), formatRecord);
                 }
             }
@@ -412,12 +411,7 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
 
             if (profile)
             {
-                // The ICC version 4.4 specification states that the
-                // CICP tag is not supported for gray color profiles.
-                if (!IsMonochromeImage(formatRecord))
-                {
-                    SetCICPTag(profile.get(), primaries, transferCharacteristics, matrixCoefficients, fullRange);
-                }
+                SetCICPTag(profile.get(), primaries, transferCharacteristics, matrixCoefficients, fullRange);
                 SaveColorProfileToHandle(profile.get(), formatRecord);
             }
         }
