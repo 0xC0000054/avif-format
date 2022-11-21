@@ -301,30 +301,45 @@ namespace
 
             if (hostImageDepth == 32)
             {
-                SendMessage(hdrTransferCharacteristicsCombo, CB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(TEXT("Rec. 2100 PQ")));
-                SendMessage(hdrTransferCharacteristicsCombo, CB_INSERTSTRING, 1, reinterpret_cast<LPARAM>(TEXT("SMPTE 428-1")));
-
-                if (LoadString(hInstance, IDS_HDR_TRANSFER_CHARACTERISTICS_CLIP, resourceBuffer, resourceBufferLength) > 0)
+                if (monochrome)
                 {
-                    SendMessage(hdrTransferCharacteristicsCombo, CB_INSERTSTRING, 2, reinterpret_cast<LPARAM>(resourceBuffer));
-                }
+                    if (LoadString(hInstance, IDS_HDR_TRANSFER_CHARACTERISTICS_CLIP, resourceBuffer, resourceBufferLength) > 0)
+                    {
+                        SendMessage(hdrTransferCharacteristicsCombo, CB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(resourceBuffer));
+                    }
 
-                int selectedIndex;
-                switch (options.hdrTransferFunction)
+                    ComboBox_SetCurSel(hdrTransferCharacteristicsCombo, 0);
+                    EnableWindow(hdrTransferCharacteristicsCombo, FALSE);
+                    ShowWindow(hdrInfoLabel, SW_HIDE);
+                    options.hdrTransferFunction = ColorTransferFunction::Clip;
+                }
+                else
                 {
-                case ColorTransferFunction::SMPTE428:
-                    selectedIndex = 1;
-                    break;
-                case ColorTransferFunction::Clip:
-                    selectedIndex = 2;
-                    break;
-                case ColorTransferFunction::PQ:
-                default:
-                    selectedIndex = 0;
-                    break;
-                }
+                    SendMessage(hdrTransferCharacteristicsCombo, CB_INSERTSTRING, 0, reinterpret_cast<LPARAM>(TEXT("Rec. 2100 PQ")));
+                    SendMessage(hdrTransferCharacteristicsCombo, CB_INSERTSTRING, 1, reinterpret_cast<LPARAM>(TEXT("SMPTE 428-1")));
 
-                ComboBox_SetCurSel(hdrTransferCharacteristicsCombo, selectedIndex);
+                    if (LoadString(hInstance, IDS_HDR_TRANSFER_CHARACTERISTICS_CLIP, resourceBuffer, resourceBufferLength) > 0)
+                    {
+                        SendMessage(hdrTransferCharacteristicsCombo, CB_INSERTSTRING, 2, reinterpret_cast<LPARAM>(resourceBuffer));
+                    }
+
+                    int selectedIndex;
+                    switch (options.hdrTransferFunction)
+                    {
+                    case ColorTransferFunction::SMPTE428:
+                        selectedIndex = 1;
+                        break;
+                    case ColorTransferFunction::Clip:
+                        selectedIndex = 2;
+                        break;
+                    case ColorTransferFunction::PQ:
+                    default:
+                        selectedIndex = 0;
+                        break;
+                    }
+
+                    ComboBox_SetCurSel(hdrTransferCharacteristicsCombo, selectedIndex);
+                }
             }
             else
             {
