@@ -170,7 +170,19 @@ namespace
         return alphaState;
     }
 
-    bool IsHDRImage(const heif_color_profile_nclx* nclx)
+    bool MonochromeImageIsHDR(const heif_color_profile_nclx* nclx)
+    {
+        bool result = false;
+
+        if (nclx != nullptr)
+        {
+            result = nclx->transfer_characteristics == heif_transfer_characteristic_ITU_R_BT_2100_0_PQ;
+        }
+
+        return result;
+    }
+
+    bool RGBImageIsHDR(const heif_color_profile_nclx* nclx)
     {
         bool result = false;
 
@@ -292,7 +304,7 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
                 break;
             case 10:
             case 12:
-                if (IsHDRImage(imageHandleNclxProfile.get()))
+                if (MonochromeImageIsHDR(imageHandleNclxProfile.get()))
                 {
                     formatRecord->imageMode = plugInModeGrayScale;
                     formatRecord->depth = 32;
@@ -323,7 +335,7 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
                 break;
             case 10:
             case 12:
-                if (IsHDRImage(imageHandleNclxProfile.get()))
+                if (RGBImageIsHDR(imageHandleNclxProfile.get()))
                 {
                     formatRecord->imageMode = plugInModeRGBColor;
                     formatRecord->depth = 32;
@@ -354,7 +366,7 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
                 break;
             case 10:
             case 12:
-                if (IsHDRImage(imageHandleNclxProfile.get()))
+                if (RGBImageIsHDR(imageHandleNclxProfile.get()))
                 {
                     formatRecord->imageMode = plugInModeRGBColor;
                     formatRecord->depth = 32;
