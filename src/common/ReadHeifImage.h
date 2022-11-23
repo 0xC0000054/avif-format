@@ -21,7 +21,7 @@
 #ifndef READHEIFIMAGE_H
 #define READHEIFIMAGE_H
 
-#include "Common.h"
+#include "AvifFormat.h"
 #include "AlphaState.h"
 
 void ReadHeifImageGrayEightBit(
@@ -58,6 +58,7 @@ void ReadHeifImageRGBThirtyTwoBit(
     const heif_image* image,
     AlphaState alphaState,
     const heif_color_profile_nclx* nclxProfile,
+    const LoadUIOptions& loadOptions,
     FormatRecordPtr formatRecord);
 
 #endif // !READHEIFIMAGE_H

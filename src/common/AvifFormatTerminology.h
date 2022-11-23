@@ -37,6 +37,10 @@
 #define plugInClassID		plugInSuiteID
 #define plugInEventID		typeNull // must be this
 
+#define keyApplyHLGOOTF 'ooTf'
+#define keyDisplayGamma keyGamma
+#define keyNominalPeakBrightness keyBrightness
+
 // keyQuality is defined in PITerminology.h
 #define keyCompressionSpeed 'av1S'
 #define keyLosslessCompression 'av1L'

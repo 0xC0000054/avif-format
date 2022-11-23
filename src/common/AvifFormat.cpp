@@ -80,6 +80,9 @@ namespace
         globals->imageHandleNclxProfile = nullptr;
         globals->image = nullptr;
         globals->imageHandleProfileType = heif_color_profile_type_not_present;
+        globals->loadOptions.applyHLGOOTF = true;
+        globals->loadOptions.displayGamma = 1.2f;
+        globals->loadOptions.nominalPeakBrightness = 1000.0f;
         globals->saveOptions.quality = 85;
         globals->saveOptions.chromaSubsampling = ChromaSubsampling::Yuv422;
         globals->saveOptions.compressionSpeed = CompressionSpeed::Default;
@@ -138,7 +141,7 @@ void PluginMain(const short selector, FormatRecordPtr formatRecord, intptr_t* da
             *result = DoReadContinue(formatRecord, globals);
             break;
         case formatSelectorReadFinish:
-            *result = DoReadFinish(globals);
+            *result = DoReadFinish(formatRecord, globals);
             break;
 
         case formatSelectorOptionsPrepare:

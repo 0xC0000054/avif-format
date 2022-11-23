@@ -137,6 +137,128 @@ namespace
 
 }
 
+OSErr ReadScriptParamsOnRead(FormatRecordPtr formatRecord, LoadUIOptions& options, Boolean* showDialog)
+{
+    OSErr error = noErr;
+
+    if (showDialog)
+    {
+        *showDialog = true;
+    }
+
+    if (DescriptorSuiteIsAvailable(formatRecord))
+    {
+        DescriptorKeyID				key = 0;
+        DescriptorTypeID			type = 0;
+        int32						flags = 0;
+        DescriptorKeyIDArray		array =
+        {
+            keyApplyHLGOOTF,
+            keyDisplayGamma,
+            keyNominalPeakBrightness,
+            NULLID
+        };
+
+        ReadDescriptorProcs* readProcs = formatRecord->descriptorParameters->readDescriptorProcs;
+
+        PIReadDescriptor token = readProcs->openReadDescriptorProc(formatRecord->descriptorParameters->descriptor, array);
+        if (token != nullptr)
+        {
+            Boolean boolValue;
+            real64  float64Value;
+
+            while (readProcs->getKeyProc(token, &key, &type, &flags))
+            {
+                switch (key)
+                {
+                case keyApplyHLGOOTF:
+                    if (readProcs->getBooleanProc(token, &boolValue) == noErr)
+                    {
+                        options.applyHLGOOTF = boolValue;
+                    }
+                    break;
+                case keyDisplayGamma:
+                    if (readProcs->getFloatProc(token, &float64Value) == noErr)
+                    {
+                        if (float64Value < displayGammaMin || float64Value > displayGammaMax)
+                        {
+                            // Use the default value if the scripting parameter value is out of range.
+                            // This should only happen if value was set through the scripting system by another plug-in.
+                            continue;
+                        }
+
+                        options.displayGamma = static_cast<float>(float64Value);
+                    }
+                    break;
+                case keyNominalPeakBrightness:
+                    if (readProcs->getFloatProc(token, &float64Value) == noErr)
+                    {
+                        if (float64Value < nominalPeakBrightnessMin || float64Value > nominalPeakBrightnessMax)
+                        {
+                            // Use the default value if the scripting parameter value is out of range.
+                            // This should only happen if value was set through the scripting system by another plug-in.
+                            continue;
+                        }
+
+                        options.nominalPeakBrightness = static_cast<float>(float64Value);
+                    }
+                    break;
+                }
+            }
+
+            error = readProcs->closeReadDescriptorProc(token); // closes & disposes.
+
+            if (error == errMissingParameter)
+            {
+                // A missing parameter is not a fatal error.
+                error = noErr;
+            }
+
+            // Dispose the parameter block descriptor:
+            formatRecord->handleProcs->disposeProc(formatRecord->descriptorParameters->descriptor);
+            formatRecord->descriptorParameters->descriptor = nullptr;
+
+            if (showDialog != nullptr)
+            {
+                *showDialog = formatRecord->descriptorParameters->playInfo == plugInDialogDisplay;
+            }
+        }
+    }
+
+    return error;
+}
+
+OSErr WriteScriptParamsOnRead(FormatRecordPtr formatRecord, const LoadUIOptions& options)
+{
+    OSErr error = noErr;
+
+    if (DescriptorSuiteIsAvailable(formatRecord))
+    {
+        WriteDescriptorProcs* writeProcs = formatRecord->descriptorParameters->writeDescriptorProcs;
+
+        PIWriteDescriptor token = writeProcs->openWriteDescriptorProc();
+        if (token != nullptr)
+        {
+            if (!options.applyHLGOOTF)
+            {
+                writeProcs->putBooleanProc(token, keyApplyHLGOOTF, options.applyHLGOOTF);
+            }
+
+            real64 displayGamma64 = options.displayGamma;
+
+            writeProcs->putFloatProc(token, keyDisplayGamma, &displayGamma64);
+
+            real64 nominalPeakBrightness64 = options.nominalPeakBrightness;
+
+            writeProcs->putFloatProc(token, keyNominalPeakBrightness, &nominalPeakBrightness64);
+
+            error = writeProcs->closeWriteDescriptorProc(token, &formatRecord->descriptorParameters->descriptor);
+        }
+    }
+
+    return error;
+}
+
 OSErr ReadScriptParamsOnWrite(FormatRecordPtr formatRecord, SaveUIOptions& options, Boolean* showDialog)
 {
     OSErr error = noErr;

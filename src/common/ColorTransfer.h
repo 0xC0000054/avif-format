@@ -28,14 +28,36 @@
 enum class ColorTransferFunction
 {
     PQ,
+    HLG,
     SMPTE428,
     Clip
 };
+
+struct HLGLumaCoefficiants
+{
+    float red;
+    float green;
+    float blue;
+};
+
+HLGLumaCoefficiants GetHLGLumaCoefficients(heif_color_primaries primaries);
 
 ColorTransferFunction GetTransferFunctionFromNclx(heif_transfer_characteristics transferCharacteristics);
 
 float TransferFunctionToLinear(float value, ColorTransferFunction transferFunction);
 
 float LinearToTransferFunction(float value, ColorTransferFunction transferFunction);
+
+void ApplyHLGOOTF(
+    float* rgb,
+    const HLGLumaCoefficiants& lumaCoefficiants,
+    float displayGamma,
+    float nominalPeakBrightness);
+
+void ApplyInverseHLGOOTF(
+    float* rgb,
+    const HLGLumaCoefficiants& lumaCoefficiants,
+    float displayGamma,
+    float nominalPeakBrightness);
 
 #endif // !COLORTRANSFER_H

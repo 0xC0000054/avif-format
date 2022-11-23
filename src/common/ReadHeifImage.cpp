@@ -292,7 +292,8 @@ namespace
         AlphaState alphaState,
         const heif_color_profile_nclx* nclxProfile,
         FormatRecordPtr formatRecord,
-        ColorTransferFunction transferFunction)
+        ColorTransferFunction transferFunction,
+        const LoadUIOptions& loadOptions)
     {
         const heif_chroma chroma = heif_image_get_chroma_format(image);
 
@@ -335,6 +336,13 @@ namespace
 
         GetChromaShift(chroma, xChromaShift, yChromaShift);
 
+        HLGLumaCoefficiants hlgLumaCoefficiants{};
+
+        if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
+        {
+            hlgLumaCoefficiants = GetHLGLumaCoefficients(nclxProfile->color_primaries);
+        }
+
         if (hasAlpha)
         {
             if (heif_image_get_bits_per_pixel_range(image, heif_channel_Alpha) != lumaBitsPerPixel)
@@ -357,7 +365,7 @@ namespace
                 float* dst = static_cast<float*>(formatRecord->data);
 
                 DecodeYUV16RowToRGBA32(srcY, srcCb, srcCr, srcAlpha, alphaPremultiplied,
-                    dst, imageSize.h, xChromaShift, yuvCoefficiants, tables, transferFunction);
+                    dst, imageSize.h, xChromaShift, yuvCoefficiants, tables, transferFunction, loadOptions, hlgLumaCoefficiants);
 
                 const int32 top = y;
                 const int32 bottom = y + 1;
@@ -379,7 +387,7 @@ namespace
                 float* dst = static_cast<float*>(formatRecord->data);
 
                 DecodeYUV16RowToRGB32(srcY, srcCb, srcCr, dst, imageSize.h, xChromaShift,
-                    yuvCoefficiants, tables, transferFunction);
+                    yuvCoefficiants, tables, transferFunction, loadOptions, hlgLumaCoefficiants);
 
                 const int32 top = y;
                 const int32 bottom = y + 1;
@@ -933,6 +941,7 @@ void ReadHeifImageRGBThirtyTwoBit(
     const heif_image* image,
     AlphaState alphaState,
     const heif_color_profile_nclx* nclxProfile,
+    const LoadUIOptions& loadOptions,
     FormatRecordPtr formatRecord)
 {
     if (nclxProfile == nullptr)
@@ -947,7 +956,7 @@ void ReadHeifImageRGBThirtyTwoBit(
     // The image color space can be either YCbCr or RGB.
     if (colorspace == heif_colorspace_YCbCr)
     {
-        ReadHeifImageYUVThirtyTwoBit(image, alphaState, nclxProfile, formatRecord, transferFunction);
+        ReadHeifImageYUVThirtyTwoBit(image, alphaState, nclxProfile, formatRecord, transferFunction, loadOptions);
         return;
     }
     else if (colorspace != heif_colorspace_RGB)
@@ -985,6 +994,13 @@ void ReadHeifImageRGBThirtyTwoBit(
     const int32 right = imageSize.h;
 
     const ::std::vector<float> unormToFloatTable = BuildUnormToFloatLookupTable(redBitsPerPixel);
+
+    HLGLumaCoefficiants hlgLumaCoefficiants{};
+
+    if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
+    {
+        hlgLumaCoefficiants = GetHLGLumaCoefficients(nclxProfile->color_primaries);
+    }
 
     if (hasAlpha)
     {
@@ -1044,6 +1060,11 @@ void ReadHeifImageRGBThirtyTwoBit(
                 dst[2] = TransferFunctionToLinear(b, transferFunction);
                 dst[3] = a;
 
+                if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
+                {
+                    ApplyHLGOOTF(dst, hlgLumaCoefficiants, loadOptions.displayGamma, loadOptions.nominalPeakBrightness);
+                }
+
                 srcR++;
                 srcG++;
                 srcB++;
@@ -1082,6 +1103,11 @@ void ReadHeifImageRGBThirtyTwoBit(
                 dst[0] = TransferFunctionToLinear(r, transferFunction);
                 dst[1] = TransferFunctionToLinear(g, transferFunction);
                 dst[2] = TransferFunctionToLinear(b, transferFunction);
+
+                if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
+                {
+                    ApplyHLGOOTF(dst, hlgLumaCoefficiants, loadOptions.displayGamma, loadOptions.nominalPeakBrightness);
+                }
 
                 srcR++;
                 srcG++;

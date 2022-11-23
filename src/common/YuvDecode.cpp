@@ -510,7 +510,9 @@ void DecodeYUV16RowToRGB32(
     int32 xChromaShift,
     const YUVCoefficiants& yuvCoefficiants,
     const YUVLookupTables& tables,
-    ColorTransferFunction transferFunction)
+    ColorTransferFunction transferFunction,
+    const LoadUIOptions& loadOptions,
+    const HLGLumaCoefficiants& hlgLumaCoefficiants)
 {
     const float kr = yuvCoefficiants.kr;
     const float kg = yuvCoefficiants.kg;
@@ -545,6 +547,11 @@ void DecodeYUV16RowToRGB32(
         dstPtr[1] = TransferFunctionToLinear(G, transferFunction);
         dstPtr[2] = TransferFunctionToLinear(B, transferFunction);
 
+        if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
+        {
+            ApplyHLGOOTF(dstPtr, hlgLumaCoefficiants, loadOptions.displayGamma, loadOptions.nominalPeakBrightness);
+        }
+
         dstPtr += 3;
     }
 }
@@ -560,7 +567,9 @@ void DecodeYUV16RowToRGBA32(
     int32 xChromaShift,
     const YUVCoefficiants& yuvCoefficiants,
     const YUVLookupTables& tables,
-    ColorTransferFunction transferFunction)
+    ColorTransferFunction transferFunction,
+    const LoadUIOptions& loadOptions,
+    const HLGLumaCoefficiants& hlgLumaCoefficiants)
 {
     const float kr = yuvCoefficiants.kr;
     const float kg = yuvCoefficiants.kg;
@@ -616,6 +625,11 @@ void DecodeYUV16RowToRGBA32(
         dstPtr[1] = TransferFunctionToLinear(G, transferFunction);
         dstPtr[2] = TransferFunctionToLinear(B, transferFunction);
         dstPtr[3] = A;
+
+        if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
+        {
+            ApplyHLGOOTF(dstPtr, hlgLumaCoefficiants, loadOptions.displayGamma, loadOptions.nominalPeakBrightness);
+        }
 
         dstPtr += 4;
     }

@@ -140,6 +140,28 @@ resource 'aete' (ResourceID, plugInName " dictionary", purgeable)
                 "parent class format",						/* optional description */
                 flagsSingleProperty,						/* if properties, list below */
 
+                /* Load dialog parameters */
+
+                "apply HLG OOTF",
+                keyApplyHLGOOTF,
+                typeBoolean,
+                "",
+                flagsSingleProperty,
+
+                "display gamma",
+                keyDisplayGamma,
+                typeFloat,                            /* This should be a float32, but the PS scripting API only supports float64 */
+                "",
+                flagsSingleProperty,
+
+                "nominal peak brightness",
+                keyNominalPeakBrightness,
+                typeFloat,                            /* This should be a float32, but the PS scripting API only supports float64 */
+                "",
+                flagsSingleProperty,
+
+                /* Save dialog parameters */
+
                 "quality",
                 keyQuality,
                 typeInteger,

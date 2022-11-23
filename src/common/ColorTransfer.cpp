@@ -98,6 +98,73 @@ namespace
         // but it removes the need to perform division at runtime.
         return powf(value, 2.6f) * (52.37f / 48.0f);
     }
+
+    inline float LinearToHLG(float value)
+    {
+        if (value < 0.0f)
+        {
+            return 0.0f;
+        }
+
+        // These constants are from the ITU-R BT.2100 specification:
+        // https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.2100-2-201807-I!!PDF-E.pdf
+        constexpr float a = 0.17883277f;
+        constexpr float b = 0.28466892f;
+        constexpr float c = 0.55991073f;
+
+        if (value > (1.0f / 12.0f))
+        {
+            value = a * logf(value * 12.0f - b) + c;
+        }
+        else
+        {
+            value = sqrtf(value * 3.0f);
+        }
+
+        return value;
+    }
+
+    inline float HLGToLinear(float value)
+    {
+        if (value < 0.0f)
+        {
+            return 0.0f;
+        }
+
+        // These constants are from the ITU-R BT.2100 specification:
+        // https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.2100-2-201807-I!!PDF-E.pdf
+        constexpr float a = 0.17883277f;
+        constexpr float b = 0.28466892f;
+        constexpr float c = 0.55991073f;
+
+        if (value > 0.5f)
+        {
+            value = (expf((value - c) / a) + b) / 12.0f;
+        }
+        else
+        {
+            // Equivalent to powf(value, 2.0f) / 3.0f
+            value = (value * value) * (1.0f / 3.0f);
+        }
+
+        return value;
+    }
+}
+
+HLGLumaCoefficiants GetHLGLumaCoefficients(heif_color_primaries primaries)
+{
+    switch (primaries)
+    {
+    case heif_color_primaries_ITU_R_BT_709_5:
+        return HLGLumaCoefficiants{ 0.2126f, 0.7152f, 0.0722f };
+    case heif_color_primaries_ITU_R_BT_470_6_System_B_G:
+    case heif_color_primaries_ITU_R_BT_601_6:
+        return HLGLumaCoefficiants{ 0.299f, 0.587f, 0.114f };
+    case heif_color_primaries_ITU_R_BT_2020_2_and_2100_0:
+        return HLGLumaCoefficiants{ 0.2627f, 0.6780f, 0.0593f };
+    default:
+        throw std::runtime_error("Unsupported color primaries for the HLG Luma Coefficients ");
+    }
 }
 
 ColorTransferFunction GetTransferFunctionFromNclx(heif_transfer_characteristics transferCharacteristics)
@@ -108,6 +175,9 @@ ColorTransferFunction GetTransferFunctionFromNclx(heif_transfer_characteristics 
     {
     case heif_transfer_characteristic_ITU_R_BT_2100_0_PQ:
         transferFunction = ColorTransferFunction::PQ;
+        break;
+    case heif_transfer_characteristic_ITU_R_BT_2100_0_HLG:
+        transferFunction = ColorTransferFunction::HLG;
         break;
     case heif_transfer_characteristic_SMPTE_ST_428_1:
         transferFunction = ColorTransferFunction::SMPTE428;
@@ -125,6 +195,8 @@ float TransferFunctionToLinear(float value, ColorTransferFunction transferFuncti
     {
     case ColorTransferFunction::PQ:
         return PQToLinear(value);
+    case ColorTransferFunction::HLG:
+        return HLGToLinear(value);
     case ColorTransferFunction::SMPTE428:
         return SMPTE428ToLinear(value);
     default:
@@ -138,6 +210,8 @@ float LinearToTransferFunction(float value, ColorTransferFunction transferFuncti
     {
     case ColorTransferFunction::PQ:
         return LinearToPQ(value);
+    case ColorTransferFunction::HLG:
+        return LinearToHLG(value);
     case ColorTransferFunction::SMPTE428:
         return LinearToSMPTE428(value);
     case ColorTransferFunction::Clip:
@@ -145,4 +219,34 @@ float LinearToTransferFunction(float value, ColorTransferFunction transferFuncti
     default:
         throw std::runtime_error("Unsupported color transfer function.");
     }
+}
+
+void ApplyHLGOOTF(
+    float* rgb,
+    const HLGLumaCoefficiants& lumaCoefficiants,
+    float displayGamma,
+    float nominalPeakBrightness)
+{
+    const float luma = (rgb[0] * lumaCoefficiants.red) + (rgb[1] * lumaCoefficiants.green) + (rgb[2] * lumaCoefficiants.blue);
+
+    const float factor = nominalPeakBrightness * powf(luma, displayGamma - 1.0f);
+
+    rgb[0] *= factor;
+    rgb[1] *= factor;
+    rgb[2] *= factor;
+}
+
+void ApplyInverseHLGOOTF(
+    float* rgb,
+    const HLGLumaCoefficiants& lumaCoefficiants,
+    float displayGamma,
+    float nominalPeakBrightness)
+{
+    const float luma = (rgb[0] * lumaCoefficiants.red) + (rgb[1] * lumaCoefficiants.green) + (rgb[2] * lumaCoefficiants.blue);
+
+    const float factor = powf(luma / nominalPeakBrightness, (displayGamma - 1.0f) / displayGamma) / nominalPeakBrightness;
+
+    rgb[0] *= factor;
+    rgb[1] *= factor;
+    rgb[2] *= factor;
 }

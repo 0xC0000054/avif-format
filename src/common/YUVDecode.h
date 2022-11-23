@@ -21,6 +21,7 @@
 #ifndef YUVDECODE_H
 #define YUVDECODE_H
 
+#include "AvifFormat.h"
 #include "ColorTransfer.h"
 #include "YUVCoefficiants.h"
 #include "YUVLookupTables.h"
@@ -122,7 +123,9 @@ void DecodeYUV16RowToRGB32(
     int32 xChromaShift,
     const YUVCoefficiants& yuvCoefficiants,
     const YUVLookupTables& tables,
-    ColorTransferFunction transferFunction);
+    ColorTransferFunction transferFunction,
+    const LoadUIOptions& loadOptions,
+    const HLGLumaCoefficiants& hlgLumaCoefficiants);
 
 void DecodeYUV16RowToRGBA32(
     const uint16_t* yPlane,
@@ -135,6 +138,8 @@ void DecodeYUV16RowToRGBA32(
     int32 xChromaShift,
     const YUVCoefficiants& yuvCoefficiants,
     const YUVLookupTables& tables,
-    ColorTransferFunction transferFunction);
+    ColorTransferFunction transferFunction,
+    const LoadUIOptions& loadOptions,
+    const HLGLumaCoefficiants& hlgLumaCoefficiants);
 
 #endif // !YUVDECODE_H

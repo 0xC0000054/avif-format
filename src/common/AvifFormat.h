@@ -46,6 +46,19 @@ enum class ImageBitDepth
     Twelve
 };
 
+constexpr float displayGammaMin = 1.0f;
+constexpr float displayGammaMax = 3.0f;
+
+constexpr float nominalPeakBrightnessMin = 1.0f;
+constexpr float nominalPeakBrightnessMax = 10000.0f;
+
+struct LoadUIOptions
+{
+    bool applyHLGOOTF;
+    float displayGamma;
+    float nominalPeakBrightness;
+};
+
 struct SaveUIOptions
 {
     int quality;
@@ -69,6 +82,7 @@ struct Globals
     heif_image* image;
     heif_color_profile_type imageHandleProfileType;
 
+    LoadUIOptions loadOptions;
     SaveUIOptions saveOptions;
     bool libheifInitialized;
 };
@@ -90,6 +104,7 @@ void UnlockPIHandle(const FormatRecordPtr formatRecord, Handle handle);
 // Platform-specific UI methods
 
 void DoAbout(const AboutRecordPtr aboutRecord);
+bool DoLoadUI(const FormatRecordPtr formatRecord, LoadUIOptions& options);
 bool DoSaveUI(const FormatRecordPtr formatRecord, SaveUIOptions& options);
 OSErr ShowErrorDialog(const FormatRecordPtr formatRecord, const char* const message, OSErr fallbackErrorCode);
 
@@ -98,7 +113,7 @@ OSErr ShowErrorDialog(const FormatRecordPtr formatRecord, const char* const mess
 OSErr DoReadPrepare(FormatRecordPtr formatRecord);
 OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals);
 OSErr DoReadContinue(FormatRecordPtr formatRecord, Globals* globals);
-OSErr DoReadFinish(Globals* globals);
+OSErr DoReadFinish(FormatRecordPtr formatRecord, Globals* globals);
 
 OSErr DoOptionsPrepare(FormatRecordPtr formatRecord);
 OSErr DoOptionsStart(FormatRecordPtr formatRecord, Globals* globals);
@@ -116,6 +131,9 @@ OSErr DoWriteContinue();
 OSErr DoWriteFinish(FormatRecordPtr formatRecord, const SaveUIOptions& options);
 
 // Scripting
+
+OSErr ReadScriptParamsOnRead(FormatRecordPtr formatRecord, LoadUIOptions& options, Boolean* showDialog);
+OSErr WriteScriptParamsOnRead(FormatRecordPtr formatRecord, const LoadUIOptions& options);
 
 OSErr ReadScriptParamsOnWrite(FormatRecordPtr formatRecord, SaveUIOptions& options, Boolean* showDialog);
 OSErr WriteScriptParamsOnWrite(FormatRecordPtr formatRecord, const SaveUIOptions& options);

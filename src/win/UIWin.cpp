@@ -34,6 +34,9 @@
 #include <windowsx.h>
 #include <algorithm>
 #include <array>
+#include <cwctype>
+#include <locale.h>
+#include <wchar.h>
 
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -180,6 +183,446 @@ namespace
 
         return FALSE;
     }
+
+    class LoadDialog
+    {
+    public:
+
+        LoadDialog(const LoadUIOptions& loadOptions)
+        {
+            options.applyHLGOOTF = loadOptions.applyHLGOOTF;
+            options.displayGamma = loadOptions.displayGamma;
+            options.nominalPeakBrightness = loadOptions.nominalPeakBrightness;
+
+            ZeroMemory(decimalSeparator, sizeof(decimalSeparator));
+            ZeroMemory(thousandsSeparator, sizeof(thousandsSeparator));
+            ZeroMemory(lastValidDisplayGammaStr, sizeof(lastValidDisplayGammaStr));
+            displayGammaTextUpdating = false;
+
+            WCHAR buffer[4]{};
+
+            // MSDN documents LOCALE_SDECIMAL as requiring at most 4 characters.
+
+            decimalSeparatorLength = GetLocaleInfoW(
+                LOCALE_USER_DEFAULT,
+                LOCALE_SDECIMAL,
+                buffer,
+                _countof(buffer)) - 1; // Remove the terminator from the total
+
+            if (decimalSeparatorLength > 0 && decimalSeparatorLength <= 3)
+            {
+                wmemcpy_s(decimalSeparator, _countof(decimalSeparator) - 1, buffer, decimalSeparatorLength);
+            }
+            else
+            {
+                decimalSeparator[0] = '.';
+                decimalSeparatorLength = 1;
+            }
+
+            // MSDN documents LOCALE_SDECIMAL as requiring at most 4 characters.
+
+            thousandsSeparatorLength = GetLocaleInfoW(
+                LOCALE_USER_DEFAULT,
+                LOCALE_STHOUSAND,
+                buffer,
+                _countof(buffer)) - 1; // Remove the terminator from the total
+
+            if (thousandsSeparatorLength > 0 && thousandsSeparatorLength <= 3)
+            {
+                wmemcpy_s(thousandsSeparator, _countof(thousandsSeparator) - 1, buffer, thousandsSeparatorLength);
+            }
+            else
+            {
+                thousandsSeparator[0] = ',';
+                thousandsSeparatorLength = 1;
+            }
+
+            FormatDisplayGammaFloat(loadOptions.displayGamma);
+        }
+
+        const LoadUIOptions& GetLoadOptions() const
+        {
+            return options;
+        }
+
+        static INT_PTR CALLBACK StaticDlgProc(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lParam)
+        {
+            LoadDialog* dialog;
+
+            if (wMsg == WM_INITDIALOG)
+            {
+                dialog = reinterpret_cast<LoadDialog*>(lParam);
+
+                SetWindowLongPtr(hDlg, DWLP_USER, reinterpret_cast<LONG_PTR>(dialog));
+            }
+            else
+            {
+                dialog = reinterpret_cast<LoadDialog*>(GetWindowLongPtr(hDlg, DWLP_USER));
+            }
+
+            if (dialog != nullptr)
+            {
+                return dialog->DlgProc(hDlg, wMsg, wParam, lParam);
+            }
+            else
+            {
+                return FALSE;
+            }
+        }
+
+    private:
+
+        void EnableOOTFControls(HWND hDlg, bool enabled)
+        {
+            EnableWindow(GetDlgItem(hDlg, IDC_DISPLAY_GAMMA_LABEL), enabled);
+            EnableWindow(GetDlgItem(hDlg, IDC_DISPLAY_GAMMA_EDIT), enabled);
+            EnableWindow(GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_LABEL), enabled);
+            EnableWindow(GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_EDIT), enabled);
+            EnableWindow(GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_SPIN), enabled);
+        }
+
+        void InitializeDialog(HWND hDlg) noexcept
+        {
+            HWND applyOOTFCheck = GetDlgItem(hDlg, IDC_APPLY_HLG_OOTF);
+            HWND displayGammaLabel = GetDlgItem(hDlg, IDC_DISPLAY_GAMMA_LABEL);
+            HWND displayGammaEdit = GetDlgItem(hDlg, IDC_DISPLAY_GAMMA_EDIT);
+            HWND peakBrightnessLabel = GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_LABEL);
+            HWND peakBrightnessEdit = GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_EDIT);
+            HWND peakBrightnessSpin = GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_SPIN);
+
+            Button_SetCheck(applyOOTFCheck, options.applyHLGOOTF ? BST_CHECKED : BST_UNCHECKED);
+
+            Edit_SetText(displayGammaEdit, lastValidDisplayGammaStr);
+
+            SendMessage(peakBrightnessSpin, UDM_SETBUDDY, reinterpret_cast<WPARAM>(peakBrightnessEdit), 0);
+            SendMessage(peakBrightnessSpin, UDM_SETRANGE, 0, MAKELPARAM(10000, 0));
+            SendMessage(peakBrightnessSpin, UDM_SETPOS, 0, static_cast<LPARAM>(options.nominalPeakBrightness));
+
+            if (!options.applyHLGOOTF)
+            {
+                EnableWindow(displayGammaLabel, false);
+                EnableWindow(displayGammaEdit, false);
+                EnableWindow(peakBrightnessLabel, false);
+                EnableWindow(peakBrightnessEdit, false);
+                EnableWindow(peakBrightnessSpin, false);
+            }
+        }
+
+        INT_PTR CALLBACK DlgProc(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lParam) noexcept
+        {
+            int item;
+            int cmd;
+            HWND controlHwnd;
+
+            switch (wMsg)
+            {
+            case WM_INITDIALOG:
+                CenterDialog(hDlg);
+                InitializeDialog(hDlg);
+                return TRUE;
+            case WM_COMMAND:
+                item = LOWORD(wParam);
+                cmd = HIWORD(wParam);
+
+                if (cmd == BN_CLICKED)
+                {
+                    controlHwnd = reinterpret_cast<HWND>(lParam);
+
+                    switch (item)
+                    {
+                    case IDC_APPLY_HLG_OOTF:
+                        options.applyHLGOOTF = Button_GetCheck(controlHwnd) == BST_CHECKED;
+                        EnableOOTFControls(hDlg, options.applyHLGOOTF);
+                        break;
+                    case IDOK:
+                    case IDCANCEL:
+                        EndDialog(hDlg, item);
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                else if (cmd == EN_CHANGE)
+                {
+                    controlHwnd = reinterpret_cast<HWND>(lParam);
+
+                    if (item == IDC_DISPLAY_GAMMA_EDIT)
+                    {
+                        OnUpdateDisplayGammaText(controlHwnd);
+                    }
+                    else if (item == IDC_PEAK_BRIGHTNESS_EDIT)
+                    {
+                        long value;
+
+                        if (TryParsePeakBrightnessText(controlHwnd, value) && value >= 0 && value <= 10000)
+                        {
+                            options.nominalPeakBrightness = static_cast<float>(value);
+                        }
+                    }
+                }
+
+                break;
+            }
+
+            return FALSE;
+        }
+
+        void FormatDisplayGammaFloat(float value)
+        {
+            value += 0.005f; // Ensure that the integer casts round up
+
+            int whole = static_cast<int>(value);
+            int fractionalDigits = static_cast<int>(value * 100.0f) % 100;
+
+            // The whole number will be between 1 and 3.
+            lastValidDisplayGammaStr[0] = static_cast<WCHAR>(whole + '0');
+            wmemcpy_s(&lastValidDisplayGammaStr[1], _countof(lastValidDisplayGammaStr) - 1, decimalSeparator, decimalSeparatorLength);
+
+            int index = 1 + decimalSeparatorLength;
+
+            lastValidDisplayGammaStr[index] = static_cast<WCHAR>((fractionalDigits / 10) + '0');
+            lastValidDisplayGammaStr[index + 1] = static_cast<WCHAR>((fractionalDigits % 10) + '0');
+        }
+
+        void OnUpdateDisplayGammaText(HWND hwnd)
+        {
+            if (displayGammaTextUpdating)
+            {
+                return;
+            }
+
+            bool valid = false;
+            bool emptyFraction = false;
+            bool updateWindowText = false;
+
+            int length = GetWindowTextLengthW(hwnd);
+
+            WCHAR windowTextBuffer[DisplayGammaBufferSize]{};
+
+            if (length > 0 && length < DisplayGammaBufferSize)
+            {
+                GetWindowTextW(hwnd, windowTextBuffer, DisplayGammaBufferSize - 1);
+
+                if (std::iswdigit(windowTextBuffer[0]))
+                {
+                    int whole = windowTextBuffer[0] - '0';
+
+                    if (whole >= 1 && whole <= 3)
+                    {
+                        if (length == 1)
+                        {
+                            valid = true;
+                        }
+                        else
+                        {
+                            const int lengthWithDecimalPoint = 1 + decimalSeparatorLength;
+
+                            if (length >= lengthWithDecimalPoint &&
+                                wcsncmp(&windowTextBuffer[1], decimalSeparator, decimalSeparatorLength) == 0)
+                            {
+                                int fractionLength = length - lengthWithDecimalPoint;
+
+                                if (fractionLength == 0)
+                                {
+                                    emptyFraction = true;
+                                }
+                                else
+                                {
+                                    bool trimString = false;
+
+                                    if (fractionLength > 2)
+                                    {
+                                        fractionLength = 2;
+                                        trimString = true;
+                                    }
+
+                                    bool allInteger = true;
+
+                                    for (int i = 0; i < fractionLength; i++)
+                                    {
+                                        if (!std::iswdigit(windowTextBuffer[lengthWithDecimalPoint + i]))
+                                        {
+                                            allInteger = false;
+                                            break;
+                                        }
+                                    }
+
+                                    if (allInteger)
+                                    {
+                                        valid = true;
+                                        if (trimString)
+                                        {
+                                            windowTextBuffer[lengthWithDecimalPoint + 2] = L'\0';
+                                            updateWindowText = true;
+                                        }
+
+                                        if (whole == 3)
+                                        {
+                                            for (int i = 0; i < fractionLength; i++)
+                                            {
+                                                WCHAR& value = windowTextBuffer[lengthWithDecimalPoint + i];
+
+                                                if (value > L'0')
+                                                {
+                                                    value = L'0';
+                                                    updateWindowText = true;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (valid)
+            {
+                wcscpy_s(lastValidDisplayGammaStr, windowTextBuffer);
+                float temp;
+
+                if (TryParseDisplayGammaText(temp))
+                {
+                    options.displayGamma = temp;
+                }
+
+                if (updateWindowText)
+                {
+                    displayGammaTextUpdating = true;
+
+                    SetWindowTextW(hwnd, lastValidDisplayGammaStr);
+
+                    displayGammaTextUpdating = false;
+                }
+            }
+            else
+            {
+                if (!emptyFraction)
+                {
+                    displayGammaTextUpdating = true;
+
+                    SetWindowTextW(hwnd, lastValidDisplayGammaStr);
+
+                    displayGammaTextUpdating = false;
+                }
+            }
+        }
+
+        bool TryParseDisplayGammaText(float& value)
+        {
+            const size_t stringLength = wcslen(lastValidDisplayGammaStr);
+
+            bool result = false;
+
+            if (stringLength >= 1 && std::iswdigit(lastValidDisplayGammaStr[0]))
+            {
+                int whole = lastValidDisplayGammaStr[0] - '0';
+
+                if (whole >= 1 && whole <= 3)
+                {
+                    const size_t lengthWithDecimalPoint = static_cast<size_t>(1) + decimalSeparatorLength;
+
+                    if (stringLength > lengthWithDecimalPoint &&
+                        wcsncmp(&lastValidDisplayGammaStr[1], decimalSeparator, decimalSeparatorLength) == 0 &&
+                        whole < 3)
+                    {
+                        // The "C" locale is used to ensure the decimal separator is always '.' when parsing.
+                        static _locale_t locale = _create_locale(LC_ALL, "C");
+
+                        WCHAR parseBuffer[5]{};
+
+                        const size_t fractionLength = stringLength - lengthWithDecimalPoint;
+
+                        parseBuffer[0] = lastValidDisplayGammaStr[0];
+                        parseBuffer[1] = L'.';
+
+                        if (fractionLength >= 1 && std::iswdigit(lastValidDisplayGammaStr[lengthWithDecimalPoint]))
+                        {
+                            parseBuffer[2] = lastValidDisplayGammaStr[lengthWithDecimalPoint];
+
+                            if (fractionLength >= 2 && std::iswdigit(lastValidDisplayGammaStr[lengthWithDecimalPoint + 1]))
+                            {
+                                parseBuffer[3] = lastValidDisplayGammaStr[lengthWithDecimalPoint + 1];
+                            }
+                        }
+                        else
+                        {
+                            parseBuffer[2] = L'0';
+                        }
+
+                        value = _wcstof_l(parseBuffer, nullptr, locale);
+                        result = true;
+                    }
+                    else
+                    {
+                        value = static_cast<float>(whole);
+                        result = true;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        bool TryParsePeakBrightnessText(HWND hwnd, long& value)
+        {
+            int result = true;
+            const int length = GetWindowTextLengthW(hwnd);
+
+            if (length > 0 && length <= 10)
+            {
+                WCHAR windowTextBuffer[12]{};
+
+                GetWindowTextW(hwnd, windowTextBuffer, _countof(windowTextBuffer));
+
+                WCHAR numberBuffer[12]{};
+                bool isValid = true;
+
+                for (int i = 0, j = 0; i < length; i++)
+                {
+                    const WCHAR c = windowTextBuffer[i];
+
+                    if (std::iswdigit(c))
+                    {
+                        numberBuffer[j++] = c;
+                    }
+                    else
+                    {
+                        if (wcsncmp(&windowTextBuffer[i], thousandsSeparator, thousandsSeparatorLength) != 0)
+                        {
+                            // Unknown character in the string.
+                            isValid = false;
+                            break;
+                        }
+                    }
+                }
+
+                // The "C" locale is used to ensure the parsing behavior is not affected by the system locale.
+                static _locale_t locale = _create_locale(LC_ALL, "C");
+
+                if (isValid)
+                {
+                    value = _wcstol_l(numberBuffer, nullptr, 10, locale);
+                    result = true;
+                }
+            }
+
+            return result;
+        }
+
+
+        static constexpr int DisplayGammaBufferSize = 12;
+
+        LoadUIOptions options;
+        WCHAR decimalSeparator[4];
+        int decimalSeparatorLength;
+        WCHAR thousandsSeparator[4];
+        int thousandsSeparatorLength;
+        WCHAR lastValidDisplayGammaStr[DisplayGammaBufferSize];
+        bool displayGammaTextUpdating;
+    };
+
 
     class SaveDialog
     {
@@ -783,6 +1226,35 @@ void DoAbout(const AboutRecordPtr aboutRecord)
     HWND parent = platform != nullptr ? reinterpret_cast<HWND>(platform->hwnd) : nullptr;
 
     DialogBoxParam(GetModuleInstanceHandle(), MAKEINTRESOURCE(IDD_ABOUT), parent, AboutDlgProc, 0);
+}
+
+bool DoLoadUI(const FormatRecordPtr formatRecord, LoadUIOptions& options)
+{
+    PlatformData* platform = static_cast<PlatformData*>(formatRecord->platformData);
+
+    HWND parent = platform != nullptr ? reinterpret_cast<HWND>(platform->hwnd) : nullptr;
+
+    LoadDialog dialog(options);
+
+    if (DialogBoxParam(
+        GetModuleInstanceHandle(),
+        MAKEINTRESOURCE(IDD_LOAD),
+        parent,
+        LoadDialog::StaticDlgProc,
+        reinterpret_cast<LPARAM>(&dialog)) == IDOK)
+    {
+        const LoadUIOptions& dialogOptions = dialog.GetLoadOptions();
+
+        options.applyHLGOOTF = dialogOptions.applyHLGOOTF;
+        options.displayGamma = dialogOptions.displayGamma;
+        options.nominalPeakBrightness = dialogOptions.nominalPeakBrightness;
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 bool DoSaveUI(const FormatRecordPtr formatRecord, SaveUIOptions& options)

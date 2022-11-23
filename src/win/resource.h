@@ -6,6 +6,7 @@
 #define IDD_ABOUT                       102
 #define IDS_CHROMA_SUBSAMPLING_420      105
 #define IDS_CHROMA_SUBSAMPLING_422      106
+#define IDD_LOAD                        106
 #define IDS_CHROMA_SUBSAMPLING_444      107
 #define IDS_CHROMA_SUBSAMPLING_400      108
 #define IDS_HDR_TRANSFER_CHARACTERISTICS_CLIP 109
@@ -42,14 +43,20 @@
 #define IDC_HDR_OPTIONS                 1028
 #define IDC_HDR_TRANSFER_CHARACTERISTICS_LABEL 1029
 #define IDC_HDR_TRANSFER_CHARACTERISTICS_COMBO 1030
+#define IDC_APPLY_HLG_OOTF              1031
+#define IDC_DISPLAY_GAMMA_LABEL         1032
+#define IDC_DISPLAY_GAMMA_EDIT          1033
+#define IDC_PEAK_BRIGHTNESS_LABEL       1034
+#define IDC_PEAK_BRIGHTNESS_EDIT        1035
+#define IDC_PEAK_BRIGHTNESS_SPIN        1036
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        106
+#define _APS_NEXT_RESOURCE_VALUE        108
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1031
+#define _APS_NEXT_CONTROL_VALUE         1037
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
