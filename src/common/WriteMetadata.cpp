@@ -40,7 +40,6 @@ namespace
             throw std::bad_alloc();
         }
 
-        nclxProfile->version = 1;
         nclxProfile->color_primaries = primaries;
         nclxProfile->transfer_characteristics = transferCharacteristics;
         nclxProfile->matrix_coefficients = matrixCoefficients;
