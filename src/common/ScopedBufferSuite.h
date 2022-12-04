@@ -99,7 +99,7 @@ public:
 
     bool operator==(std::nullptr_t) const noexcept
     {
-        return bufferIDValid;
+        return !bufferIDValid;
     }
 
     bool operator!=(std::nullptr_t) const noexcept
