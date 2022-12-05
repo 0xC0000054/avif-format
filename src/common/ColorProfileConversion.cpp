@@ -117,10 +117,9 @@ ColorProfileConversion::ColorProfileConversion(
 
         if (transferFunction == ColorTransferFunction::Clip)
         {
-            if (!IsSRGBColorProfile(documentProfile.get()))
-            {
-                InitializeForSRGBConversion(hasAlpha, 32);
-            }
+            // 32-bit documents always need to be converted to sRGB because the 32-bit mode
+            // uses linear gamma.
+            InitializeForSRGBConversion(hasAlpha, 32);
         }
         else
         {
