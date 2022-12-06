@@ -341,7 +341,10 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
                     toneCurve.reset(cmsBuildParametricToneCurve(context.get(), 4, Parameters));
                     description = L"sRGB IEC 61966-2-1";
                 }
-                else if (transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_709_5)
+                else if (transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_709_5 ||
+                         transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_601_6 ||
+                         transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_2020_2_10bit ||
+                         transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_2020_2_12bit)
                 {
                     cmsFloat64Number Parameters[5]
                     {
@@ -384,7 +387,9 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
                     toneCurve.reset(cmsBuildGamma(context.get(), 1.0));
                     description = L"Rec. 2020 (Linear RGB Profile)";
                 }
-                else if (transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_2020_2_10bit ||
+                else if (transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_709_5 ||
+                         transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_601_6 ||
+                         transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_2020_2_10bit ||
                          transferCharacteristics == heif_transfer_characteristic_ITU_R_BT_2020_2_12bit)
                 {
                     // BT. 2020 uses the same transfer curve as Rec. 709.
