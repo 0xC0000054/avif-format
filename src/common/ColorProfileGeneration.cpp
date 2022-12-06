@@ -220,7 +220,10 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
     }
 
     // The 32-bits-per-channel image modes always operate in linear color.
-    const bool linear = transferCharacteristics == heif_transfer_characteristic_linear || formatRecord->depth == 32;
+    if (formatRecord->depth == 32)
+    {
+        transferCharacteristics = heif_transfer_characteristic_linear;
+    }
 
     ScopedLcmsContext context(cmsCreateContext(nullptr, nullptr));
 
@@ -231,7 +234,7 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
             ScopedLcmsToneCurve toneCurve;
             const wchar_t* description = nullptr;
 
-            if (linear)
+            if (transferCharacteristics == heif_transfer_characteristic_linear)
             {
                 toneCurve.reset(cmsBuildGamma(context.get(), 1.0));
                 description = L"Linear Grayscale Profile";
@@ -319,7 +322,7 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
                 ScopedLcmsToneCurve toneCurve;
                 const wchar_t* description = nullptr;
 
-                if (linear)
+                if (transferCharacteristics == heif_transfer_characteristic_linear)
                 {
                     toneCurve.reset(cmsBuildGamma(context.get(), 1.0));
                     description = L"sRGB IEC 61966-2-1 (Linear RGB Profile)";
@@ -376,7 +379,7 @@ void SetIccProfileFromNclx(FormatRecord* formatRecord, const heif_color_profile_
                 ScopedLcmsToneCurve toneCurve;
                 const wchar_t* description = nullptr;
 
-                if (linear)
+                if (transferCharacteristics == heif_transfer_characteristic_linear)
                 {
                     toneCurve.reset(cmsBuildGamma(context.get(), 1.0));
                     description = L"Rec. 2020 (Linear RGB Profile)";
