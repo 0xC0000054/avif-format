@@ -567,7 +567,7 @@ namespace
 
         bool TryParsePeakBrightnessText(HWND hwnd, long& value)
         {
-            int result = true;
+            bool result = false;
             const int length = GetWindowTextLengthW(hwnd);
 
             if (length > 0 && length <= 10)
