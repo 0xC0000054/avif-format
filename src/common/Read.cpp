@@ -25,6 +25,7 @@
 #include "OSErrException.h"
 #include "ReadHeifImage.h"
 #include "ReadMetadata.h"
+#include "ScopedHandleSuite.h"
 #include "ScopedHeif.h"
 #include <memory>
 
@@ -204,6 +205,27 @@ namespace
 
         return result;
     }
+
+    void SetHLGRevertInfo(FormatRecordPtr formatRecord, const LoadUIOptions& options)
+    {
+        if (HandleSuiteIsAvailable(formatRecord))
+        {
+            ScopedHandleSuiteHandle handle(formatRecord->handleProcs, sizeof(RevertInfo));
+
+            ScopedHandleSuiteLock lock = handle.lock();
+
+            RevertInfo* revertInfo = reinterpret_cast<RevertInfo*>(lock.data());
+
+            revertInfo->version = 0;
+            revertInfo->loadOptions.applyHLGOOTF = options.applyHLGOOTF;
+            revertInfo->loadOptions.displayGamma = options.displayGamma;
+            revertInfo->loadOptions.nominalPeakBrightness = options.nominalPeakBrightness;
+
+            lock.unlock();
+
+            formatRecord->revertInfo = handle.release();
+        }
+    }
 }
 
 OSErr DoReadPrepare(FormatRecordPtr formatRecord)
@@ -241,6 +263,21 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
     {
         try
         {
+            if (formatRecord->revertInfo != nullptr && HandleSuiteIsAvailable(formatRecord))
+            {
+                ScopedHandleSuiteLock lock(formatRecord->handleProcs, formatRecord->revertInfo);
+
+                RevertInfo* revertInfo = reinterpret_cast<RevertInfo*>(lock.data());
+
+                if (revertInfo->version == 0)
+                {
+                    globals->loadOptions.applyHLGOOTF = revertInfo->loadOptions.applyHLGOOTF;
+                    globals->loadOptions.displayGamma = revertInfo->loadOptions.displayGamma;
+                    globals->loadOptions.nominalPeakBrightness = revertInfo->loadOptions.nominalPeakBrightness;
+                    showHLGImportDialog = false;
+                }
+            }
+
             LibHeifException::ThrowIfError(heif_init(nullptr));
             globals->libheifInitialized = true;
 
@@ -356,6 +393,8 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
                             {
                                 throw OSErrException(userCanceledErr);
                             }
+
+                            SetHLGRevertInfo(formatRecord, globals->loadOptions);
                         }
                     }
                     else
@@ -396,6 +435,8 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
                             {
                                 throw OSErrException(userCanceledErr);
                             }
+
+                            SetHLGRevertInfo(formatRecord, globals->loadOptions);
                         }
                     }
                     else

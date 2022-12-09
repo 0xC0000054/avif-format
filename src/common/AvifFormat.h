@@ -74,6 +74,12 @@ struct SaveUIOptions
     bool premultipliedAlpha;
 };
 
+struct RevertInfo
+{
+    int version;
+    LoadUIOptions loadOptions;
+};
+
 struct Globals
 {
     heif_context* context;
