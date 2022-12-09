@@ -1062,7 +1062,11 @@ void ReadHeifImageRGBThirtyTwoBit(
 
                 if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
                 {
-                    ApplyHLGOOTF(dst, hlgLumaCoefficiants, loadOptions.displayGamma, loadOptions.nominalPeakBrightness);
+                    ApplyHLGOOTF(
+                        dst,
+                        hlgLumaCoefficiants,
+                        loadOptions.displayGamma,
+                        static_cast<float>(loadOptions.nominalPeakBrightness));
                 }
 
                 srcR++;
@@ -1106,7 +1110,11 @@ void ReadHeifImageRGBThirtyTwoBit(
 
                 if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
                 {
-                    ApplyHLGOOTF(dst, hlgLumaCoefficiants, loadOptions.displayGamma, loadOptions.nominalPeakBrightness);
+                    ApplyHLGOOTF(
+                        dst,
+                        hlgLumaCoefficiants,
+                        loadOptions.displayGamma,
+                        static_cast<float>(loadOptions.nominalPeakBrightness));
                 }
 
                 srcR++;

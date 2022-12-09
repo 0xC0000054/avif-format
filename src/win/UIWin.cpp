@@ -356,7 +356,7 @@ namespace
 
                         if (TryParsePeakBrightnessText(controlHwnd, value) && value >= 0 && value <= 10000)
                         {
-                            options.nominalPeakBrightness = static_cast<float>(value);
+                            options.nominalPeakBrightness = value;
                         }
                     }
                 }

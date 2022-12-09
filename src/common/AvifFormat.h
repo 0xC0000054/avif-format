@@ -49,14 +49,14 @@ enum class ImageBitDepth
 constexpr float displayGammaMin = 1.0f;
 constexpr float displayGammaMax = 3.0f;
 
-constexpr float nominalPeakBrightnessMin = 1.0f;
-constexpr float nominalPeakBrightnessMax = 10000.0f;
+constexpr int nominalPeakBrightnessMin = 1;
+constexpr int nominalPeakBrightnessMax = 10000;
 
 struct LoadUIOptions
 {
     bool applyHLGOOTF;
     float displayGamma;
-    float nominalPeakBrightness;
+    int nominalPeakBrightness;
 };
 
 struct SaveUIOptions
