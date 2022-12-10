@@ -197,7 +197,9 @@ namespace
             ZeroMemory(decimalSeparator, sizeof(decimalSeparator));
             ZeroMemory(thousandsSeparator, sizeof(thousandsSeparator));
             ZeroMemory(lastValidDisplayGammaStr, sizeof(lastValidDisplayGammaStr));
+            ZeroMemory(lastValidPeakBrightnessStr, sizeof(lastValidPeakBrightnessStr));
             displayGammaTextUpdating = false;
+            peakBrightnessTextUpdating = false;
 
             WCHAR buffer[4]{};
 
@@ -352,12 +354,7 @@ namespace
                     }
                     else if (item == IDC_PEAK_BRIGHTNESS_EDIT)
                     {
-                        long value;
-
-                        if (TryParsePeakBrightnessText(controlHwnd, value) && value >= 0 && value <= 10000)
-                        {
-                            options.nominalPeakBrightness = static_cast<float>(value);
-                        }
+                        OnUpdatePeakBrightnessText(hDlg, controlHwnd);
                     }
                 }
 
@@ -395,7 +392,7 @@ namespace
             bool emptyFraction = false;
             bool updateWindowText = false;
 
-            int length = GetWindowTextLengthW(hwnd);
+            const int length = GetWindowTextLengthW(hwnd);
 
             WCHAR windowTextBuffer[DisplayGammaBufferSize]{};
 
@@ -509,6 +506,79 @@ namespace
             }
         }
 
+        void OnUpdatePeakBrightnessText(HWND hDlg, HWND editBoxHwnd)
+        {
+            if (peakBrightnessTextUpdating)
+            {
+                return;
+            }
+
+            bool valid = false;
+
+            const int length = GetWindowTextLengthW(editBoxHwnd);
+
+            WCHAR windowTextBuffer[PeakBrightnessBufferSize]{};
+            int value = 0;
+
+            if (length > 0 && length < PeakBrightnessBufferSize)
+            {
+                GetWindowTextW(editBoxHwnd, windowTextBuffer, PeakBrightnessBufferSize - 1);
+
+                bool isNumber = true;
+
+                for (size_t i = 0; i < length; i++)
+                {
+                    const WCHAR c = windowTextBuffer[i];
+
+                    if (!std::iswdigit(c) && wcsncmp(&windowTextBuffer[i], thousandsSeparator, thousandsSeparatorLength) != 0)
+                    {
+                        // Unknown character in the string.
+                        isNumber = false;
+                        break;
+                    }
+                }
+
+                if (isNumber && TryParsePeakBrightnessText(windowTextBuffer, length, value))
+                {
+                    if (value < nominalPeakBrightnessMin)
+                    {
+                        SendMessage(
+                            GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_SPIN),
+                            UDM_SETPOS,
+                            0,
+                            static_cast<LPARAM>(nominalPeakBrightnessMin));
+                    }
+                    else if (value > nominalPeakBrightnessMax)
+                    {
+                        SendMessage(
+                            GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_SPIN),
+                            UDM_SETPOS,
+                            0,
+                            static_cast<LPARAM>(nominalPeakBrightnessMax));
+                    }
+                    else
+                    {
+                        valid = true;
+                    }
+                }
+            }
+
+            if (valid)
+            {
+                wcscpy_s(lastValidPeakBrightnessStr, windowTextBuffer);
+
+                options.nominalPeakBrightness = value;
+            }
+            else
+            {
+                peakBrightnessTextUpdating = true;
+
+                SetWindowTextW(editBoxHwnd, lastValidPeakBrightnessStr);
+
+                peakBrightnessTextUpdating = false;
+            }
+        }
+
         bool TryParseDisplayGammaText(float& value)
         {
             const size_t stringLength = wcslen(lastValidDisplayGammaStr);
@@ -565,23 +635,18 @@ namespace
             return result;
         }
 
-        bool TryParsePeakBrightnessText(HWND hwnd, long& value)
+        bool TryParsePeakBrightnessText(const wchar_t* text, size_t length, int& value)
         {
-            int result = true;
-            const int length = GetWindowTextLengthW(hwnd);
+            bool result = false;
 
-            if (length > 0 && length <= 10)
+            if (length >= 1 && length < static_cast<size_t>(PeakBrightnessBufferSize))
             {
-                WCHAR windowTextBuffer[12]{};
-
-                GetWindowTextW(hwnd, windowTextBuffer, _countof(windowTextBuffer));
-
-                WCHAR numberBuffer[12]{};
+                WCHAR numberBuffer[PeakBrightnessBufferSize]{};
                 bool isValid = true;
 
-                for (int i = 0, j = 0; i < length; i++)
+                for (size_t i = 0, j = 0; i < length; i++)
                 {
-                    const WCHAR c = windowTextBuffer[i];
+                    const WCHAR c = text[i];
 
                     if (std::iswdigit(c))
                     {
@@ -589,7 +654,7 @@ namespace
                     }
                     else
                     {
-                        if (wcsncmp(&windowTextBuffer[i], thousandsSeparator, thousandsSeparatorLength) != 0)
+                        if (wcsncmp(&text[i], thousandsSeparator, thousandsSeparatorLength) != 0)
                         {
                             // Unknown character in the string.
                             isValid = false;
@@ -611,8 +676,8 @@ namespace
             return result;
         }
 
-
         static constexpr int DisplayGammaBufferSize = 12;
+        static constexpr int PeakBrightnessBufferSize = 12;
 
         LoadUIOptions options;
         WCHAR decimalSeparator[4];
@@ -621,6 +686,8 @@ namespace
         int thousandsSeparatorLength;
         WCHAR lastValidDisplayGammaStr[DisplayGammaBufferSize];
         bool displayGammaTextUpdating;
+        WCHAR lastValidPeakBrightnessStr[PeakBrightnessBufferSize];
+        bool peakBrightnessTextUpdating;
     };
 
 

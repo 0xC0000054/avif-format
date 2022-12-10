@@ -549,7 +549,11 @@ void DecodeYUV16RowToRGB32(
 
         if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
         {
-            ApplyHLGOOTF(dstPtr, hlgLumaCoefficiants, loadOptions.displayGamma, loadOptions.nominalPeakBrightness);
+            ApplyHLGOOTF(
+                dstPtr,
+                hlgLumaCoefficiants,
+                loadOptions.displayGamma,
+                static_cast<float>(loadOptions.nominalPeakBrightness));
         }
 
         dstPtr += 3;
@@ -628,7 +632,11 @@ void DecodeYUV16RowToRGBA32(
 
         if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
         {
-            ApplyHLGOOTF(dstPtr, hlgLumaCoefficiants, loadOptions.displayGamma, loadOptions.nominalPeakBrightness);
+            ApplyHLGOOTF(
+                dstPtr,
+                hlgLumaCoefficiants,
+                loadOptions.displayGamma,
+                static_cast<float>(loadOptions.nominalPeakBrightness));
         }
 
         dstPtr += 4;

@@ -166,6 +166,7 @@ OSErr ReadScriptParamsOnRead(FormatRecordPtr formatRecord, LoadUIOptions& option
         {
             Boolean boolValue;
             real64  float64Value;
+            int32 integerValue;
 
             while (readProcs->getKeyProc(token, &key, &type, &flags))
             {
@@ -191,16 +192,16 @@ OSErr ReadScriptParamsOnRead(FormatRecordPtr formatRecord, LoadUIOptions& option
                     }
                     break;
                 case keyNominalPeakBrightness:
-                    if (readProcs->getFloatProc(token, &float64Value) == noErr)
+                    if (readProcs->getIntegerProc(token, &integerValue) == noErr)
                     {
-                        if (float64Value < nominalPeakBrightnessMin || float64Value > nominalPeakBrightnessMax)
+                        if (integerValue < nominalPeakBrightnessMin || integerValue > nominalPeakBrightnessMax)
                         {
                             // Use the default value if the scripting parameter value is out of range.
                             // This should only happen if value was set through the scripting system by another plug-in.
                             continue;
                         }
 
-                        options.nominalPeakBrightness = static_cast<float>(float64Value);
+                        options.nominalPeakBrightness = integerValue;
                     }
                     break;
                 }
@@ -248,9 +249,7 @@ OSErr WriteScriptParamsOnRead(FormatRecordPtr formatRecord, const LoadUIOptions&
 
             writeProcs->putFloatProc(token, keyDisplayGamma, &displayGamma64);
 
-            real64 nominalPeakBrightness64 = options.nominalPeakBrightness;
-
-            writeProcs->putFloatProc(token, keyNominalPeakBrightness, &nominalPeakBrightness64);
+            writeProcs->putIntegerProc(token, keyNominalPeakBrightness, options.nominalPeakBrightness);
 
             error = writeProcs->closeWriteDescriptorProc(token, &formatRecord->descriptorParameters->descriptor);
         }

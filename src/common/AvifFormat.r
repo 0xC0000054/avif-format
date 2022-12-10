@@ -156,7 +156,7 @@ resource 'aete' (ResourceID, plugInName " dictionary", purgeable)
 
                 "nominal peak brightness",
                 keyNominalPeakBrightness,
-                typeFloat,                            /* This should be a float32, but the PS scripting API only supports float64 */
+                typeInteger,
                 "",
                 flagsSingleProperty,
 
