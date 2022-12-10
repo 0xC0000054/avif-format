@@ -526,7 +526,7 @@ namespace
 
                 bool isNumber = true;
 
-                for (size_t i = 0; i < length; i++)
+                for (int i = 0; i < length; i++)
                 {
                     const WCHAR c = windowTextBuffer[i];
 
