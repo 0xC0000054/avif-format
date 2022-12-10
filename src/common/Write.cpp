@@ -228,20 +228,33 @@ OSErr DoWriteStart(FormatRecordPtr formatRecord, SaveUIOptions& options)
 
     ReadScriptParamsOnWrite(formatRecord, options, nullptr);
 
-    if (formatRecord->depth == 32 && options.hdrTransferFunction == ColorTransferFunction::SMPTE428)
+    if (formatRecord->depth == 32)
     {
-        // SMPTE 428 requires 12-bit.
-        options.imageBitDepth = ImageBitDepth::Twelve;
-    }
+        if (IsMonochromeImage(formatRecord))
+        {
+            // Monochrome images are not currently supported for saving as HDR.
+            // These images will be saved as 10-bit or 12-bit SDR.
+            if (options.hdrTransferFunction != ColorTransferFunction::Clip)
+            {
+                options.hdrTransferFunction = ColorTransferFunction::Clip;
+            }
+        }
+        else if (options.hdrTransferFunction == ColorTransferFunction::SMPTE428)
+        {
+            // SMPTE 428 requires 12-bit.
+            if (options.imageBitDepth != ImageBitDepth::Twelve)
+            {
+                options.imageBitDepth = ImageBitDepth::Twelve;
+            }
+        }
 
-    if (formatRecord->depth == 32 &&
-        options.premultipliedAlpha &&
-        options.hdrTransferFunction != ColorTransferFunction::Clip)
-    {
-        // Disable premultiplied alpha for 32-bit HDR images.
-        // There is currently no clear guidance on how this should be supported
-        // between different applications.
-        options.premultipliedAlpha = false;
+        if (options.premultipliedAlpha && options.hdrTransferFunction != ColorTransferFunction::Clip)
+        {
+            // Disable premultiplied alpha for 32-bit HDR images.
+            // There is currently no clear guidance on how this should be supported
+            // between different applications.
+            options.premultipliedAlpha = false;
+        }
     }
 
     bool libheifInitialized = false;
