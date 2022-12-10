@@ -741,10 +741,10 @@ void ReadHeifImageRGBSixteenBit(
         throw std::runtime_error("The color channel bit depths do not match.");
     }
 
-    const uint16_t rgbMaxValue = (1 << redBitsPerPixel) - 1;
+    const uint16_t maxValue = (1 << redBitsPerPixel) - 1;
 
     SetupFormatRecord(formatRecord, imageSize);
-    formatRecord->maxValue = rgbMaxValue;
+    formatRecord->maxValue = maxValue;
 
     int rPlaneStride;
     const uint8_t* rPlaneScan0 = heif_image_get_plane_readonly(image, heif_channel_R, &rPlaneStride);
@@ -784,14 +784,14 @@ void ReadHeifImageRGBSixteenBit(
 
             for (int32 x = 0; x < imageSize.h; x++)
             {
-                uint16_t r = *srcR;
-                uint16_t g = *srcG;
-                uint16_t b = *srcB;
-                uint16_t a = *srcAlpha;
+                uint16_t r = *srcR & maxValue;
+                uint16_t g = *srcG & maxValue;
+                uint16_t b = *srcB & maxValue;
+                uint16_t a = *srcAlpha & maxValue;
 
                 if (alphaPremultiplied)
                 {
-                    if (a < rgbMaxValue)
+                    if (a < maxValue)
                     {
                         if (a == 0)
                         {
@@ -801,9 +801,9 @@ void ReadHeifImageRGBSixteenBit(
                         }
                         else
                         {
-                            r = UnpremultiplyColor(r, a, rgbMaxValue);
-                            g = UnpremultiplyColor(g, a, rgbMaxValue);
-                            b = UnpremultiplyColor(b, a, rgbMaxValue);
+                            r = UnpremultiplyColor(r, a, maxValue);
+                            g = UnpremultiplyColor(g, a, maxValue);
+                            b = UnpremultiplyColor(b, a, maxValue);
                         }
                     }
                 }
@@ -840,9 +840,9 @@ void ReadHeifImageRGBSixteenBit(
 
             for (int32 x = 0; x < imageSize.h; x++)
             {
-                dst[0] = *srcR;
-                dst[1] = *srcG;
-                dst[2] = *srcB;
+                dst[0] = *srcR & maxValue;
+                dst[1] = *srcG & maxValue;
+                dst[2] = *srcB & maxValue;
 
                 srcR++;
                 srcG++;
