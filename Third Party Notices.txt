@@ -34,10 +34,7 @@ License notice for libheif
 --------------------------------------------------------------
 https://github.com/strukturag/libheif
 
-HEIF codec.
 Copyright (c) 2017 struktur AG, Dirk Farin <farin@struktur.de>
-
-This file is part of libheif.
 
 libheif is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as
