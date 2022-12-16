@@ -36,16 +36,19 @@ namespace
     {
         bool result = false;
 
-        ScopedLcmsMLU copyrightMLU(cmsMLUalloc(context, 1));
-        ScopedLcmsMLU descriptionMLU(cmsMLUalloc(context, 1));
-
-        if (copyrightMLU && descriptionMLU)
+        if (profile)
         {
-            if (cmsMLUsetWide(copyrightMLU.get(), "en", "US", L"No copyright, use freely") &&
-                cmsMLUsetWide(descriptionMLU.get(), "en", "US", description))
+            ScopedLcmsMLU copyrightMLU(cmsMLUalloc(context, 1));
+            ScopedLcmsMLU descriptionMLU(cmsMLUalloc(context, 1));
+
+            if (copyrightMLU && descriptionMLU)
             {
-                result = cmsWriteTag(profile, cmsSigCopyrightTag, copyrightMLU.get())
-                      && cmsWriteTag(profile, cmsSigProfileDescriptionTag, descriptionMLU.get());
+                if (cmsMLUsetWide(copyrightMLU.get(), "en", "US", L"No copyright, use freely") &&
+                    cmsMLUsetWide(descriptionMLU.get(), "en", "US", description))
+                {
+                    result = cmsWriteTag(profile, cmsSigCopyrightTag, copyrightMLU.get())
+                          && cmsWriteTag(profile, cmsSigProfileDescriptionTag, descriptionMLU.get());
+                }
             }
         }
 
