@@ -2,7 +2,7 @@
  * This file is part of avif-format, an AV1 Image (AVIF) file format
  * plug-in for Adobe Photoshop(R).
  *
- * Copyright (c) 2021, 2022 Nicholas Hayes
+ * Copyright (c) 2021, 2022, 2023 Nicholas Hayes
  *
  * avif-format is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
