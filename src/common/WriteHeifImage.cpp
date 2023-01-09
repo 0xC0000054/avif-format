@@ -573,7 +573,19 @@ ScopedHeifImage CreateHeifImageGrayThirtyTwoBit(
                     }
                 }
 
-                const float transferCurveGray = LinearToTransferFunction(gray, transferFunction);
+                float transferCurveGray;
+
+                switch (transferFunction)
+                {
+                case ColorTransferFunction::PQ:
+                    transferCurveGray = LinearToPQ(gray, static_cast<float>(saveOptions.pq.nominalPeakBrightness));
+                    break;
+                case ColorTransferFunction::Clip:
+                    transferCurveGray = gray;
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported color transfer function.");
+                }
 
                 yPlane[0] = static_cast<uint16_t>(std::clamp(transferCurveGray * heifImageMaxValue, 0.0f, heifImageMaxValue));
                 alphaPlane[0] = static_cast<uint16_t>(std::clamp(alpha * heifImageMaxValue, 0.0f, heifImageMaxValue));
@@ -589,7 +601,19 @@ ScopedHeifImage CreateHeifImageGrayThirtyTwoBit(
             {
                 const float gray = std::clamp(src[0], 0.0f, 1.0f);
 
-                const float transferCurveGray = LinearToTransferFunction(gray, transferFunction);
+                float transferCurveGray;
+
+                switch (transferFunction)
+                {
+                case ColorTransferFunction::PQ:
+                    transferCurveGray = LinearToPQ(gray, static_cast<float>(saveOptions.pq.nominalPeakBrightness));
+                    break;
+                case ColorTransferFunction::Clip:
+                    transferCurveGray = gray;
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported color transfer function.");
+                }
 
                 yPlane[0] = static_cast<uint16_t>(std::clamp(transferCurveGray * heifImageMaxValue, 0.0f, heifImageMaxValue));
 
@@ -1041,13 +1065,34 @@ ScopedHeifImage CreateHeifImageRGBThirtyTwoBit(
                     }
                 }
 
-                const float tranferCurveR = LinearToTransferFunction(r, transferFunction);
-                const float tranferCurveG = LinearToTransferFunction(g, transferFunction);
-                const float tranferCurveB = LinearToTransferFunction(b, transferFunction);
+                float transferCurveR;
+                float transferCurveG;
+                float transferCurveB;
 
-                yPlane[0] = static_cast<uint16_t>(std::clamp(tranferCurveR * heifImageMaxValue, 0.0f, heifImageMaxValue));
-                yPlane[1] = static_cast<uint16_t>(std::clamp(tranferCurveG * heifImageMaxValue, 0.0f, heifImageMaxValue));
-                yPlane[2] = static_cast<uint16_t>(std::clamp(tranferCurveB * heifImageMaxValue, 0.0f, heifImageMaxValue));
+                switch (transferFunction)
+                {
+                case ColorTransferFunction::PQ:
+                    transferCurveR = LinearToPQ(r, static_cast<float>(saveOptions.pq.nominalPeakBrightness));
+                    transferCurveG = LinearToPQ(g, static_cast<float>(saveOptions.pq.nominalPeakBrightness));
+                    transferCurveB = LinearToPQ(b, static_cast<float>(saveOptions.pq.nominalPeakBrightness));
+                    break;
+                case ColorTransferFunction::SMPTE428:
+                    transferCurveR = LinearToSMPTE428(r);
+                    transferCurveG = LinearToSMPTE428(g);
+                    transferCurveB = LinearToSMPTE428(b);
+                    break;
+                case ColorTransferFunction::Clip:
+                    transferCurveR = r;
+                    transferCurveG = g;
+                    transferCurveB = b;
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported color transfer function.");
+                }
+
+                yPlane[0] = static_cast<uint16_t>(std::clamp(transferCurveR * heifImageMaxValue, 0.0f, heifImageMaxValue));
+                yPlane[1] = static_cast<uint16_t>(std::clamp(transferCurveG * heifImageMaxValue, 0.0f, heifImageMaxValue));
+                yPlane[2] = static_cast<uint16_t>(std::clamp(transferCurveB * heifImageMaxValue, 0.0f, heifImageMaxValue));
                 yPlane[3] = static_cast<uint16_t>(std::clamp(a * heifImageMaxValue, 0.0f, heifImageMaxValue));
 
                 src += 4;
@@ -1055,13 +1100,34 @@ ScopedHeifImage CreateHeifImageRGBThirtyTwoBit(
             }
             else
             {
-                const float tranferCurveR = LinearToTransferFunction(r, transferFunction);
-                const float tranferCurveG = LinearToTransferFunction(g, transferFunction);
-                const float tranferCurveB = LinearToTransferFunction(b, transferFunction);
+                float transferCurveR;
+                float transferCurveG;
+                float transferCurveB;
 
-                yPlane[0] = static_cast<uint16_t>(std::clamp(tranferCurveR * heifImageMaxValue, 0.0f, heifImageMaxValue));
-                yPlane[1] = static_cast<uint16_t>(std::clamp(tranferCurveG * heifImageMaxValue, 0.0f, heifImageMaxValue));
-                yPlane[2] = static_cast<uint16_t>(std::clamp(tranferCurveB * heifImageMaxValue, 0.0f, heifImageMaxValue));
+                switch (transferFunction)
+                {
+                case ColorTransferFunction::PQ:
+                    transferCurveR = LinearToPQ(r, static_cast<float>(saveOptions.pq.nominalPeakBrightness));
+                    transferCurveG = LinearToPQ(g, static_cast<float>(saveOptions.pq.nominalPeakBrightness));
+                    transferCurveB = LinearToPQ(b, static_cast<float>(saveOptions.pq.nominalPeakBrightness));
+                    break;
+                case ColorTransferFunction::SMPTE428:
+                    transferCurveR = LinearToSMPTE428(r);
+                    transferCurveG = LinearToSMPTE428(g);
+                    transferCurveB = LinearToSMPTE428(b);
+                    break;
+                case ColorTransferFunction::Clip:
+                    transferCurveR = r;
+                    transferCurveG = g;
+                    transferCurveB = b;
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported color transfer function.");
+                }
+
+                yPlane[0] = static_cast<uint16_t>(std::clamp(transferCurveR * heifImageMaxValue, 0.0f, heifImageMaxValue));
+                yPlane[1] = static_cast<uint16_t>(std::clamp(transferCurveG * heifImageMaxValue, 0.0f, heifImageMaxValue));
+                yPlane[2] = static_cast<uint16_t>(std::clamp(transferCurveB * heifImageMaxValue, 0.0f, heifImageMaxValue));
 
                 src += 3;
                 yPlane += 3;

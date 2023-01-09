@@ -52,6 +52,7 @@ void ReadHeifImageGrayThirtyTwoBit(
     const heif_image* image,
     AlphaState alphaState,
     const heif_color_profile_nclx* nclxProfile,
+    const LoadUIOptions& loadOptions,
     FormatRecordPtr formatRecord);
 
 void ReadHeifImageRGBThirtyTwoBit(

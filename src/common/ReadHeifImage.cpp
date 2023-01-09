@@ -338,7 +338,7 @@ namespace
 
         HLGLumaCoefficiants hlgLumaCoefficiants{};
 
-        if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
+        if (transferFunction == ColorTransferFunction::HLG && loadOptions.hlg.applyOOTF)
         {
             hlgLumaCoefficiants = GetHLGLumaCoefficients(nclxProfile->color_primaries);
         }
@@ -864,6 +864,7 @@ void ReadHeifImageGrayThirtyTwoBit(
     const heif_image* image,
     AlphaState alphaState,
     const heif_color_profile_nclx* nclxProfile,
+    const LoadUIOptions& loadOptions,
     FormatRecordPtr formatRecord)
 {
     if (nclxProfile == nullptr)
@@ -908,7 +909,15 @@ void ReadHeifImageGrayThirtyTwoBit(
             const uint16_t* srcAlpha = reinterpret_cast<const uint16_t*>(alphaScan0 + (static_cast<int64>(y) * alphaStride));
             float* dst = static_cast<float*>(formatRecord->data);
 
-            DecodeY16RowToGrayAlpha32(srcGray, srcAlpha, alphaPremultiplied, dst, imageSize.h, tables, transferFunction);
+            DecodeY16RowToGrayAlpha32(
+                srcGray,
+                srcAlpha,
+                alphaPremultiplied,
+                dst,
+                imageSize.h,
+                tables,
+                transferFunction,
+                loadOptions);
 
             const int32 top = y;
             const int32 bottom = y + 1;
@@ -925,7 +934,7 @@ void ReadHeifImageGrayThirtyTwoBit(
             const uint16_t* srcGray = reinterpret_cast<const uint16_t*>(grayScan0 + (static_cast<int64>(y) * grayStride));
             float* dst = static_cast<float*>(formatRecord->data);
 
-            DecodeY16RowToGray32(srcGray, dst, imageSize.h, tables, transferFunction);
+            DecodeY16RowToGray32(srcGray, dst, imageSize.h, tables, transferFunction, loadOptions);
 
             const int32 top = y;
             const int32 bottom = y + 1;
@@ -997,7 +1006,7 @@ void ReadHeifImageRGBThirtyTwoBit(
 
     HLGLumaCoefficiants hlgLumaCoefficiants{};
 
-    if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
+    if (transferFunction == ColorTransferFunction::HLG && loadOptions.hlg.applyOOTF)
     {
         hlgLumaCoefficiants = GetHLGLumaCoefficients(nclxProfile->color_primaries);
     }
@@ -1055,19 +1064,37 @@ void ReadHeifImageRGBThirtyTwoBit(
                 const float b = unormToFloatTable[unormB];
                 const float a = unormToFloatTable[unormA];
 
-                dst[0] = TransferFunctionToLinear(r, transferFunction);
-                dst[1] = TransferFunctionToLinear(g, transferFunction);
-                dst[2] = TransferFunctionToLinear(b, transferFunction);
-                dst[3] = a;
-
-                if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
+                switch (transferFunction)
                 {
-                    ApplyHLGOOTF(
-                        dst,
-                        hlgLumaCoefficiants,
-                        loadOptions.displayGamma,
-                        static_cast<float>(loadOptions.nominalPeakBrightness));
+                case ColorTransferFunction::PQ:
+                    dst[0] = PQToLinear(r, static_cast<float>(loadOptions.pq.nominalPeakBrightness));
+                    dst[1] = PQToLinear(g, static_cast<float>(loadOptions.pq.nominalPeakBrightness));
+                    dst[2] = PQToLinear(b, static_cast<float>(loadOptions.pq.nominalPeakBrightness));
+                    break;
+                case ColorTransferFunction::HLG:
+                    dst[0] = HLGToLinear(r);
+                    dst[1] = HLGToLinear(g);
+                    dst[2] = HLGToLinear(b);
+
+                    if (loadOptions.hlg.applyOOTF)
+                    {
+                        ApplyHLGOOTF(
+                            dst,
+                            hlgLumaCoefficiants,
+                            loadOptions.hlg.displayGamma,
+                            static_cast<float>(loadOptions.hlg.nominalPeakBrightness));
+                    }
+                    break;
+                case ColorTransferFunction::SMPTE428:
+                    dst[0] = SMPTE428ToLinear(r);
+                    dst[1] = SMPTE428ToLinear(g);
+                    dst[2] = SMPTE428ToLinear(b);
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported color transfer function.");
                 }
+
+                dst[3] = a;
 
                 srcR++;
                 srcG++;
@@ -1104,17 +1131,34 @@ void ReadHeifImageRGBThirtyTwoBit(
                 const float g = unormToFloatTable[unormG];
                 const float b = unormToFloatTable[unormB];
 
-                dst[0] = TransferFunctionToLinear(r, transferFunction);
-                dst[1] = TransferFunctionToLinear(g, transferFunction);
-                dst[2] = TransferFunctionToLinear(b, transferFunction);
-
-                if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
+                switch (transferFunction)
                 {
-                    ApplyHLGOOTF(
-                        dst,
-                        hlgLumaCoefficiants,
-                        loadOptions.displayGamma,
-                        static_cast<float>(loadOptions.nominalPeakBrightness));
+                case ColorTransferFunction::PQ:
+                    dst[0] = PQToLinear(r, static_cast<float>(loadOptions.pq.nominalPeakBrightness));
+                    dst[1] = PQToLinear(g, static_cast<float>(loadOptions.pq.nominalPeakBrightness));
+                    dst[2] = PQToLinear(b, static_cast<float>(loadOptions.pq.nominalPeakBrightness));
+                    break;
+                case ColorTransferFunction::HLG:
+                    dst[0] = HLGToLinear(r);
+                    dst[1] = HLGToLinear(g);
+                    dst[2] = HLGToLinear(b);
+
+                    if (loadOptions.hlg.applyOOTF)
+                    {
+                        ApplyHLGOOTF(
+                            dst,
+                            hlgLumaCoefficiants,
+                            loadOptions.hlg.displayGamma,
+                            static_cast<float>(loadOptions.hlg.nominalPeakBrightness));
+                    }
+                    break;
+                case ColorTransferFunction::SMPTE428:
+                    dst[0] = SMPTE428ToLinear(r);
+                    dst[1] = SMPTE428ToLinear(g);
+                    dst[2] = SMPTE428ToLinear(b);
+                    break;
+                default:
+                    throw std::runtime_error("Unsupported color transfer function.");
                 }
 
                 srcR++;

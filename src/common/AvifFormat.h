@@ -52,11 +52,36 @@ constexpr float displayGammaMax = 3.0f;
 constexpr int nominalPeakBrightnessMin = 1;
 constexpr int nominalPeakBrightnessMax = 10000;
 
-struct LoadUIOptions
+// The PQ default brightness is 80 nits for compatibility with older images and Krita.
+// 80 nits is the sRGB reference viewing environment maximum luminance level
+// See the 'Screen luminance level' value in the sRGB reference viewing environment table
+// https://en.wikipedia.org/wiki/SRGB#Viewing_environment
+constexpr int pqDefaultBrightness = 80;
+
+struct HLGOptions
 {
-    bool applyHLGOOTF;
+    bool applyOOTF;
     float displayGamma;
     int nominalPeakBrightness;
+};
+
+struct PQOptions
+{
+    int nominalPeakBrightness;
+};
+
+enum class LoadOptionsHDRFormat : int
+{
+    Unknown = 0,
+    HLG,
+    PQ
+};
+
+struct LoadUIOptions
+{
+    LoadOptionsHDRFormat format;
+    HLGOptions hlg;
+    PQOptions pq;
 };
 
 struct SaveUIOptions
@@ -66,6 +91,7 @@ struct SaveUIOptions
     CompressionSpeed compressionSpeed;
     ImageBitDepth imageBitDepth;
     ColorTransferFunction hdrTransferFunction;
+    PQOptions pq;
     bool lossless;
     bool losslessAlpha;
     bool keepColorProfile;
@@ -77,7 +103,15 @@ struct SaveUIOptions
 struct RevertInfo
 {
     int version;
-    LoadUIOptions loadOptions;
+
+    // Version 0 fields:
+
+    HLGOptions hlg;
+
+    // Version 1 fields:
+
+    PQOptions pq;
+    LoadOptionsHDRFormat format;
 };
 
 struct Globals
@@ -110,7 +144,8 @@ void UnlockPIHandle(const FormatRecordPtr formatRecord, Handle handle);
 // Platform-specific UI methods
 
 void DoAbout(const AboutRecordPtr aboutRecord);
-bool DoLoadUI(const FormatRecordPtr formatRecord, LoadUIOptions& options);
+bool DoHLGLoadUI(const FormatRecordPtr formatRecord, LoadUIOptions& options);
+bool DoPQLoadUI(const FormatRecordPtr formatRecord, LoadUIOptions& options);
 bool DoSaveUI(const FormatRecordPtr formatRecord, SaveUIOptions& options);
 OSErr ShowErrorDialog(const FormatRecordPtr formatRecord, const char* const message, OSErr fallbackErrorCode);
 

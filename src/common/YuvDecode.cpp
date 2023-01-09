@@ -196,7 +196,8 @@ void DecodeY16RowToGray32(
     float* grayRow,
     int32 rowWidth,
     const YUVLookupTables& tables,
-    ColorTransferFunction transferFunction)
+    ColorTransferFunction transferFunction,
+    const LoadUIOptions& loadOptions)
 {
     float* dstPtr = grayRow;
 
@@ -210,7 +211,14 @@ void DecodeY16RowToGray32(
         // Convert unorm to float
         const float Y = tables.unormFloatTableY[unormY];
 
-        dstPtr[0] = TransferFunctionToLinear(Y, transferFunction);
+        switch (transferFunction)
+        {
+        case ColorTransferFunction::PQ:
+            dstPtr[0] = PQToLinear(Y, static_cast<float>(loadOptions.pq.nominalPeakBrightness));
+            break;
+        default:
+            throw std::runtime_error("Unsupported color transfer function.");
+        }
 
         dstPtr++;
     }
@@ -223,7 +231,8 @@ void DecodeY16RowToGrayAlpha32(
     float* grayaRow,
     int32 rowWidth,
     const YUVLookupTables& tables,
-    ColorTransferFunction transferFunction)
+    ColorTransferFunction transferFunction,
+    const LoadUIOptions& loadOptions)
 {
     float* dstPtr = grayaRow;
 
@@ -254,7 +263,15 @@ void DecodeY16RowToGrayAlpha32(
         const float Y = tables.unormFloatTableY[unormY];
         const float A = tables.unormFloatTableAlpha[unormA];
 
-        dstPtr[0] = TransferFunctionToLinear(Y, transferFunction);
+        switch (transferFunction)
+        {
+        case ColorTransferFunction::PQ:
+            dstPtr[0] = PQToLinear(Y, static_cast<float>(loadOptions.pq.nominalPeakBrightness));
+            break;
+        default:
+            throw std::runtime_error("Unsupported color transfer function.");
+        }
+
         dstPtr[1] = A;
 
         dstPtr += 2;
@@ -543,17 +560,34 @@ void DecodeYUV16RowToRGB32(
         G = std::clamp(G, 0.0f, 1.0f);
         B = std::clamp(B, 0.0f, 1.0f);
 
-        dstPtr[0] = TransferFunctionToLinear(R, transferFunction);
-        dstPtr[1] = TransferFunctionToLinear(G, transferFunction);
-        dstPtr[2] = TransferFunctionToLinear(B, transferFunction);
-
-        if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
+        switch (transferFunction)
         {
-            ApplyHLGOOTF(
-                dstPtr,
-                hlgLumaCoefficiants,
-                loadOptions.displayGamma,
-                static_cast<float>(loadOptions.nominalPeakBrightness));
+        case ColorTransferFunction::PQ:
+            dstPtr[0] = PQToLinear(R, static_cast<float>(loadOptions.pq.nominalPeakBrightness));
+            dstPtr[1] = PQToLinear(G, static_cast<float>(loadOptions.pq.nominalPeakBrightness));
+            dstPtr[2] = PQToLinear(B, static_cast<float>(loadOptions.pq.nominalPeakBrightness));
+            break;
+        case ColorTransferFunction::HLG:
+            dstPtr[0] = HLGToLinear(R);
+            dstPtr[1] = HLGToLinear(G);
+            dstPtr[2] = HLGToLinear(B);
+
+            if (loadOptions.hlg.applyOOTF)
+            {
+                ApplyHLGOOTF(
+                    dstPtr,
+                    hlgLumaCoefficiants,
+                    loadOptions.hlg.displayGamma,
+                    static_cast<float>(loadOptions.hlg.nominalPeakBrightness));
+            }
+            break;
+        case ColorTransferFunction::SMPTE428:
+            dstPtr[0] = SMPTE428ToLinear(R);
+            dstPtr[1] = SMPTE428ToLinear(G);
+            dstPtr[2] = SMPTE428ToLinear(B);
+            break;
+        default:
+            throw std::runtime_error("Unsupported color transfer function.");
         }
 
         dstPtr += 3;
@@ -625,20 +659,38 @@ void DecodeYUV16RowToRGBA32(
             }
         }
 
-        dstPtr[0] = TransferFunctionToLinear(R, transferFunction);
-        dstPtr[1] = TransferFunctionToLinear(G, transferFunction);
-        dstPtr[2] = TransferFunctionToLinear(B, transferFunction);
+        switch (transferFunction)
+        {
+        case ColorTransferFunction::PQ:
+            dstPtr[0] = PQToLinear(R, static_cast<float>(loadOptions.pq.nominalPeakBrightness));
+            dstPtr[1] = PQToLinear(G, static_cast<float>(loadOptions.pq.nominalPeakBrightness));
+            dstPtr[2] = PQToLinear(B, static_cast<float>(loadOptions.pq.nominalPeakBrightness));
+            break;
+        case ColorTransferFunction::HLG:
+            dstPtr[0] = HLGToLinear(R);
+            dstPtr[1] = HLGToLinear(G);
+            dstPtr[2] = HLGToLinear(B);
+
+            if (loadOptions.hlg.applyOOTF)
+            {
+                ApplyHLGOOTF(
+                    dstPtr,
+                    hlgLumaCoefficiants,
+                    loadOptions.hlg.displayGamma,
+                    static_cast<float>(loadOptions.hlg.nominalPeakBrightness));
+            }
+            break;
+        case ColorTransferFunction::SMPTE428:
+            dstPtr[0] = SMPTE428ToLinear(R);
+            dstPtr[1] = SMPTE428ToLinear(G);
+            dstPtr[2] = SMPTE428ToLinear(B);
+            break;
+        default:
+            throw std::runtime_error("Unsupported color transfer function.");
+        }
         dstPtr[3] = A;
 
-        if (transferFunction == ColorTransferFunction::HLG && loadOptions.applyHLGOOTF)
-        {
-            ApplyHLGOOTF(
-                dstPtr,
-                hlgLumaCoefficiants,
-                loadOptions.displayGamma,
-                static_cast<float>(loadOptions.nominalPeakBrightness));
-        }
-
+        
         dstPtr += 4;
     }
 }

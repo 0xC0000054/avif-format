@@ -140,6 +140,14 @@ resource 'aete' (ResourceID, plugInName " dictionary", purgeable)
                 "parent class format",						/* optional description */
                 flagsSingleProperty,						/* if properties, list below */
 
+                /* Common dialog parameters */
+
+                "PQ nominal peak brightness", /* This value is shared between the load and save dialogs */
+                keyPQNominalPeakBrightness,
+                typeInteger,
+                "The display brightness in nits (candela per square metre), range 1 to 10000 inclusive",
+                flagsSingleProperty,
+
                 /* Load dialog parameters */
 
                 "apply HLG OOTF",
@@ -149,15 +157,15 @@ resource 'aete' (ResourceID, plugInName " dictionary", purgeable)
                 flagsSingleProperty,
 
                 "display gamma",
-                keyDisplayGamma,
+                keyHLGDisplayGamma,
                 typeFloat,                            /* This should be a float32, but the PS scripting API only supports float64 */
-                "",
+                "The display gamma, range 1.0 to 3.0 inclusive",
                 flagsSingleProperty,
 
-                "nominal peak brightness",
-                keyNominalPeakBrightness,
+                "HLG nominal peak brightness",
+                keyHLGNominalPeakBrightness,
                 typeInteger,
-                "",
+                "The display brightness in nits (candela per square metre), range 1 to 10000 inclusive",
                 flagsSingleProperty,
 
                 /* Save dialog parameters */

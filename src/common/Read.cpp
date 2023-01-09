@@ -171,42 +171,35 @@ namespace
         return alphaState;
     }
 
-    bool MonochromeImageIsHDR(const heif_color_profile_nclx* nclx)
+    heif_transfer_characteristics GetNclxTransferCharacteristics(const heif_color_profile_nclx* nclx)
     {
-        bool result = false;
+        heif_transfer_characteristics result = heif_transfer_characteristic_IEC_61966_2_1;
 
         if (nclx != nullptr)
         {
-            result = nclx->transfer_characteristics == heif_transfer_characteristic_ITU_R_BT_2100_0_PQ;
+            result = nclx->transfer_characteristics;
         }
 
         return result;
     }
 
-    bool RGBImageIsHDR(const heif_color_profile_nclx* nclx, bool& isHLG)
+    bool RGBImageIsHDR(heif_transfer_characteristics value)
     {
         bool result = false;
-        isHLG = false;
 
-        if (nclx != nullptr)
+        switch (value)
         {
-            switch (nclx->transfer_characteristics)
-            {
-            case heif_transfer_characteristic_ITU_R_BT_2100_0_HLG:
-                result = true;
-                isHLG = true;
-                break;
-            case heif_transfer_characteristic_ITU_R_BT_2100_0_PQ:
-            case heif_transfer_characteristic_SMPTE_ST_428_1:
-                result = true;
-                break;
-            }
+        case heif_transfer_characteristic_ITU_R_BT_2100_0_PQ:
+        case heif_transfer_characteristic_SMPTE_ST_428_1:
+        case heif_transfer_characteristic_ITU_R_BT_2100_0_HLG:
+            result = true;
+            break;
         }
 
         return result;
     }
 
-    void SetHLGRevertInfo(FormatRecordPtr formatRecord, const LoadUIOptions& options)
+    void SetRevertInfo(FormatRecordPtr formatRecord, const LoadUIOptions& options)
     {
         if (HandleSuiteIsAvailable(formatRecord))
         {
@@ -216,10 +209,20 @@ namespace
 
             RevertInfo* revertInfo = reinterpret_cast<RevertInfo*>(lock.data());
 
-            revertInfo->version = 0;
-            revertInfo->loadOptions.applyHLGOOTF = options.applyHLGOOTF;
-            revertInfo->loadOptions.displayGamma = options.displayGamma;
-            revertInfo->loadOptions.nominalPeakBrightness = options.nominalPeakBrightness;
+            revertInfo->version = 1;
+            revertInfo->format = options.format;
+
+            switch (options.format)
+            {
+            case LoadOptionsHDRFormat::HLG:
+                revertInfo->hlg = options.hlg;
+                break;
+            case LoadOptionsHDRFormat::PQ:
+                revertInfo->pq = options.pq;
+                break;
+            default:
+                throw std::runtime_error("Unsupported LoadOptionsHDRFormat value.");
+            }
 
             lock.unlock();
 
@@ -255,25 +258,42 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
     globals->image = nullptr;
     globals->libheifInitialized = false;
 
-    Boolean showHLGImportDialog;
+    Boolean showImportDialogs;
 
-    OSErr err = ReadScriptParamsOnRead(formatRecord, globals->loadOptions, &showHLGImportDialog);
+    OSErr err = ReadScriptParamsOnRead(formatRecord, globals->loadOptions, &showImportDialogs);
 
     if (err == noErr)
     {
         try
         {
+            Boolean showHLGImportDialog = showImportDialogs;
+            Boolean showPQImportDialog = showImportDialogs;
+
             if (formatRecord->revertInfo != nullptr && HandleSuiteIsAvailable(formatRecord))
             {
                 ScopedHandleSuiteLock lock(formatRecord->handleProcs, formatRecord->revertInfo);
 
                 RevertInfo* revertInfo = reinterpret_cast<RevertInfo*>(lock.data());
 
-                if (revertInfo->version == 0)
+                if (revertInfo->version == 1)
                 {
-                    globals->loadOptions.applyHLGOOTF = revertInfo->loadOptions.applyHLGOOTF;
-                    globals->loadOptions.displayGamma = revertInfo->loadOptions.displayGamma;
-                    globals->loadOptions.nominalPeakBrightness = revertInfo->loadOptions.nominalPeakBrightness;
+                    switch (revertInfo->format)
+                    {
+                    case LoadOptionsHDRFormat::HLG:
+                        globals->loadOptions.hlg = revertInfo->hlg;
+                        showHLGImportDialog = false;
+                        break;
+                    case LoadOptionsHDRFormat::PQ:
+                        globals->loadOptions.pq = revertInfo->pq;
+                        showPQImportDialog = false;
+                        break;
+                    default:
+                        throw std::runtime_error("Unsupported LoadOptionsHDRFormat value.");
+                    }
+                }
+                else if (revertInfo->version == 0)
+                {
+                    globals->loadOptions.hlg = revertInfo->hlg;
                     showHLGImportDialog = false;
                 }
             }
@@ -334,6 +354,7 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
 
             const heif_colorspace colorSpace = heif_image_get_colorspace(image.get());
             const heif_chroma chroma = heif_image_get_chroma_format(image.get());
+            const heif_transfer_characteristics transferCharacteristic = GetNclxTransferCharacteristics(imageHandleNclxProfile.get());
 
             if (colorSpace == heif_colorspace_monochrome)
             {
@@ -350,8 +371,18 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
                     break;
                 case 10:
                 case 12:
-                    if (MonochromeImageIsHDR(imageHandleNclxProfile.get()))
+                    if (transferCharacteristic == heif_transfer_characteristic_ITU_R_BT_2100_0_PQ)
                     {
+                        if (showPQImportDialog)
+                        {
+                            if (!DoPQLoadUI(formatRecord, globals->loadOptions))
+                            {
+                                throw OSErrException(userCanceledErr);
+                            }
+
+                            SetRevertInfo(formatRecord, globals->loadOptions);
+                        }
+
                         formatRecord->imageMode = plugInModeGrayScale;
                         formatRecord->depth = 32;
                     }
@@ -381,20 +412,34 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
                     break;
                 case 10:
                 case 12:
-                    bool isHLG;
-                    if (RGBImageIsHDR(imageHandleNclxProfile.get(), isHLG))
+                    if (RGBImageIsHDR(transferCharacteristic))
                     {
                         formatRecord->imageMode = plugInModeRGBColor;
                         formatRecord->depth = 32;
 
-                        if (isHLG && showHLGImportDialog)
+                        if (transferCharacteristic == heif_transfer_characteristic_ITU_R_BT_2100_0_PQ)
                         {
-                            if (!DoLoadUI(formatRecord, globals->loadOptions))
+                            if (showPQImportDialog)
                             {
-                                throw OSErrException(userCanceledErr);
-                            }
+                                if (!DoPQLoadUI(formatRecord, globals->loadOptions))
+                                {
+                                    throw OSErrException(userCanceledErr);
+                                }
 
-                            SetHLGRevertInfo(formatRecord, globals->loadOptions);
+                                SetRevertInfo(formatRecord, globals->loadOptions);
+                            }
+                        }
+                        else if (transferCharacteristic == heif_transfer_characteristic_ITU_R_BT_2100_0_HLG)
+                        {
+                            if (showHLGImportDialog)
+                            {
+                                if (!DoHLGLoadUI(formatRecord, globals->loadOptions))
+                                {
+                                    throw OSErrException(userCanceledErr);
+                                }
+
+                                SetRevertInfo(formatRecord, globals->loadOptions);
+                            }
                         }
                     }
                     else
@@ -423,20 +468,34 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
                     break;
                 case 10:
                 case 12:
-                    bool isHLG;
-                    if (RGBImageIsHDR(imageHandleNclxProfile.get(), isHLG))
+                    if (RGBImageIsHDR(transferCharacteristic))
                     {
                         formatRecord->imageMode = plugInModeRGBColor;
                         formatRecord->depth = 32;
 
-                        if (isHLG && showHLGImportDialog)
+                        if (transferCharacteristic == heif_transfer_characteristic_ITU_R_BT_2100_0_PQ)
                         {
-                            if (!DoLoadUI(formatRecord, globals->loadOptions))
+                            if (showPQImportDialog)
                             {
-                                throw OSErrException(userCanceledErr);
-                            }
+                                if (!DoPQLoadUI(formatRecord, globals->loadOptions))
+                                {
+                                    throw OSErrException(userCanceledErr);
+                                }
 
-                            SetHLGRevertInfo(formatRecord, globals->loadOptions);
+                                SetRevertInfo(formatRecord, globals->loadOptions);
+                            }
+                        }
+                        else if (transferCharacteristic == heif_transfer_characteristic_ITU_R_BT_2100_0_HLG)
+                        {
+                            if (showHLGImportDialog)
+                            {
+                                if (!DoHLGLoadUI(formatRecord, globals->loadOptions))
+                                {
+                                    throw OSErrException(userCanceledErr);
+                                }
+
+                                SetRevertInfo(formatRecord, globals->loadOptions);
+                            }
                         }
                     }
                     else
@@ -536,7 +595,12 @@ OSErr DoReadContinue(FormatRecordPtr formatRecord, Globals* globals)
                 ReadHeifImageGraySixteenBit(globals->image, alphaState, nclxProfile, formatRecord);
                 break;
             case 32:
-                ReadHeifImageGrayThirtyTwoBit(globals->image, alphaState, nclxProfile, formatRecord);
+                ReadHeifImageGrayThirtyTwoBit(
+                    globals->image,
+                    alphaState,
+                    nclxProfile,
+                    globals->loadOptions,
+                    formatRecord);
                 break;
             default:
                 throw std::runtime_error("Unsupported host bit depth");

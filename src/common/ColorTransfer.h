@@ -44,9 +44,17 @@ HLGLumaCoefficiants GetHLGLumaCoefficients(heif_color_primaries primaries);
 
 ColorTransferFunction GetTransferFunctionFromNclx(heif_transfer_characteristics transferCharacteristics);
 
-float TransferFunctionToLinear(float value, ColorTransferFunction transferFunction);
+float LinearToPQ(float value, float imageMaxLuminanceLevel);
 
-float LinearToTransferFunction(float value, ColorTransferFunction transferFunction);
+float PQToLinear(float value, float imageMaxLuminanceLevel);
+
+float LinearToSMPTE428(float value);
+
+float SMPTE428ToLinear(float value);
+
+float LinearToHLG(float value);
+
+float HLGToLinear(float value);
 
 void ApplyHLGOOTF(
     float* rgb,

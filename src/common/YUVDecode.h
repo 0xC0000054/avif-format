@@ -59,7 +59,8 @@ void DecodeY16RowToGray32(
     float* grayRow,
     int32 rowWidth,
     const YUVLookupTables& tables,
-    ColorTransferFunction transferFunction);
+    ColorTransferFunction transferFunction,
+    const LoadUIOptions& loadOptions);
 
 void DecodeY16RowToGrayAlpha32(
     const uint16_t* yPlane,
@@ -68,7 +69,8 @@ void DecodeY16RowToGrayAlpha32(
     float* grayaRow,
     int32 rowWidth,
     const YUVLookupTables& tables,
-    ColorTransferFunction transferFunction);
+    ColorTransferFunction transferFunction,
+    const LoadUIOptions& loadOptions);
 
 void DecodeYUV8RowToRGB8(
     const uint8_t* yPlane,

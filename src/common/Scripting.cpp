@@ -154,8 +154,9 @@ OSErr ReadScriptParamsOnRead(FormatRecordPtr formatRecord, LoadUIOptions& option
         DescriptorKeyIDArray		array =
         {
             keyApplyHLGOOTF,
-            keyDisplayGamma,
-            keyNominalPeakBrightness,
+            keyHLGDisplayGamma,
+            keyHLGNominalPeakBrightness,
+            keyPQNominalPeakBrightness,
             NULLID
         };
 
@@ -175,10 +176,10 @@ OSErr ReadScriptParamsOnRead(FormatRecordPtr formatRecord, LoadUIOptions& option
                 case keyApplyHLGOOTF:
                     if (readProcs->getBooleanProc(token, &boolValue) == noErr)
                     {
-                        options.applyHLGOOTF = boolValue;
+                        options.hlg.applyOOTF = boolValue;
                     }
                     break;
-                case keyDisplayGamma:
+                case keyHLGDisplayGamma:
                     if (readProcs->getFloatProc(token, &float64Value) == noErr)
                     {
                         if (float64Value < displayGammaMin || float64Value > displayGammaMax)
@@ -188,10 +189,10 @@ OSErr ReadScriptParamsOnRead(FormatRecordPtr formatRecord, LoadUIOptions& option
                             continue;
                         }
 
-                        options.displayGamma = static_cast<float>(float64Value);
+                        options.hlg.displayGamma = static_cast<float>(float64Value);
                     }
                     break;
-                case keyNominalPeakBrightness:
+                case keyHLGNominalPeakBrightness:
                     if (readProcs->getIntegerProc(token, &integerValue) == noErr)
                     {
                         if (integerValue < nominalPeakBrightnessMin || integerValue > nominalPeakBrightnessMax)
@@ -201,7 +202,22 @@ OSErr ReadScriptParamsOnRead(FormatRecordPtr formatRecord, LoadUIOptions& option
                             continue;
                         }
 
-                        options.nominalPeakBrightness = integerValue;
+                        options.hlg.nominalPeakBrightness = integerValue;
+                        options.format = LoadOptionsHDRFormat::HLG;
+                    }
+                    break;
+                case keyPQNominalPeakBrightness:
+                    if (readProcs->getIntegerProc(token, &integerValue) == noErr)
+                    {
+                        if (integerValue < nominalPeakBrightnessMin || integerValue > nominalPeakBrightnessMax)
+                        {
+                            // Use the default value if the scripting parameter value is out of range.
+                            // This should only happen if value was set through the scripting system by another plug-in.
+                            continue;
+                        }
+
+                        options.pq.nominalPeakBrightness = integerValue;
+                        options.format = LoadOptionsHDRFormat::PQ;
                     }
                     break;
                 }
@@ -240,16 +256,23 @@ OSErr WriteScriptParamsOnRead(FormatRecordPtr formatRecord, const LoadUIOptions&
         PIWriteDescriptor token = writeProcs->openWriteDescriptorProc();
         if (token != nullptr)
         {
-            if (!options.applyHLGOOTF)
+            if (options.format == LoadOptionsHDRFormat::HLG)
             {
-                writeProcs->putBooleanProc(token, keyApplyHLGOOTF, options.applyHLGOOTF);
+                if (!options.hlg.applyOOTF)
+                {
+                    writeProcs->putBooleanProc(token, keyApplyHLGOOTF, options.hlg.applyOOTF);
+                }
+
+                real64 displayGamma64 = options.hlg.displayGamma;
+
+                writeProcs->putFloatProc(token, keyHLGDisplayGamma, &displayGamma64);
+
+                writeProcs->putIntegerProc(token, keyHLGNominalPeakBrightness, options.hlg.nominalPeakBrightness);
             }
-
-            real64 displayGamma64 = options.displayGamma;
-
-            writeProcs->putFloatProc(token, keyDisplayGamma, &displayGamma64);
-
-            writeProcs->putIntegerProc(token, keyNominalPeakBrightness, options.nominalPeakBrightness);
+            else if (options.format == LoadOptionsHDRFormat::PQ)
+            {
+                writeProcs->putIntegerProc(token, keyPQNominalPeakBrightness, options.pq.nominalPeakBrightness);
+            }
 
             error = writeProcs->closeWriteDescriptorProc(token, &formatRecord->descriptorParameters->descriptor);
         }
@@ -282,6 +305,8 @@ OSErr ReadScriptParamsOnWrite(FormatRecordPtr formatRecord, SaveUIOptions& optio
             keyKeepEXIF,
             keyKeepXMP,
             keyImageBitDepth,
+            keyHDRTransferFunction,
+            keyPQNominalPeakBrightness,
             NULLID
         };
 
@@ -362,6 +387,19 @@ OSErr ReadScriptParamsOnWrite(FormatRecordPtr formatRecord, SaveUIOptions& optio
                     if (readProcs->getEnumeratedProc(token, &enumValue) == noErr)
                     {
                         options.hdrTransferFunction = HDRTransferFunctionFromDescriptor(enumValue);
+                    }
+                    break;
+                case keyPQNominalPeakBrightness:
+                    if (readProcs->getIntegerProc(token, &intValue) == noErr)
+                    {
+                        if (intValue < nominalPeakBrightnessMin || intValue > nominalPeakBrightnessMax)
+                        {
+                            // Use the default value if the scripting parameter value is out of range.
+                            // This should only happen if value was set through the scripting system by another plug-in.
+                            continue;
+                        }
+
+                        options.pq.nominalPeakBrightness = intValue;
                     }
                     break;
                 }
@@ -463,6 +501,8 @@ OSErr WriteScriptParamsOnWrite(FormatRecordPtr formatRecord, const SaveUIOptions
 
             enumValue = ImageBitDepthToDescriptor(imageBitDepth);
             writeProcs->putEnumeratedProc(token, keyImageBitDepth, typeImageBitDepth, enumValue);
+
+            writeProcs->putIntegerProc(token, keyPQNominalPeakBrightness, options.pq.nominalPeakBrightness);
 
             error = writeProcs->closeWriteDescriptorProc(token, &formatRecord->descriptorParameters->descriptor);
         }

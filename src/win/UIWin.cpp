@@ -184,15 +184,13 @@ namespace
         return FALSE;
     }
 
-    class LoadDialog
+    class HLGLoadDialog
     {
     public:
 
-        LoadDialog(const LoadUIOptions& loadOptions)
+        HLGLoadDialog(const LoadUIOptions& loadOptions)
         {
-            options.applyHLGOOTF = loadOptions.applyHLGOOTF;
-            options.displayGamma = loadOptions.displayGamma;
-            options.nominalPeakBrightness = loadOptions.nominalPeakBrightness;
+            options = loadOptions.hlg;
 
             ZeroMemory(decimalSeparator, sizeof(decimalSeparator));
             ZeroMemory(thousandsSeparator, sizeof(thousandsSeparator));
@@ -239,27 +237,27 @@ namespace
                 thousandsSeparatorLength = 1;
             }
 
-            FormatDisplayGammaFloat(loadOptions.displayGamma);
+            FormatDisplayGammaFloat(options.displayGamma);
         }
 
-        const LoadUIOptions& GetLoadOptions() const
+        const HLGOptions& GetLoadOptions() const
         {
             return options;
         }
 
         static INT_PTR CALLBACK StaticDlgProc(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lParam)
         {
-            LoadDialog* dialog;
+            HLGLoadDialog* dialog;
 
             if (wMsg == WM_INITDIALOG)
             {
-                dialog = reinterpret_cast<LoadDialog*>(lParam);
+                dialog = reinterpret_cast<HLGLoadDialog*>(lParam);
 
                 SetWindowLongPtr(hDlg, DWLP_USER, reinterpret_cast<LONG_PTR>(dialog));
             }
             else
             {
-                dialog = reinterpret_cast<LoadDialog*>(GetWindowLongPtr(hDlg, DWLP_USER));
+                dialog = reinterpret_cast<HLGLoadDialog*>(GetWindowLongPtr(hDlg, DWLP_USER));
             }
 
             if (dialog != nullptr)
@@ -292,7 +290,7 @@ namespace
             HWND peakBrightnessEdit = GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_EDIT);
             HWND peakBrightnessSpin = GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_SPIN);
 
-            Button_SetCheck(applyOOTFCheck, options.applyHLGOOTF ? BST_CHECKED : BST_UNCHECKED);
+            Button_SetCheck(applyOOTFCheck, options.applyOOTF ? BST_CHECKED : BST_UNCHECKED);
 
             Edit_SetText(displayGammaEdit, lastValidDisplayGammaStr);
 
@@ -300,7 +298,7 @@ namespace
             SendMessage(peakBrightnessSpin, UDM_SETRANGE, 0, MAKELPARAM(10000, 0));
             SendMessage(peakBrightnessSpin, UDM_SETPOS, 0, static_cast<LPARAM>(options.nominalPeakBrightness));
 
-            if (!options.applyHLGOOTF)
+            if (!options.applyOOTF)
             {
                 EnableWindow(displayGammaLabel, false);
                 EnableWindow(displayGammaEdit, false);
@@ -333,8 +331,8 @@ namespace
                     switch (item)
                     {
                     case IDC_APPLY_HLG_OOTF:
-                        options.applyHLGOOTF = Button_GetCheck(controlHwnd) == BST_CHECKED;
-                        EnableOOTFControls(hDlg, options.applyHLGOOTF);
+                        options.applyOOTF = Button_GetCheck(controlHwnd) == BST_CHECKED;
+                        EnableOOTFControls(hDlg, options.applyOOTF);
                         break;
                     case IDOK:
                     case IDCANCEL:
@@ -679,13 +677,257 @@ namespace
         static constexpr int DisplayGammaBufferSize = 12;
         static constexpr int PeakBrightnessBufferSize = 12;
 
-        LoadUIOptions options;
+        HLGOptions options;
         WCHAR decimalSeparator[4];
         int decimalSeparatorLength;
         WCHAR thousandsSeparator[4];
         int thousandsSeparatorLength;
         WCHAR lastValidDisplayGammaStr[DisplayGammaBufferSize];
         bool displayGammaTextUpdating;
+        WCHAR lastValidPeakBrightnessStr[PeakBrightnessBufferSize];
+        bool peakBrightnessTextUpdating;
+    };
+
+    class PQLoadDialog
+    {
+    public:
+
+        PQLoadDialog(const LoadUIOptions& loadOptions)
+        {
+            options = loadOptions.pq;
+
+            ZeroMemory(thousandsSeparator, sizeof(thousandsSeparator));
+            ZeroMemory(lastValidPeakBrightnessStr, sizeof(lastValidPeakBrightnessStr));
+            peakBrightnessTextUpdating = false;
+
+            WCHAR buffer[4]{};
+
+            // MSDN documents LOCALE_SDECIMAL as requiring at most 4 characters.
+
+            thousandsSeparatorLength = GetLocaleInfoW(
+                LOCALE_USER_DEFAULT,
+                LOCALE_STHOUSAND,
+                buffer,
+                _countof(buffer)) - 1; // Remove the terminator from the total
+
+            if (thousandsSeparatorLength > 0 && thousandsSeparatorLength <= 3)
+            {
+                wmemcpy_s(thousandsSeparator, _countof(thousandsSeparator) - 1, buffer, thousandsSeparatorLength);
+            }
+            else
+            {
+                thousandsSeparator[0] = ',';
+                thousandsSeparatorLength = 1;
+            }
+        }
+
+        const PQOptions& GetLoadOptions() const
+        {
+            return options;
+        }
+
+        static INT_PTR CALLBACK StaticDlgProc(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lParam)
+        {
+            PQLoadDialog* dialog;
+
+            if (wMsg == WM_INITDIALOG)
+            {
+                dialog = reinterpret_cast<PQLoadDialog*>(lParam);
+
+                SetWindowLongPtr(hDlg, DWLP_USER, reinterpret_cast<LONG_PTR>(dialog));
+            }
+            else
+            {
+                dialog = reinterpret_cast<PQLoadDialog*>(GetWindowLongPtr(hDlg, DWLP_USER));
+            }
+
+            if (dialog != nullptr)
+            {
+                return dialog->DlgProc(hDlg, wMsg, wParam, lParam);
+            }
+            else
+            {
+                return FALSE;
+            }
+        }
+
+    private:
+
+        void InitializeDialog(HWND hDlg) noexcept
+        {
+            HWND peakBrightnessEdit = GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_EDIT);
+            HWND peakBrightnessSpin = GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_SPIN);
+
+            SendMessage(peakBrightnessSpin, UDM_SETBUDDY, reinterpret_cast<WPARAM>(peakBrightnessEdit), 0);
+            SendMessage(peakBrightnessSpin, UDM_SETRANGE, 0, MAKELPARAM(10000, 0));
+            SendMessage(peakBrightnessSpin, UDM_SETPOS, 0, static_cast<LPARAM>(options.nominalPeakBrightness));
+        }
+
+        INT_PTR CALLBACK DlgProc(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lParam) noexcept
+        {
+            int item;
+            int cmd;
+            HWND controlHwnd;
+
+            switch (wMsg)
+            {
+            case WM_INITDIALOG:
+                CenterDialog(hDlg);
+                InitializeDialog(hDlg);
+                return TRUE;
+            case WM_COMMAND:
+                item = LOWORD(wParam);
+                cmd = HIWORD(wParam);
+
+                if (cmd == BN_CLICKED)
+                {
+                    controlHwnd = reinterpret_cast<HWND>(lParam);
+
+                    switch (item)
+                    {
+                    case IDOK:
+                    case IDCANCEL:
+                        EndDialog(hDlg, item);
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                else if (cmd == EN_CHANGE)
+                {
+                    controlHwnd = reinterpret_cast<HWND>(lParam);
+
+                    if (item == IDC_PEAK_BRIGHTNESS_EDIT)
+                    {
+                        OnUpdatePeakBrightnessText(hDlg, controlHwnd);
+                    }
+                }
+
+                break;
+            }
+
+            return FALSE;
+        }
+
+        void OnUpdatePeakBrightnessText(HWND hDlg, HWND editBoxHwnd)
+        {
+            if (peakBrightnessTextUpdating)
+            {
+                return;
+            }
+
+            bool valid = false;
+
+            const int length = GetWindowTextLengthW(editBoxHwnd);
+
+            WCHAR windowTextBuffer[PeakBrightnessBufferSize]{};
+            int value = 0;
+
+            if (length > 0 && length < PeakBrightnessBufferSize)
+            {
+                GetWindowTextW(editBoxHwnd, windowTextBuffer, PeakBrightnessBufferSize - 1);
+
+                bool isNumber = true;
+
+                for (int i = 0; i < length; i++)
+                {
+                    const WCHAR c = windowTextBuffer[i];
+
+                    if (!std::iswdigit(c) && wcsncmp(&windowTextBuffer[i], thousandsSeparator, thousandsSeparatorLength) != 0)
+                    {
+                        // Unknown character in the string.
+                        isNumber = false;
+                        break;
+                    }
+                }
+
+                if (isNumber && TryParsePeakBrightnessText(windowTextBuffer, length, value))
+                {
+                    if (value < nominalPeakBrightnessMin)
+                    {
+                        SendMessage(
+                            GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_SPIN),
+                            UDM_SETPOS,
+                            0,
+                            static_cast<LPARAM>(nominalPeakBrightnessMin));
+                    }
+                    else if (value > nominalPeakBrightnessMax)
+                    {
+                        SendMessage(
+                            GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_SPIN),
+                            UDM_SETPOS,
+                            0,
+                            static_cast<LPARAM>(nominalPeakBrightnessMax));
+                    }
+                    else
+                    {
+                        valid = true;
+                    }
+                }
+            }
+
+            if (valid)
+            {
+                wcscpy_s(lastValidPeakBrightnessStr, windowTextBuffer);
+
+                options.nominalPeakBrightness = value;
+            }
+            else
+            {
+                peakBrightnessTextUpdating = true;
+
+                SetWindowTextW(editBoxHwnd, lastValidPeakBrightnessStr);
+
+                peakBrightnessTextUpdating = false;
+            }
+        }
+
+        bool TryParsePeakBrightnessText(const wchar_t* text, size_t length, int& value)
+        {
+            bool result = false;
+
+            if (length >= 1 && length < static_cast<size_t>(PeakBrightnessBufferSize))
+            {
+                WCHAR numberBuffer[PeakBrightnessBufferSize]{};
+                bool isValid = true;
+
+                for (size_t i = 0, j = 0; i < length; i++)
+                {
+                    const WCHAR c = text[i];
+
+                    if (std::iswdigit(c))
+                    {
+                        numberBuffer[j++] = c;
+                    }
+                    else
+                    {
+                        if (wcsncmp(&text[i], thousandsSeparator, thousandsSeparatorLength) != 0)
+                        {
+                            // Unknown character in the string.
+                            isValid = false;
+                            break;
+                        }
+                    }
+                }
+
+                // The "C" locale is used to ensure the parsing behavior is not affected by the system locale.
+                static _locale_t locale = _create_locale(LC_ALL, "C");
+
+                if (isValid)
+                {
+                    value = _wcstol_l(numberBuffer, nullptr, 10, locale);
+                    result = true;
+                }
+            }
+
+            return result;
+        }
+
+        static constexpr int PeakBrightnessBufferSize = 12;
+
+        PQOptions options;
+        WCHAR thousandsSeparator[4];
+        int thousandsSeparatorLength;
         WCHAR lastValidPeakBrightnessStr[PeakBrightnessBufferSize];
         bool peakBrightnessTextUpdating;
     };
@@ -706,14 +948,40 @@ namespace
             colorProfileCheckboxEnabled(hasColorProfile && (formatRecord->depth != 32 || saveOptions.hdrTransferFunction == ColorTransferFunction::Clip)),
             colorProfileChecked(false),
             premultipliedAlphaCheckboxEnabled(hasAlphaChannel && (formatRecord->depth != 32 || saveOptions.hdrTransferFunction == ColorTransferFunction::Clip)),
-            premultipliedAlphaChecked(false)
+            premultipliedAlphaChecked(false),
+            peakBrightnessControlsEnabled(formatRecord->depth == 32 && saveOptions.hdrTransferFunction == ColorTransferFunction::PQ),
+            peakBrightnessTextUpdating(false)
         {
+            ZeroMemory(thousandsSeparator, sizeof(thousandsSeparator));
+            ZeroMemory(lastValidPeakBrightnessStr, sizeof(lastValidPeakBrightnessStr));
+
+            WCHAR buffer[4]{};
+
+            // MSDN documents LOCALE_SDECIMAL as requiring at most 4 characters.
+
+            thousandsSeparatorLength = GetLocaleInfoW(
+                LOCALE_USER_DEFAULT,
+                LOCALE_STHOUSAND,
+                buffer,
+                _countof(buffer)) - 1; // Remove the terminator from the total
+
+            if (thousandsSeparatorLength > 0 && thousandsSeparatorLength <= 3)
+            {
+                wmemcpy_s(thousandsSeparator, _countof(thousandsSeparator) - 1, buffer, thousandsSeparatorLength);
+            }
+            else
+            {
+                thousandsSeparator[0] = ',';
+                thousandsSeparatorLength = 1;
+            }
+
             options.quality = saveOptions.quality;
             // YUV 4:2:0 is used for monochrome images because AOM does not have a YUV 4:0:0 mode.
             options.chromaSubsampling = monochrome ? ChromaSubsampling::Yuv420 : saveOptions.chromaSubsampling;
             options.compressionSpeed = saveOptions.compressionSpeed;
             options.imageBitDepth = formatRecord->depth == 8 ? ImageBitDepth::Eight : saveOptions.imageBitDepth;
             options.hdrTransferFunction = saveOptions.hdrTransferFunction;
+            options.pq.nominalPeakBrightness = saveOptions.pq.nominalPeakBrightness;
             options.lossless = saveOptions.lossless;
             options.losslessAlpha = saveOptions.losslessAlpha;
             options.keepColorProfile = saveOptions.keepColorProfile && hasColorProfile && colorProfileCheckboxEnabled;
@@ -788,6 +1056,10 @@ namespace
             HWND pixelDepthCombo = GetDlgItem(hDlg, IDC_IMAGE_DEPTH_COMBO);
             HWND hdrTransferCharacteristicsLabel = GetDlgItem(hDlg, IDC_HDR_TRANSFER_CHARACTERISTICS_LABEL);
             HWND hdrTransferCharacteristicsCombo = GetDlgItem(hDlg, IDC_HDR_TRANSFER_CHARACTERISTICS_COMBO);
+            HWND peakBrightnessEdit = GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_EDIT);
+            HWND peakBrightnessLabel = GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_LABEL);
+            HWND peakBrightnessSpin = GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_SPIN);
+            HWND peakBrightnessUnitLabel = GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_UNIT_LABEL);
             HWND hdrInfoLabel = GetDlgItem(hDlg, IDC_HDRINFOLABEL);
 
             SendMessage(qualitySlider, TBM_SETRANGEMIN, FALSE, 0);
@@ -805,6 +1077,10 @@ namespace
             EnableLossyCompressionSettings(hDlg, !options.lossless);
             Button_SetCheck(losslessAlphaCheckbox, hasAlphaChannel && options.losslessAlpha);
             EnableWindow(losslessAlphaCheckbox, hasAlphaChannel);
+
+            SendMessage(peakBrightnessSpin, UDM_SETBUDDY, reinterpret_cast<WPARAM>(peakBrightnessEdit), 0);
+            SendMessage(peakBrightnessSpin, UDM_SETRANGE, 0, MAKELPARAM(10000, 0));
+            SendMessage(peakBrightnessSpin, UDM_SETPOS, 0, static_cast<LPARAM>(options.pq.nominalPeakBrightness));
 
             constexpr int resourceBufferLength = 256;
             TCHAR resourceBuffer[resourceBufferLength]{};
@@ -855,6 +1131,10 @@ namespace
             {
                 EnableWindow(hdrTransferCharacteristicsLabel, FALSE);
                 EnableWindow(hdrTransferCharacteristicsCombo, FALSE);
+                EnableWindow(peakBrightnessEdit, FALSE);
+                EnableWindow(peakBrightnessLabel, FALSE);
+                EnableWindow(peakBrightnessSpin, FALSE);
+                EnableWindow(peakBrightnessUnitLabel, FALSE);
                 EnableWindow(hdrInfoLabel, FALSE);
             }
 
@@ -1229,17 +1509,51 @@ namespace
                                 break;
                             }
                         }
+
+                        if (value == 0)
+                        {
+                            if (!peakBrightnessControlsEnabled)
+                            {
+                                peakBrightnessControlsEnabled = true;
+
+                                EnableWindow(GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_EDIT), TRUE);
+                                EnableWindow(GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_LABEL), TRUE);
+                                EnableWindow(GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_SPIN), TRUE);
+                                EnableWindow(GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_UNIT_LABEL), TRUE);
+                            }
+                        }
+                        else
+                        {
+                            if (peakBrightnessControlsEnabled)
+                            {
+                                peakBrightnessControlsEnabled = false;
+
+                                EnableWindow(GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_EDIT), FALSE);
+                                EnableWindow(GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_LABEL), FALSE);
+                                EnableWindow(GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_SPIN), FALSE);
+                                EnableWindow(GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_UNIT_LABEL), FALSE);
+                            }
+                        }
                     }
                 }
-                else if (item == IDC_QUALITY_EDIT && cmd == EN_CHANGE)
+                else if (cmd == EN_CHANGE)
                 {
-                    BOOL translated;
-                    value = static_cast<int>(GetDlgItemInt(hDlg, IDC_QUALITY_EDIT, &translated, true));
-
-                    if (translated && value >= 0 && value <= 100 && options.quality != value)
+                    if (item == IDC_QUALITY_EDIT)
                     {
-                        options.quality = value;
-                        SendMessage(GetDlgItem(hDlg, IDC_QUALITY_SLIDER), TBM_SETPOS, TRUE, value);
+                        BOOL translated;
+                        value = static_cast<int>(GetDlgItemInt(hDlg, IDC_QUALITY_EDIT, &translated, true));
+
+                        if (translated && value >= 0 && value <= 100 && options.quality != value)
+                        {
+                            options.quality = value;
+                            SendMessage(GetDlgItem(hDlg, IDC_QUALITY_SLIDER), TBM_SETPOS, TRUE, value);
+                        }
+                    }
+                    else if (item == IDC_PEAK_BRIGHTNESS_EDIT)
+                    {
+                        controlHwnd = reinterpret_cast<HWND>(lParam);
+
+                        OnUpdatePeakBrightnessText(hDlg, controlHwnd);
                     }
                 }
                 break;
@@ -1271,6 +1585,122 @@ namespace
             return FALSE;
         }
 
+        void OnUpdatePeakBrightnessText(HWND hDlg, HWND editBoxHwnd)
+        {
+            if (peakBrightnessTextUpdating)
+            {
+                return;
+            }
+
+            bool valid = false;
+
+            const int length = GetWindowTextLengthW(editBoxHwnd);
+
+            WCHAR windowTextBuffer[PeakBrightnessBufferSize]{};
+            int value = 0;
+
+            if (length > 0 && length < PeakBrightnessBufferSize)
+            {
+                GetWindowTextW(editBoxHwnd, windowTextBuffer, PeakBrightnessBufferSize - 1);
+
+                bool isNumber = true;
+
+                for (int i = 0; i < length; i++)
+                {
+                    const WCHAR c = windowTextBuffer[i];
+
+                    if (!std::iswdigit(c) && wcsncmp(&windowTextBuffer[i], thousandsSeparator, thousandsSeparatorLength) != 0)
+                    {
+                        // Unknown character in the string.
+                        isNumber = false;
+                        break;
+                    }
+                }
+
+                if (isNumber && TryParsePeakBrightnessText(windowTextBuffer, length, value))
+                {
+                    if (value < nominalPeakBrightnessMin)
+                    {
+                        SendMessage(
+                            GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_SPIN),
+                            UDM_SETPOS,
+                            0,
+                            static_cast<LPARAM>(nominalPeakBrightnessMin));
+                    }
+                    else if (value > nominalPeakBrightnessMax)
+                    {
+                        SendMessage(
+                            GetDlgItem(hDlg, IDC_PEAK_BRIGHTNESS_SPIN),
+                            UDM_SETPOS,
+                            0,
+                            static_cast<LPARAM>(nominalPeakBrightnessMax));
+                    }
+                    else
+                    {
+                        valid = true;
+                    }
+                }
+            }
+
+            if (valid)
+            {
+                wcscpy_s(lastValidPeakBrightnessStr, windowTextBuffer);
+
+                options.pq.nominalPeakBrightness = value;
+            }
+            else
+            {
+                peakBrightnessTextUpdating = true;
+
+                SetWindowTextW(editBoxHwnd, lastValidPeakBrightnessStr);
+
+                peakBrightnessTextUpdating = false;
+            }
+        }
+
+        bool TryParsePeakBrightnessText(const wchar_t* text, size_t length, int& value)
+        {
+            bool result = false;
+
+            if (length >= 1 && length < static_cast<size_t>(PeakBrightnessBufferSize))
+            {
+                WCHAR numberBuffer[PeakBrightnessBufferSize]{};
+                bool isValid = true;
+
+                for (size_t i = 0, j = 0; i < length; i++)
+                {
+                    const WCHAR c = text[i];
+
+                    if (std::iswdigit(c))
+                    {
+                        numberBuffer[j++] = c;
+                    }
+                    else
+                    {
+                        if (wcsncmp(&text[i], thousandsSeparator, thousandsSeparatorLength) != 0)
+                        {
+                            // Unknown character in the string.
+                            isValid = false;
+                            break;
+                        }
+                    }
+                }
+
+                // The "C" locale is used to ensure the parsing behavior is not affected by the system locale.
+                static _locale_t locale = _create_locale(LC_ALL, "C");
+
+                if (isValid)
+                {
+                    value = _wcstol_l(numberBuffer, nullptr, 10, locale);
+                    result = true;
+                }
+            }
+
+            return result;
+        }
+
+        static constexpr int PeakBrightnessBufferSize = 12;
+
         SaveUIOptions options;
         const int16 hostImageDepth;
         const bool hasColorProfile;
@@ -1283,6 +1713,11 @@ namespace
         bool colorProfileChecked;
         bool premultipliedAlphaCheckboxEnabled;
         bool premultipliedAlphaChecked;
+        bool peakBrightnessControlsEnabled;
+        WCHAR thousandsSeparator[4];
+        int thousandsSeparatorLength;
+        WCHAR lastValidPeakBrightnessStr[PeakBrightnessBufferSize];
+        bool peakBrightnessTextUpdating;
     };
 }
 
@@ -1295,26 +1730,53 @@ void DoAbout(const AboutRecordPtr aboutRecord)
     DialogBoxParam(GetModuleInstanceHandle(), MAKEINTRESOURCE(IDD_ABOUT), parent, AboutDlgProc, 0);
 }
 
-bool DoLoadUI(const FormatRecordPtr formatRecord, LoadUIOptions& options)
+bool DoHLGLoadUI(const FormatRecordPtr formatRecord, LoadUIOptions& options)
 {
     PlatformData* platform = static_cast<PlatformData*>(formatRecord->platformData);
 
     HWND parent = platform != nullptr ? reinterpret_cast<HWND>(platform->hwnd) : nullptr;
 
-    LoadDialog dialog(options);
+    HLGLoadDialog dialog(options);
 
     if (DialogBoxParam(
         GetModuleInstanceHandle(),
-        MAKEINTRESOURCE(IDD_LOAD),
+        MAKEINTRESOURCE(IDD_HLGLOAD),
         parent,
-        LoadDialog::StaticDlgProc,
+        HLGLoadDialog::StaticDlgProc,
         reinterpret_cast<LPARAM>(&dialog)) == IDOK)
     {
-        const LoadUIOptions& dialogOptions = dialog.GetLoadOptions();
+        const HLGOptions& dialogOptions = dialog.GetLoadOptions();
 
-        options.applyHLGOOTF = dialogOptions.applyHLGOOTF;
-        options.displayGamma = dialogOptions.displayGamma;
-        options.nominalPeakBrightness = dialogOptions.nominalPeakBrightness;
+        options.hlg = dialogOptions;
+        options.format = LoadOptionsHDRFormat::HLG;
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool DoPQLoadUI(const FormatRecordPtr formatRecord, LoadUIOptions& options)
+{
+    PlatformData* platform = static_cast<PlatformData*>(formatRecord->platformData);
+
+    HWND parent = platform != nullptr ? reinterpret_cast<HWND>(platform->hwnd) : nullptr;
+
+    PQLoadDialog dialog(options);
+
+    if (DialogBoxParam(
+        GetModuleInstanceHandle(),
+        MAKEINTRESOURCE(IDD_PQLOAD),
+        parent,
+        PQLoadDialog::StaticDlgProc,
+        reinterpret_cast<LPARAM>(&dialog)) == IDOK)
+    {
+        const PQOptions& dialogOptions = dialog.GetLoadOptions();
+
+        options.pq = dialogOptions;
+        options.format = LoadOptionsHDRFormat::PQ;
 
         return true;
     }
