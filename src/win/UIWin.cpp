@@ -1810,6 +1810,7 @@ bool DoSaveUI(const FormatRecordPtr formatRecord, SaveUIOptions& options)
         options.losslessAlpha = dialogOptions.losslessAlpha;
         options.imageBitDepth = dialogOptions.imageBitDepth;
         options.hdrTransferFunction = dialogOptions.hdrTransferFunction;
+        options.pq.nominalPeakBrightness = dialogOptions.pq.nominalPeakBrightness;
         options.keepColorProfile = dialogOptions.keepColorProfile;
         options.keepExif = dialogOptions.keepExif;
         options.keepXmp = dialogOptions.keepXmp;
