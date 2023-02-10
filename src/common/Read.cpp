@@ -199,6 +199,22 @@ namespace
         return result;
     }
 
+    int GetMaxContentLightLevel(const heif_image* image)
+    {
+        int maxContentLightLevel = 0;
+
+        if (heif_image_has_content_light_level(image))
+        {
+            heif_content_light_level contentLightLevel;
+
+            heif_image_get_content_light_level(image, &contentLightLevel);
+
+            maxContentLightLevel = contentLightLevel.max_content_light_level;
+        }
+
+        return maxContentLightLevel;
+    }
+
     void SetRevertInfo(FormatRecordPtr formatRecord, const LoadUIOptions& options)
     {
         if (HandleSuiteIsAvailable(formatRecord))
@@ -355,6 +371,30 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
             const heif_colorspace colorSpace = heif_image_get_colorspace(image.get());
             const heif_chroma chroma = heif_image_get_chroma_format(image.get());
             const heif_transfer_characteristics transferCharacteristic = GetNclxTransferCharacteristics(imageHandleNclxProfile.get());
+
+            if (lumaBitsPerPixel == 10 || lumaBitsPerPixel == 12)
+            {
+                if (transferCharacteristic == heif_transfer_characteristic_ITU_R_BT_2100_0_PQ ||
+                    transferCharacteristic == heif_transfer_characteristic_ITU_R_BT_2100_0_HLG)
+                {
+                    int maxContentLightLevel = GetMaxContentLightLevel(image.get());
+
+                    if (maxContentLightLevel >= nominalPeakBrightnessMin && maxContentLightLevel <= nominalPeakBrightnessMax)
+                    {
+                        // If the image specifies a maximum content light level within the supported range, this value will
+                        // be used as the default peak brightness in the load dialogs.
+                        switch (transferCharacteristic)
+                        {
+                        case heif_transfer_characteristic_ITU_R_BT_2100_0_PQ:
+                            globals->loadOptions.pq.nominalPeakBrightness = maxContentLightLevel;
+                            break;
+                        case heif_transfer_characteristic_ITU_R_BT_2100_0_HLG:
+                            globals->loadOptions.hlg.nominalPeakBrightness = maxContentLightLevel;
+                            break;
+                        }
+                    }
+                }
+            }
 
             if (colorSpace == heif_colorspace_monochrome)
             {

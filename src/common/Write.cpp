@@ -91,6 +91,16 @@ namespace
 
         AddColorProfileToImage(formatRecord, image, saveOptions);
 
+        if (formatRecord->depth == 32 && saveOptions.hdrTransferFunction == ColorTransferFunction::PQ)
+        {
+            // Set the maximum content light level to the peak brightness selected by the user.
+            heif_content_light_level contentLightLevel{};
+            contentLightLevel.max_content_light_level = static_cast<uint16_t>(saveOptions.pq.nominalPeakBrightness);
+            contentLightLevel.max_pic_average_light_level = 0; // Zero indicates that the value is undefined.
+
+            heif_image_set_content_light_level(image, &contentLightLevel);
+        }
+
         ScopedHeifEncoder encoder = GetAOMEncoder(context);
 
         if (saveOptions.lossless)
