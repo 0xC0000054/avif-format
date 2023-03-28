@@ -387,6 +387,7 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
                         {
                         case heif_transfer_characteristic_ITU_R_BT_2100_0_PQ:
                             globals->loadOptions.pq.nominalPeakBrightness = maxContentLightLevel;
+                            showPQImportDialog = false;
                             break;
                         case heif_transfer_characteristic_ITU_R_BT_2100_0_HLG:
                             globals->loadOptions.hlg.nominalPeakBrightness = maxContentLightLevel;
