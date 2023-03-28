@@ -388,6 +388,10 @@ OSErr DoReadStart(FormatRecordPtr formatRecord, Globals* globals)
                         case heif_transfer_characteristic_ITU_R_BT_2100_0_PQ:
                             globals->loadOptions.pq.nominalPeakBrightness = maxContentLightLevel;
                             showPQImportDialog = false;
+                            // Set the revert info for the document. This is normally set after the PQ import dialog is shown, but
+                            // that dialog is skipped when the peak brightness can be determined from the image meta-data.
+                            globals->loadOptions.format = LoadOptionsHDRFormat::PQ;
+                            SetRevertInfo(formatRecord, globals->loadOptions);
                             break;
                         case heif_transfer_characteristic_ITU_R_BT_2100_0_HLG:
                             globals->loadOptions.hlg.nominalPeakBrightness = maxContentLightLevel;
