@@ -4,6 +4,9 @@ An AV1 Image (AVIF) file format plug-in for Adobe® Photoshop®.
 
 Single images can be loaded and saved using 8, 10 or 12 bits-per-channel, image sequences and animations are not supported.
 
+Monochrome images will be loaded using the Grayscale image mode.
+To save an image as monochrome the document must be using the Grayscale image mode (either 8-bit or 16-bit).
+
 HDR files that use the Rec. 2100 PQ, Rec. 2100 HLG and SMPTE 428-1 transfer characteristics can be loaded and edited as 32-bits-per-channel documents.   
    
 32-bits-per-channel RGB documents can be saved as HDR AVIF files using the following transfer characteristics and bit-depths:   
